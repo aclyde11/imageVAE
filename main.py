@@ -61,9 +61,9 @@ if data_para and torch.cuda.device_count() > 1:
 
 model.to(device)
 
-optimizer = optim.Adam(model.parameters(), lr=LR)
-# optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-# sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
+#optimizer = optim.Adam(model.parameters(), lr=LR)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_mse = customLoss()
 
 val_losses = []
@@ -113,6 +113,7 @@ def test(epoch):
 
 
 for epoch in range(epochs + 1, 2 * epochs + 1):
+    sched.step()
     train(epoch)
     test(epoch)
     torch.save(model.module.state_dict(), 'epoch_' + str(epoch) + '.pt')
