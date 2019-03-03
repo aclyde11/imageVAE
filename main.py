@@ -15,7 +15,7 @@ from torch.autograd import Variable
 from torchvision.utils import save_image
 from model import VAE_CNN
 
-batch_size = 275 * 8
+batch_size = 32 * 8
 epochs = 50
 no_cuda = False
 seed = 5
