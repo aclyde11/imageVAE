@@ -21,7 +21,7 @@ no_cuda = False
 seed = 5
 data_para = True
 log_interval = 50
-LR = 0.01
+LR = 0.001
 cuda = not no_cuda and torch.cuda.is_available()
 
 torch.manual_seed(seed)
