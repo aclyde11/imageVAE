@@ -114,6 +114,8 @@ def test(epoch):
 
 for epoch in range(epochs + 1, 2 * epochs + 1):
     sched.step()
+    for param_group in optimizer.param_groups:
+        print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
     torch.save(model.module.state_dict(), 'epoch_' + str(epoch) + '.pt')
