@@ -29,8 +29,8 @@ torch.manual_seed(seed)
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
-train_root = '/homes/aclyde11/image_vae/draw2dPNG/train/'
-val_root = '/homes/aclyde11/image_vae/draw2dPNG/test/'
+train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
+val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
 
 train_loader_food = torch.utils.data.DataLoader(
     datasets.ImageFolder(train_root, transform=transforms.ToTensor()),
@@ -105,7 +105,7 @@ def test(epoch):
                 comparison = torch.cat([data[:n],
                                         recon_batch.view(batch_size, 3, 256, 256)[:n]])
                 save_image(comparison.cpu(),
-                           '/homes/aclyde11/image_vae/results/reconstruction_' + str(epoch) + '.png', nrow=n)
+                           '/homes/aclyde11/imageVAE/results/reconstruction_' + str(epoch) + '.png', nrow=n)
 
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
@@ -120,4 +120,4 @@ for epoch in range(epochs + 1, 2 * epochs + 1):
         sample = torch.randn(64, 2096).to(device)
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
-                   '/homes/aclyde11/image_vae/results/sample_' + str(epoch) + '.png')
+                   '/homes/aclyde11/imageVAE/results/sample_' + str(epoch) + '.png')
