@@ -21,7 +21,7 @@ no_cuda = False
 seed = 5
 data_para = True
 log_interval = 50
-LR = 0.0001
+LR = 0.01
 cuda = not no_cuda and torch.cuda.is_available()
 
 torch.manual_seed(seed)
@@ -62,7 +62,7 @@ if data_para and torch.cuda.device_count() > 1:
 model.to(device)
 
 #optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=0.9)
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_mse = customLoss()
 
