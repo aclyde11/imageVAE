@@ -15,7 +15,7 @@ from torch.autograd import Variable
 from torchvision.utils import save_image
 from model import VAE_CNN
 import numpy as np
-batch_size = 32 * 8
+BATCH_SIZE = 32 * 8
 epochs = 50
 no_cuda = False
 seed = 5
@@ -32,16 +32,17 @@ torch.manual_seed(seed)
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
+
 train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
 val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
 
-train_loader_food = torch.utils.data.DataLoader(
-    datasets.ImageFolder(train_root, transform=transforms.ToTensor()),
-    batch_size=batch_size, shuffle=False, **kwargs)
+def generate_data_loader(root, batch_size):
+    return torch.utils.data.DataLoader(
+        datasets.ImageFolder(root, transform=transforms.ToTensor()),
+        batch_size=batch_size, shuffle=False, **kwargs)
 
-val_loader_food = torch.utils.data.DataLoader(
-    datasets.ImageFolder(val_root, transform=transforms.ToTensor()),
-    batch_size=batch_size, shuffle=False, **kwargs)
+train_loader_food = generate_data_loader(train_root, batch_size=32)
+val_loader_food = generate_data_loader(val_root, batch_size=32)
 
 class customLoss(nn.Module):
     def __init__(self):
@@ -121,7 +122,8 @@ def test(epoch):
 for epoch in range(1, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-
+    val_loader_food = generate_data_loader(val_root, 32 * max(epoch, 16))
+    train_loader_food = generate_data_loader(train_root, 32 * max(epoch, 16))
     train(epoch)
     test(epoch)
     torch.save(model.module.state_dict(), 'epoch_' + str(epoch) + '.pt')
