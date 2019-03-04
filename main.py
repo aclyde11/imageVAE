@@ -15,7 +15,6 @@ from torch.autograd import Variable
 from torchvision.utils import save_image
 from model import VAE_CNN
 import numpy as np
-BATCH_SIZE = 32 * 8
 epochs = 50
 no_cuda = False
 seed = 5
@@ -41,8 +40,6 @@ def generate_data_loader(root, batch_size):
         datasets.ImageFolder(root, transform=transforms.ToTensor()),
         batch_size=batch_size, shuffle=False, **kwargs)
 
-train_loader_food = generate_data_loader(train_root, batch_size=32)
-val_loader_food = generate_data_loader(val_root, batch_size=32)
 
 class customLoss(nn.Module):
     def __init__(self):
@@ -74,7 +71,7 @@ train_losses = []
 
 
 def train(epoch):
-    train_loader_food = generate_data_loader(train_root, 32 * max(epoch, 32))
+    train_loader_food = generate_data_loader(train_root, 32 * min(epoch, 32))
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
@@ -99,7 +96,7 @@ def train(epoch):
 
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, 32 * max(epoch, 32))
+    val_loader_food = generate_data_loader(val_root, 32 * min(epoch, 32))
     model.eval()
     test_loss = 0
     with torch.no_grad():
