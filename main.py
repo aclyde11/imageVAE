@@ -15,13 +15,13 @@ from torch.autograd import Variable
 from torchvision.utils import save_image
 from model import VAE_CNN
 
-batch_size = 32 * 8
+batch_size = 128 * 8
 epochs = 50
 no_cuda = False
 seed = 5
 data_para = True
 log_interval = 50
-LR = 0.001
+LR = 0.00005
 cuda = not no_cuda and torch.cuda.is_available()
 
 torch.manual_seed(seed)
@@ -61,9 +61,9 @@ if data_para and torch.cuda.device_count() > 1:
 
 model.to(device)
 
-#optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=0.9)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
+optimizer = optim.Adam(model.parameters(), lr=LR)
+#optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=0.8, nesterov=True)
+#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_mse = customLoss()
 
 val_losses = []
@@ -113,14 +113,14 @@ def test(epoch):
 
 
 for epoch in range(epochs + 1, 2 * epochs + 1):
-    sched.step()
+ #   sched.step()
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
     torch.save(model.module.state_dict(), 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
-        sample = torch.randn(64, 2096).to(device)
+        sample = torch.randn(64, 2700).to(device)
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    '/homes/aclyde11/imageVAE/results/sample_' + str(epoch) + '.png')
