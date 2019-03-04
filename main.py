@@ -22,9 +22,9 @@ seed = 5
 data_para = True
 log_interval = 50
 LR = 0.0001
-rampDataSize = np.linspace(start=0.01, stop=1, num=10)
+rampDataSize = 0.25
 #rampDataSizeLength = np.linspace(start=2, stop=10, num=10)
-rampBatchSize = np.linspace(start=32, stop=batch_size, num=10)
+#rampBatchSize = np.linspace(start=32, stop=batch_size, num=10)
 cuda = not no_cuda and torch.cuda.is_available()
 
 torch.manual_seed(seed)
@@ -76,9 +76,8 @@ def train(epoch):
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
-
-        if epoch < rampDataSize.shape[0] and batch_idx > len(train_loader_food) * rampDataSize[epoch]:
-            print("Early stopping batch. Current epoch {} and rampSize {}".format(epoch, rampDataSize[epoch]))
+        print(batch_idx, len(train_loader_food) * rampDataSize)
+        if batch_idx > len(train_loader_food) * rampDataSize:
             break
         data = data.to(device)
         optimizer.zero_grad()
@@ -103,6 +102,8 @@ def test(epoch):
     test_loss = 0
     with torch.no_grad():
         for i, (data, _) in enumerate(val_loader_food):
+            if i > len(val_loader_food) * rampDataSize:
+                break
             data = data.to(device)
             recon_batch, mu, logvar = model(data)
             test_loss += loss_mse(recon_batch, data, mu, logvar).item()
