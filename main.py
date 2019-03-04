@@ -79,8 +79,8 @@ train_losses = []
 
 
 def train(epoch):
-    train_loader_food = generate_data_loader(train_root, 32 * min(epoch, 28))
-    print("Epoch {}: batch_size {}".format(epoch, 32 * min(epoch, 28)))
+    train_loader_food = generate_data_loader(train_root, min(32 * epoch, 256 * 4))
+    print("Epoch {}: batch_size {}".format(epoch, min(32 * epoch, 256 * 4)))
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
@@ -105,7 +105,7 @@ def train(epoch):
 
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, 32 * min(epoch, 28))
+    val_loader_food = generate_data_loader(val_root, min(32 * epoch, 256 * 4))
     model.eval()
     test_loss = 0
     with torch.no_grad():
@@ -118,7 +118,7 @@ def test(epoch):
             if i == 0:
                 n = min(data.size(0), 8)
                 comparison = torch.cat([data[:n],
-                                        recon_batch.view(32 * min(epoch, 28), 3, 256, 256)[:n]])
+                                        recon_batch.view(min(32 * epoch, 256 * 4), 3, 256, 256)[:n]])
                 save_image(comparison.cpu(),
                            '/homes/aclyde11/imageVAE/results/reconstruction_' + str(epoch) + '.png', nrow=n)
 
