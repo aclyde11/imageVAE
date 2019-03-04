@@ -20,7 +20,7 @@ no_cuda = False
 seed = 5
 data_para = True
 log_interval = 50
-LR = 0.0001
+LR = 0.001
 rampDataSize = 0.05
 #rampDataSizeLength = np.linspace(start=2, stop=10, num=10)
 #rampBatchSize = np.linspace(start=32, stop=batch_size, num=10)
@@ -110,7 +110,7 @@ def test(epoch):
             if i == 0:
                 n = min(data.size(0), 8)
                 comparison = torch.cat([data[:n],
-                                        recon_batch.view(32 * max(epoch, 32), 3, 256, 256)[:n]])
+                                        recon_batch.view(32 * min(epoch, 32), 3, 256, 256)[:n]])
                 save_image(comparison.cpu(),
                            '/homes/aclyde11/imageVAE/results/reconstruction_' + str(epoch) + '.png', nrow=n)
 
