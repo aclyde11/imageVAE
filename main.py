@@ -22,7 +22,7 @@ seed = 5
 data_para = True
 log_interval = 50
 LR = 0.0001
-rampDataSize = 0.25
+rampDataSize = 0.2
 #rampDataSizeLength = np.linspace(start=2, stop=10, num=10)
 #rampBatchSize = np.linspace(start=32, stop=batch_size, num=10)
 cuda = not no_cuda and torch.cuda.is_available()
@@ -76,7 +76,6 @@ def train(epoch):
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
-        print(batch_idx, len(train_loader_food), rampDataSize)
         if batch_idx > len(train_loader_food) * rampDataSize:
             break
         data = data.to(device)
