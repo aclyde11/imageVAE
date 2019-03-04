@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2,3,4,5,6,7'
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -74,6 +74,7 @@ train_losses = []
 
 
 def train(epoch):
+    train_loader_food = generate_data_loader(train_root, 32 * max(epoch, 32))
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
@@ -98,6 +99,7 @@ def train(epoch):
 
 
 def test(epoch):
+    val_loader_food = generate_data_loader(val_root, 32 * max(epoch, 32))
     model.eval()
     test_loss = 0
     with torch.no_grad():
@@ -110,7 +112,7 @@ def test(epoch):
             if i == 0:
                 n = min(data.size(0), 8)
                 comparison = torch.cat([data[:n],
-                                        recon_batch.view(batch_size, 3, 256, 256)[:n]])
+                                        recon_batch.view(32 * max(epoch, 32), 3, 256, 256)[:n]])
                 save_image(comparison.cpu(),
                            '/homes/aclyde11/imageVAE/results/reconstruction_' + str(epoch) + '.png', nrow=n)
 
@@ -122,8 +124,6 @@ def test(epoch):
 for epoch in range(1, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-    val_loader_food = generate_data_loader(val_root, 32 * max(epoch, 16))
-    train_loader_food = generate_data_loader(train_root, 32 * max(epoch, 16))
     train(epoch)
     test(epoch)
     torch.save(model.module.state_dict(), 'epoch_' + str(epoch) + '.pt')
