@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '4,5,6,7'
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -15,7 +15,7 @@ from torch.autograd import Variable
 from torchvision.utils import save_image
 from model import VAE_CNN
 import numpy as np
-batch_size = 128 * 8
+batch_size = 32 * 8
 epochs = 50
 no_cuda = False
 seed = 5
