@@ -14,14 +14,17 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 from torchvision.utils import save_image
 from model import VAE_CNN
-
+import numpy as np
 batch_size = 128 * 8
 epochs = 50
 no_cuda = False
 seed = 5
 data_para = True
 log_interval = 50
-LR = 0.00005
+LR = 0.0001
+rampDataSize = np.linspace(start=0.01, stop=1, num=10)
+#rampDataSizeLength = np.linspace(start=2, stop=10, num=10)
+rampBatchSize = np.linspace(start=32, stop=batch_size, num=10)
 cuda = not no_cuda and torch.cuda.is_available()
 
 torch.manual_seed(seed)
@@ -34,12 +37,11 @@ val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
 
 train_loader_food = torch.utils.data.DataLoader(
     datasets.ImageFolder(train_root, transform=transforms.ToTensor()),
-    batch_size=batch_size, shuffle=True, **kwargs)
+    batch_size=batch_size, shuffle=False, **kwargs)
 
 val_loader_food = torch.utils.data.DataLoader(
     datasets.ImageFolder(val_root, transform=transforms.ToTensor()),
-    batch_size=batch_size, shuffle=True, **kwargs)
-
+    batch_size=batch_size, shuffle=False, **kwargs)
 
 class customLoss(nn.Module):
     def __init__(self):
@@ -71,9 +73,13 @@ train_losses = []
 
 
 def train(epoch):
-    # model.train()
+    model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
+
+        if epoch < rampDataSize.shape[0] and batch_idx > len(train_loader_food) * rampDataSize[epoch]:
+            print("Early stopping batch. Current epoch {} and rampSize {}".format(epoch, rampDataSize[epoch]))
+            break
         data = data.to(device)
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
@@ -112,10 +118,10 @@ def test(epoch):
     val_losses.append(test_loss)
 
 
-for epoch in range(epochs + 1, 2 * epochs + 1):
- #   sched.step()
+for epoch in range(1, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
+
     train(epoch)
     test(epoch)
     torch.save(model.module.state_dict(), 'epoch_' + str(epoch) + '.pt')
