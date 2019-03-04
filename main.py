@@ -76,7 +76,7 @@ def train(epoch):
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
-        print(batch_idx, len(train_loader_food) * rampDataSize)
+        print(batch_idx, len(train_loader_food), rampDataSize)
         if batch_idx > len(train_loader_food) * rampDataSize:
             break
         data = data.to(device)
