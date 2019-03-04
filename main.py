@@ -17,7 +17,7 @@ from model import VAE_CNN
 import numpy as np
 epochs = 50
 no_cuda = False
-seed = 5
+seed = 42
 data_para = True
 log_interval = 50
 LR = 0.001
