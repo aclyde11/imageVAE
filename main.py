@@ -72,6 +72,7 @@ train_losses = []
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, 32 * min(epoch, 32))
+    print("Epoch {}: batch_size {}".format(epoch, 32 * min(epoch, 32)))
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
