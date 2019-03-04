@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '2,3,4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5,6,7'
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -15,15 +15,19 @@ from torch.autograd import Variable
 from torchvision.utils import save_image
 from model import VAE_CNN
 import numpy as np
+from utils import MS_SSIM
+
+starting_epoch=30
 epochs = 50
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 0.001
-rampDataSize = 0.05
-#rampDataSizeLength = np.linspace(start=2, stop=10, num=10)
-#rampBatchSize = np.linspace(start=32, stop=batch_size, num=10)
+LR = 0.001           ##adam rate
+rampDataSize = 0.1  ## data set size to use
+KLD_annealing = 0.1  ##set to 1 if not wanted.
+load_state = '/home/aclyde11/imageVAE/epoch_29.pt'
+
 cuda = not no_cuda and torch.cuda.is_available()
 
 torch.manual_seed(seed)
@@ -45,15 +49,19 @@ class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         self.mse_loss = nn.MSELoss(reduction="sum")
+        self.crispyLoss = MS_SSIM()
 
-    def forward(self, x_recon, x, mu, logvar):
+    def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + loss_KLD
-
+        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.5 * loss_cripsy
 
 model = VAE_CNN()
+if load_state is not None:
+    model.load_state_dict(load_state)
+
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
@@ -81,7 +89,7 @@ def train(epoch):
         data = data.to(device)
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
-        loss = loss_mse(recon_batch, data, mu, logvar)
+        loss = loss_mse(recon_batch, data, mu, logvar, epoch)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -119,12 +127,12 @@ def test(epoch):
     val_losses.append(test_loss)
 
 
-for epoch in range(1, epochs):
+for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
-    torch.save(model.module.state_dict(), 'epoch_' + str(epoch) + '.pt')
+    torch.save(model.module, 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 2700).to(device)
         sample = model.module.decode(sample).cpu()
