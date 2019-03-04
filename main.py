@@ -60,7 +60,7 @@ class customLoss(nn.Module):
 
 model = VAE_CNN()
 if load_state is not None:
-    model.load_state_dict(load_state)
+    model.load_state_dict(torch.load(load_state))
 
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
