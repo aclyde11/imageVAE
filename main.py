@@ -112,7 +112,7 @@ def interpolate_points(x,y, sampling):
     data_train = np.array([0, 1]).reshape(-1, 1)
     ln.fit(data_train, data)
 
-    return ln.predict(sampling)
+    return ln.predict(sampling.reshape(-1, 1))
 
 def test(epoch):
     val_loader_food = generate_data_loader(val_root, min(16 * epoch, 128 * 4))
