@@ -109,7 +109,7 @@ def interpolate_points(x,y, sampling):
     from sklearn.linear_model import LinearRegression
     ln = LinearRegression()
     data = np.stack((x,y))
-    data_train = np.array([0, 1])
+    data_train = np.array([0, 1]).reshape(-1, 1)
     ln.fit(data_train, data)
 
     return ln.predict(sampling)
