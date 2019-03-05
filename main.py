@@ -119,8 +119,10 @@ def test(epoch):
             data_latent = model.module.encode_latent_(data)
             pt_1 = data_latent[0,...].cpu().numpy()
             pt_2 = data_latent[1,...].cpu().numpy()
-            print(pt_1.shape, pt_2.shape)
-            sample_vec = np.meshgrid(*[np.linspace(i,j,n_samples_linspace)[:-1] for i,j in zip(pt_1.flatten(), pt_2.flatten())])
+            print("Point shapes: ", pt_1.shape, pt_2.shape)
+            distance = pt_2 - pt_1
+            print("Distance: ", distance.shape)
+            sample_vec = np.linspace(pt_1, pt_2, num=8, endpoint=True)
             images = model.module.decode(sample_vec)
 
             n = min(data.size(0), n_samples_linspace)
