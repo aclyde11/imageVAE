@@ -1,17 +1,10 @@
 import os
-
 os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5,6,7'
 
-import matplotlib.pyplot as plt
-import seaborn as sns
 import datetime
 import torch
-import os
-from skimage import io, transform
 from torch import nn, optim
-from torch.nn import functional as F
 from torchvision import datasets, transforms
-from torch.autograd import Variable
 from torchvision.utils import save_image
 from model import VAE_CNN
 import numpy as np
@@ -27,7 +20,7 @@ LR = 0.001           ##adam rate
 rampDataSize = 0.2 ## data set size to use
 KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
-model_load = 'epoch_56.pt'
+model_load = 'epoch_58.pt'
 cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1500000
 torch.manual_seed(seed)
@@ -49,12 +42,13 @@ class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         self.mse_loss = nn.MSELoss(reduction="sum")
-        self.crispyLoss = MS_SSIM()
+        #self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        loss_cripsy = self.crispyLoss(x_recon, x)
+        #loss_cripsy = self.crispyLoss(x_recon, x)
+        loss_cripsy=0
 
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.7 * loss_cripsy
 
@@ -81,15 +75,12 @@ loss_mse = customLoss()
 val_losses = []
 train_losses = []
 
-
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, min(16 * epoch, 128 * 4), int(rampDataSize * data_size))
     print("Epoch {}: batch_size {}".format(epoch, min(16 * epoch, 128 * 4)))
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
-        # if batch_idx > len(train_loader_food) * rampDataSize:
-        #     break
         data = data.cuda()
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
@@ -123,8 +114,6 @@ def test(epoch):
     test_loss = 0
     with torch.no_grad():
         for i, (data, _) in enumerate(val_loader_food):
-            # if i > len(val_loader_food) * rampDataSize:
-            #     break
             data = data.cuda()
             recon_batch, mu, logvar = model(data)
             test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
