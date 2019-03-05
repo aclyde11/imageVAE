@@ -24,7 +24,7 @@ seed = 42
 data_para = True
 log_interval = 50
 LR = 0.001           ##adam rate
-rampDataSize = 0.1  ## data set size to use
+rampDataSize = 0.15  ## data set size to use
 KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = '/home/aclyde11/imageVAE/epoch_29.pt'
 
