@@ -75,9 +75,13 @@ loss_mse = customLoss()
 val_losses = []
 train_losses = []
 
+
+def get_batch_size(epoch):
+    return min(32 * epoch, 256 * 8)
+
 def train(epoch):
-    train_loader_food = generate_data_loader(train_root, min(16 * epoch, 128 * 4), int(rampDataSize * data_size))
-    print("Epoch {}: batch_size {}".format(epoch, min(16 * epoch, 128 * 4)))
+    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
+    print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
@@ -109,7 +113,7 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, min(16 * epoch, 128 * 4), int(rampDataSize * data_size))
+    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(rampDataSize * data_size))
     model.eval()
     test_loss = 0
     with torch.no_grad():
@@ -146,15 +150,13 @@ def test(epoch):
                 ##
                 n = min(data.size(0), 8)
                 comparison = torch.cat([data[:n],
-                                        recon_batch.view(min(16 * epoch, 128 * 4), 3, 256, 256)[:n]])
+                                        recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
                 save_image(comparison.cpu(),
                            '/homes/aclyde11/imageVAE/results/reconstruction_' + str(epoch) + '.png', nrow=n)
-
 
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
-
 
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
@@ -167,4 +169,3 @@ for epoch in range(starting_epoch, epochs):
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    '/homes/aclyde11/imageVAE/results/sample_' + str(epoch) + '.png')
-
