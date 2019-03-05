@@ -105,6 +105,15 @@ def train(epoch):
     train_losses.append(train_loss / len(train_loader_food.dataset))
 
 
+def interpolate_points(x,y, sampling):
+    from sklearn.linear_model import LinearRegression
+    ln = LinearRegression()
+    data = np.stack((x,y))
+    data_train = np.array([0, 1])
+    ln.fit(data_train, data)
+
+    return ln.predict(sampling)
+
 def test(epoch):
     val_loader_food = generate_data_loader(val_root, min(16 * epoch, 128 * 4))
     model.eval()
@@ -119,10 +128,10 @@ def test(epoch):
             data_latent = model.module.encode_latent_(data)
             pt_1 = data_latent[0,...].cpu().numpy()
             pt_2 = data_latent[1,...].cpu().numpy()
-            print("Point shapes: ", pt_1.shape, pt_2.shape)
-            distance = pt_2 - pt_1
-            print("Distance: ", distance.shape)
-            sample_vec = np.linspace(pt_1, pt_2, num=8, endpoint=True)
+
+
+
+            sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=8, endpoint=True))
             print(sample_vec.shape)
             sample_vec = torch.from_numpy(sample_vec).to(device)
             images = model.module.decode(sample_vec)
