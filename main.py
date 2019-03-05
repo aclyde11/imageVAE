@@ -62,7 +62,6 @@ if load_state is not None:
 
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
-    # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
     model = nn.DataParallel(model)
 
 model.to(device)
@@ -91,6 +90,12 @@ def train(epoch):
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
+
+
+        for obj in gc.get_objects():
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                print(type(obj), obj.size())
+        exit()
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                 epoch, batch_idx * len(data), len(train_loader_food.dataset),
