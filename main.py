@@ -58,7 +58,8 @@ class customLoss(nn.Module):
 
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.7 * loss_cripsy
 
-model = VAE_CNN()
+#model = VAE_CNN()
+model = torch.load('epoch_49.pt')
 if load_state is not None:
     model.load_state_dict(torch.load(load_state))
 
