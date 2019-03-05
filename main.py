@@ -138,6 +138,19 @@ def test(epoch):
                     images.append(model.module.decode(sample_vec).cpu())
                 save_image(torch.cat(images), '/homes/aclyde11/imageVAE/results/linspace_' + str(epoch) + '.png')
 
+                n_image_gen = 8
+                images = []
+                for i in range(n_image_gen):
+                    n_samples_linspace = 8
+                    data_latent = model.module.encode_latent_(data)
+                    pt_1 = data_latent[i, ...].cpu().numpy()
+                    pt_2 = data_latent[i + 1, ...].cpu().numpy()
+                    sample_vec = interpolate_points(pt_1, pt_2,
+                                                    np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                    sample_vec = torch.from_numpy(sample_vec).to(device)
+                    images.append(model.module.decode(sample_vec).cpu())
+                save_image(torch.cat(images), '/homes/aclyde11/imageVAE/results/linspace_path_' + str(epoch) + '.png')
+
                 ##
                 n = min(data.size(0), 8)
                 comparison = torch.cat([data[:n],
