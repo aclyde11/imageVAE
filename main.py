@@ -123,6 +123,8 @@ def test(epoch):
             distance = pt_2 - pt_1
             print("Distance: ", distance.shape)
             sample_vec = np.linspace(pt_1, pt_2, num=8, endpoint=True)
+            print(sample_vec.shape)
+            sample_vec = torch.from_numpy(sample_vec).to(device)
             images = model.module.decode(sample_vec)
 
             n = min(data.size(0), n_samples_linspace)
