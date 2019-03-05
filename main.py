@@ -113,6 +113,18 @@ def test(epoch):
             if i > len(val_loader_food) * rampDataSize:
                 break
             data = data.to(device)
+
+
+            data_latent = model.module.encode_latent_(data)
+            pt_1 = data_latent[0,...].numpy()
+            pt_2 = data_latent[1,...].numpy()
+            print(pt_2.shape)
+            sample_vec = np.meshgrid(*[np.linspace(i,j,8)[:-1] for i,j in zip(pt_1,pt_2)])
+            images = model.module.decode(sample_vec)
+
+            n = min(data.size(0), 8)
+            save_image(images.cpu(),'/homes/aclyde11/imageVAE/results/linspace_' + str(epoch) + '.png', nrow=n)
+
             recon_batch, mu, logvar = model(data)
             test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
             if i == 0:
@@ -121,6 +133,9 @@ def test(epoch):
                                         recon_batch.view(min(16 * epoch, 128 * 4), 3, 256, 256)[:n]])
                 save_image(comparison.cpu(),
                            '/homes/aclyde11/imageVAE/results/reconstruction_' + str(epoch) + '.png', nrow=n)
+
+
+                sample = torch.linspace()
 
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
@@ -134,7 +149,8 @@ for epoch in range(starting_epoch, epochs):
     test(epoch)
     torch.save(model.module, 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
-        sample = torch.randn(64, 2700).to(device)
+        sample = torch.randn(64, 2700).sort()[0].to(device)
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    '/homes/aclyde11/imageVAE/results/sample_' + str(epoch) + '.png')
+
