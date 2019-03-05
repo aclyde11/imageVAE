@@ -131,7 +131,7 @@ def test(epoch):
                 for i in range(n_image_gen):
                     n_samples_linspace = 8
                     data_latent = model.module.encode_latent_(data)
-                    pt_1 = data_latent[i * 2 + 1, ...].cpu().numpy()
+                    pt_1 = data_latent[i * 2, ...].cpu().numpy()
                     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     print(sample_vec.shape)
@@ -155,7 +155,7 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-    train(epoch)
+    #train(epoch)
     test(epoch)
     torch.save(model.module, 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
