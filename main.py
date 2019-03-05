@@ -90,7 +90,7 @@ def train(epoch):
     for batch_idx, (data, _) in enumerate(train_loader_food):
         # if batch_idx > len(train_loader_food) * rampDataSize:
         #     break
-        #data = data.to(device)
+        data = data.cuda(3)
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
         loss = loss_mse(recon_batch, data, mu, logvar, epoch)
@@ -125,7 +125,7 @@ def test(epoch):
         for i, (data, _) in enumerate(val_loader_food):
             # if i > len(val_loader_food) * rampDataSize:
             #     break
-            data = data.to(device)
+            data = data.cuda(3)
             recon_batch, mu, logvar = model(data)
             test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
             if i == 0:
