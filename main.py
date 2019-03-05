@@ -17,8 +17,8 @@ from model import VAE_CNN
 import numpy as np
 from utils import MS_SSIM
 
-starting_epoch=30
-epochs = 50
+starting_epoch=51
+epochs = 75
 no_cuda = False
 seed = 42
 data_para = True
@@ -56,7 +56,7 @@ class customLoss(nn.Module):
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.5 * loss_cripsy
+        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.7 * loss_cripsy
 
 model = VAE_CNN()
 if load_state is not None:
@@ -114,15 +114,15 @@ def test(epoch):
                 break
             data = data.to(device)
 
-
+            n_samples_linspace = 8
             data_latent = model.module.encode_latent_(data)
-            pt_1 = data_latent[0,...].numpy()
-            pt_2 = data_latent[1,...].numpy()
-            print(pt_2.shape)
-            sample_vec = np.meshgrid(*[np.linspace(i,j,8)[:-1] for i,j in zip(pt_1,pt_2)])
+            pt_1 = data_latent[0,...].cpu().numpy()
+            pt_2 = data_latent[1,...].cpu().numpy()
+            print(pt_1.shape, pt_2.shape)
+            sample_vec = np.meshgrid(*[np.linspace(i,j,n_samples_linspace)[:-1] for i,j in zip(pt_1.flatten(), pt_2.flatten())])
             images = model.module.decode(sample_vec)
 
-            n = min(data.size(0), 8)
+            n = min(data.size(0), n_samples_linspace)
             save_image(images.cpu(),'/homes/aclyde11/imageVAE/results/linspace_' + str(epoch) + '.png', nrow=n)
 
             recon_batch, mu, logvar = model(data)
