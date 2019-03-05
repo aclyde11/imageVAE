@@ -126,18 +126,18 @@ def test(epoch):
             recon_batch, mu, logvar = model(data)
             test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
             if i == 0:
-                n_samples_linspace = 8
-                data_latent = model.module.encode_latent_(data)
-                pt_1 = data_latent[0, ...].cpu().numpy()
-                pt_2 = data_latent[1, ...].cpu().numpy()
-
-                sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=8, endpoint=True))
-                print(sample_vec.shape)
-                sample_vec = torch.from_numpy(sample_vec).to(device)
-                images = model.module.decode(sample_vec)
-
-                n = min(data.size(0), n_samples_linspace)
-                save_image(images.cpu(), '/homes/aclyde11/imageVAE/results/linspace_' + str(epoch) + '.png', nrow=n)
+                n_image_gen = 8
+                images = []
+                for i in range(n_image_gen):
+                    n_samples_linspace = 8
+                    data_latent = model.module.encode_latent_(data)
+                    pt_1 = data_latent[i * 2 + 1, ...].cpu().numpy()
+                    pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
+                    sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                    print(sample_vec.shape)
+                    sample_vec = torch.from_numpy(sample_vec).to(device)
+                    images.append(model.module.decode(sample_vec).cpu())
+                save_image(torch.cat(images), '/homes/aclyde11/imageVAE/results/linspace_' + str(epoch) + '.png')
 
                 ##
                 n = min(data.size(0), 8)
