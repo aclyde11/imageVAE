@@ -112,7 +112,7 @@ def interpolate_points(x,y, sampling):
     data_train = np.array([0, 1]).reshape(-1, 1)
     ln.fit(data_train, data)
 
-    return ln.predict(sampling.reshape(-1, 1))
+    return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
     val_loader_food = generate_data_loader(val_root, min(16 * epoch, 128 * 4))
@@ -128,8 +128,6 @@ def test(epoch):
             data_latent = model.module.encode_latent_(data)
             pt_1 = data_latent[0,...].cpu().numpy()
             pt_2 = data_latent[1,...].cpu().numpy()
-
-
 
             sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=8, endpoint=True))
             print(sample_vec.shape)
