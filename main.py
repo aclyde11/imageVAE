@@ -17,19 +17,19 @@ from model import VAE_CNN
 import numpy as np
 from utils import MS_SSIM
 
-starting_epoch=50
+starting_epoch=57
 epochs = 75
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
 LR = 0.001           ##adam rate
-rampDataSize = 0.15  ## data set size to use
+rampDataSize = 0.2 ## data set size to use
 KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
-
+model_load = 'epoch_56.pt'
 cuda = not no_cuda and torch.cuda.is_available()
-
+data_size = 1500000
 torch.manual_seed(seed)
 
 device = torch.device("cuda" if cuda else "cpu")
@@ -39,10 +39,10 @@ kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
 val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
 
-def generate_data_loader(root, batch_size):
+def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
         datasets.ImageFolder(root, transform=transforms.ToTensor()),
-        batch_size=batch_size, shuffle=False, **kwargs)
+        batch_size=batch_size, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))), **kwargs)
 
 
 class customLoss(nn.Module):
@@ -58,8 +58,11 @@ class customLoss(nn.Module):
 
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.7 * loss_cripsy
 
-#model = VAE_CNN()
-model = torch.load('epoch_49.pt')
+model = None
+if model_load is None:
+    model = VAE_CNN()
+else:
+    model = torch.load(model_load)
 if load_state is not None:
     model.load_state_dict(torch.load(load_state))
 
@@ -80,14 +83,14 @@ train_losses = []
 
 
 def train(epoch):
-    train_loader_food = generate_data_loader(train_root, min(16 * epoch, 128 * 4))
+    train_loader_food = generate_data_loader(train_root, min(16 * epoch, 128 * 4), int(rampDataSize * data_size))
     print("Epoch {}: batch_size {}".format(epoch, min(16 * epoch, 128 * 4)))
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
-        if batch_idx > len(train_loader_food) * rampDataSize:
-            break
-        data = data.to(device)
+        # if batch_idx > len(train_loader_food) * rampDataSize:
+        #     break
+        #data = data.to(device)
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
         loss = loss_mse(recon_batch, data, mu, logvar, epoch)
@@ -115,33 +118,33 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, min(16 * epoch, 128 * 4))
+    val_loader_food = generate_data_loader(val_root, min(16 * epoch, 128 * 4), int(rampDataSize * data_size))
     model.eval()
     test_loss = 0
     with torch.no_grad():
         for i, (data, _) in enumerate(val_loader_food):
-            if i > len(val_loader_food) * rampDataSize:
-                break
+            # if i > len(val_loader_food) * rampDataSize:
+            #     break
             data = data.to(device)
             recon_batch, mu, logvar = model(data)
             test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
             if i == 0:
                 n_image_gen = 8
                 images = []
+                n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    n_samples_linspace = 8
                     data_latent = model.module.encode_latent_(data)
                     pt_1 = data_latent[i * 2, ...].cpu().numpy()
                     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
                     images.append(model.module.decode(sample_vec).cpu())
-                save_image(torch.cat(images), '/homes/aclyde11/imageVAE/results/linspace_' + str(epoch) + '.png')
+                save_image(torch.cat(images), '/homes/aclyde11/imageVAE/results/linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
                 n_image_gen = 8
                 images = []
+                n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    n_samples_linspace = 8
                     data_latent = model.module.encode_latent_(data)
                     pt_1 = data_latent[i, ...].cpu().numpy()
                     pt_2 = data_latent[i + 1, ...].cpu().numpy()
@@ -149,7 +152,7 @@ def test(epoch):
                                                     np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
                     images.append(model.module.decode(sample_vec).cpu())
-                save_image(torch.cat(images), '/homes/aclyde11/imageVAE/results/linspace_path_' + str(epoch) + '.png')
+                save_image(torch.cat(images), '/homes/aclyde11/imageVAE/results/linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
                 ##
                 n = min(data.size(0), 8)
