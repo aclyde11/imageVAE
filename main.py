@@ -43,7 +43,7 @@ class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         self.mse_loss = nn.MSELoss(reduction="sum")
-        #self.crispyLoss = MS_SSIM()
+        self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
