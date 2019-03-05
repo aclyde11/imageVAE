@@ -17,7 +17,7 @@ from model import VAE_CNN
 import numpy as np
 from utils import MS_SSIM
 
-starting_epoch=51
+starting_epoch=50
 epochs = 75
 no_cuda = False
 seed = 42
