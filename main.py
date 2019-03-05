@@ -1,4 +1,5 @@
 import os
+import gc
 os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5,6,7'
 
 import datetime
@@ -47,10 +48,9 @@ class customLoss(nn.Module):
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        #loss_cripsy = self.crispyLoss(x_recon, x)
-        loss_cripsy=0
+        loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.7 * loss_cripsy
+        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.8 * loss_cripsy
 
 model = None
 if model_load is None:
@@ -75,9 +75,8 @@ loss_mse = customLoss()
 val_losses = []
 train_losses = []
 
-
 def get_batch_size(epoch):
-    return min(32 * epoch, 256 * 6)
+    return min(32 * epoch, 512)
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
