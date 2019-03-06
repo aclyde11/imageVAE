@@ -88,6 +88,7 @@ def train(epoch):
     for batch_idx, (data, file) in enumerate(train_loader_food):
         data = data[0]
         index = map(lambda x : x.split('/')[-1].split('.')[0], file[0])
+        print(index)
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
         loss = loss_mse(recon_batch, data, mu, logvar, epoch)
