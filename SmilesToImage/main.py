@@ -7,7 +7,8 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-from model import SmilesToImageModle
+from model import SmilesToImageModle, SmilesEncoder, PictureDecoder
+
 import numpy as np
 
 starting_epoch=1
@@ -51,13 +52,12 @@ class customLoss(nn.Module):
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        loss_cripsy = self.crispyLoss(x_recon, x)
 
         return 1.25 * loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD
 
 model = None
 if model_load is None:
-    model = SmilesToImageModle()
+    model = SmilesToImageModle(SmilesEncoder(50, 50, ), PictureDecoder())
 else:
     model = torch.load(model_load)
 if load_state is not None:
