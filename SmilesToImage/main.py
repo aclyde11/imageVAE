@@ -36,7 +36,7 @@ val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
 
 class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
-        return  super(ImageFolderWithFile, self).getitem(index), self.imgs[index]
+        return  super(ImageFolderWithFile, self).__getitem__(index), self.imgs[index]
 
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
