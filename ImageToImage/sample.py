@@ -7,7 +7,7 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-from model import SmilesToImageModle
+from model import SmilesToImageModle, SmilesEncoder, PictureDecoder
 import numpy as np
 from utils import MS_SSIM
 import pandas as pd
@@ -57,7 +57,7 @@ class customLoss(nn.Module):
 
 model = None
 if model_load is None:
-    model = SmilesToImageModle()
+    model = SmilesToImageModle(SmilesEncoder(50, 50, ), PictureDecoder())
 else:
     model = torch.load(model_load)
 if load_state is not None:
