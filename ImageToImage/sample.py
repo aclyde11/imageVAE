@@ -35,7 +35,7 @@ train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
 val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
 sample_root = '/homes/aclyde11/imageVAE/draw2dPNG/val/'
 sample_names = pd.read_csv('/homes/aclyde11/imageVAE/draw2dPNG/matrix.csv')
-
+print(sample_names.columns)
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
         datasets.ImageFolder(root, transform=transforms.ToTensor()),
@@ -131,6 +131,7 @@ def sample(epoch):
         print(data_results.shape)
         df = pd.DataFrame(data_results)
         df['DRUG'] = sample_names['Name']
+        df.to_table("image_drug_feats.tab", index=False)
         exit()
 
 
