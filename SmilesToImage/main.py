@@ -85,7 +85,7 @@ def train(epoch):
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
-    for batch_idx, (data, _, file) in enumerate(train_loader_food):
+    for batch_idx, (data, file) in enumerate(train_loader_food):
         data = data.cuda()
         print(file)
         optimizer.zero_grad()
