@@ -129,6 +129,9 @@ def sample(epoch):
             print(recon_batch.shape)
         data_results = np.concatenate(data_results)
         print(data_results.shape)
+        df = pd.DataFrame(data_results)
+        df['DRUG'] = sample_names.Name
+        exit()
 
 
 def test(epoch):
