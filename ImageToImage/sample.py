@@ -125,7 +125,7 @@ def sample(epoch):
         for i, (data, _) in enumerate(data_loader):
             data = data.cuda()
             recon_batch, mu, logvar = model(data)
-            data_results.append(recon_batch.cpu().to_numpy())
+            data_results.append(recon_batch.cpu().numpy())
             print(recon_batch.shape)
         data_results = np.concatenate(data_results)
         print(data_results.shape)
