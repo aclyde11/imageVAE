@@ -124,7 +124,7 @@ def sample(epoch):
         data_results = []
         for i, (data, _) in enumerate(data_loader):
             data = data.cuda()
-            recon_batch, mu, logvar = model.encode_latent_(data)
+            recon_batch = model.encode_latent_(data)
             data_results.append(recon_batch.cpu().numpy())
             print(recon_batch.shape)
         data_results = np.concatenate(data_results)
