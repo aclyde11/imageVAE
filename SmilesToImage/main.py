@@ -89,7 +89,6 @@ def train(epoch):
         data = data[0]
         dataf = data[1]
         print(file)
-        print(dataf)
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
         loss = loss_mse(recon_batch, data, mu, logvar, epoch)
