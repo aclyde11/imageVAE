@@ -33,7 +33,7 @@ kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
 val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
-sample_root = '/homes/aclyde11/imageVAE/draw2dPNG/sample/'
+sample_root = '/homes/aclyde11/imageVAE/draw2dPNG/val/'
 sample_names = pd.read_csv('/homes/aclyde11/imageVAE/draw2dPNG/matrix.csv')
 
 def generate_data_loader(root, batch_size, data_size):
