@@ -15,7 +15,7 @@ starting_epoch=108
 epochs = 150
 no_cuda = False
 seed = 42
-data_para = True
+data_para = False
 log_interval = 50
 LR = 0.001           ##adam rate
 rampDataSize = 0.23 ## data set size to use
@@ -124,7 +124,7 @@ def sample(epoch):
         data_results = []
         for i, (data, _) in enumerate(data_loader):
             data = data.cuda()
-            recon_batch, mu, logvar = model(data)
+            recon_batch, mu, logvar = model.encode_latent_(data)
             data_results.append(recon_batch.cpu().numpy())
             print(recon_batch.shape)
         data_results = np.concatenate(data_results)
