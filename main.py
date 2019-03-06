@@ -11,8 +11,8 @@ from model import VAE_CNN
 import numpy as np
 from utils import MS_SSIM
 
-starting_epoch=75
-epochs = 200
+starting_epoch=108
+epochs = 150
 no_cuda = False
 seed = 42
 data_para = True
@@ -21,7 +21,7 @@ LR = 0.001           ##adam rate
 rampDataSize = 0.23 ## data set size to use
 KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
-model_load = 'epoch_74.pt'
+model_load = 'epoch_108.pt'
 cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1000000
 torch.manual_seed(seed)
@@ -50,7 +50,7 @@ class customLoss(nn.Module):
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return 1.5 * loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.9 * loss_cripsy
+        return 1.25 * loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.9 * loss_cripsy
 
 model = None
 if model_load is None:
@@ -66,8 +66,8 @@ if data_para and torch.cuda.device_count() > 1:
 
 model.to(device)
 
-optimizer = optim.Adam(model.parameters(), lr=LR)
-#optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=0.8, nesterov=True)
+#optimizer = optim.Adam(model.parameters(), lr=LR)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_mse = customLoss()
 
@@ -75,7 +75,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(32 * epoch, 512)
+    return min(32 * epoch, 256 * 7)
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
