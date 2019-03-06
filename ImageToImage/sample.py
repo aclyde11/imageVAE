@@ -1,5 +1,5 @@
 import os
-import gc
+
 os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5,6,7'
 
 import datetime
@@ -7,9 +7,9 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-from model import VAE_CNN
+from ImageToImage.model import VAE_CNN
 import numpy as np
-from utils import MS_SSIM
+from ImageToImage.utils import MS_SSIM
 
 starting_epoch=108
 epochs = 150
@@ -21,10 +21,11 @@ LR = 0.001           ##adam rate
 rampDataSize = 0.23 ## data set size to use
 KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
-model_load = 'epoch_108.pt'
+model_load = '../epoch_108.pt'
 cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1000000
 torch.manual_seed(seed)
+output_dir = '/homes/aclyde11/imageVAE/ImageToImage/results/'
 
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
@@ -32,6 +33,7 @@ kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
 val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
+sample_root = '/homes/aclyde11/imageVAE/draw2dPNG/sample/'
 
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
@@ -111,6 +113,21 @@ def interpolate_points(x,y, sampling):
 
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
+def smaple():
+    data_loader = torch.utils.data.DataLoader(
+        datasets.ImageFolder(sample_root, transform=transforms.ToTensor()),
+        batch_size=get_batch_size(epochs), shuffle=False, drop_last=False, **kwargs)
+
+    model.eval()
+    with torch.no_grad():
+        data_results = []
+        for i, (data, _) in enumerate(data_loader):
+            data = data.cuda()
+            recon_batch, mu, logvar = model(data)
+            data_results.append(recon_batch.cpu().to_numpy())
+            print(recon_batch.shape)
+        np.concatenate(data_results)
+
 def test(epoch):
     val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(rampDataSize * data_size))
     model.eval()
@@ -131,7 +148,7 @@ def test(epoch):
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
                     images.append(model.module.decode(sample_vec).cpu())
-                save_image(torch.cat(images), '/homes/aclyde11/imageVAE/results/linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
+                save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
                 n_image_gen = 8
                 images = []
@@ -144,14 +161,14 @@ def test(epoch):
                                                     np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
                     images.append(model.module.decode(sample_vec).cpu())
-                save_image(torch.cat(images), '/homes/aclyde11/imageVAE/results/linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
+                save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
                 ##
                 n = min(data.size(0), 8)
                 comparison = torch.cat([data[:n],
                                         recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
                 save_image(comparison.cpu(),
-                           '/homes/aclyde11/imageVAE/results/reconstruction_' + str(epoch) + '.png', nrow=n)
+                           output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
 
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
@@ -167,4 +184,4 @@ for epoch in range(starting_epoch, epochs):
         sample = torch.randn(64, 2700).sort()[0].to(device)
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
-                   '/homes/aclyde11/imageVAE/results/sample_' + str(epoch) + '.png')
+                   output_dir + 'sample_' + str(epoch) + '.png')
