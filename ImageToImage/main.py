@@ -7,9 +7,9 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-from ImageToImage.model import VAE_CNN
+from model import VAE_CNN
 import numpy as np
-from ImageToImage.utils import MS_SSIM
+from utils import MS_SSIM
 
 starting_epoch=108
 epochs = 150
