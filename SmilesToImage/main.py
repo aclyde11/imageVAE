@@ -7,7 +7,7 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-from model import VAE_CNN
+from model import SmilesToImageModle
 import numpy as np
 
 starting_epoch=1
