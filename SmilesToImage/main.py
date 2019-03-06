@@ -11,11 +11,11 @@ from ImageToImage.model import VAE_CNN
 import numpy as np
 from ImageToImage.utils import MS_SSIM
 
-starting_epoch=108
-epochs = 150
-no_cuda = False
+starting_epoch=1
+epochs = 50
+no_cuda = True
 seed = 42
-data_para = True
+data_para = False
 log_interval = 50
 LR = 0.001           ##adam rate
 rampDataSize = 0.23 ## data set size to use
@@ -34,10 +34,14 @@ kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
 val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
 
+class ImageFolderWithFile(datasets.ImageFolder):
+    def __getitem__(self, index):
+        return  super(ImageFolderWithFile, self).getitem(index), self.imgs[index]
+
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
-        datasets.ImageFolder(root, transform=transforms.ToTensor()),
-        batch_size=batch_size, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))), drop_last=True, **kwargs)
+        ImageFolderWithFile(root, transform=transforms.ToTensor()),
+        batch_size=batch_size, shuffle=False, drop_last=True, **kwargs)
 
 
 class customLoss(nn.Module):
@@ -83,8 +87,9 @@ def train(epoch):
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
-    for batch_idx, (data, _) in enumerate(train_loader_food):
+    for batch_idx, (data, _, file) in enumerate(train_loader_food):
         data = data.cuda()
+        print(file)
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
         loss = loss_mse(recon_batch, data, mu, logvar, epoch)
