@@ -7,7 +7,7 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-from model import VAE_CNN
+from model import SmilesToImageModle
 import numpy as np
 from utils import MS_SSIM
 import pandas as pd
@@ -21,7 +21,7 @@ LR = 0.001           ##adam rate
 rampDataSize = 0.23 ## data set size to use
 KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
-model_load = '../epoch_108.pt'
+model_load = None
 cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1000000
 torch.manual_seed(seed)
@@ -57,7 +57,7 @@ class customLoss(nn.Module):
 
 model = None
 if model_load is None:
-    model = VAE_CNN()
+    model = SmilesToImageModle()
 else:
     model = torch.load(model_load)
 if load_state is not None:
