@@ -10,7 +10,7 @@ from torchvision.utils import save_image
 from model import SmilesToImageModle, SmilesEncoder, PictureDecoder
 
 import numpy as np
-
+import pandas as pd
 starting_epoch=1
 epochs = 50
 no_cuda = True
@@ -26,13 +26,14 @@ cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1000000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/ImageToImage/results/'
-
+vocab = {}
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 
 train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
 val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
+smiles_lookup = pd.read_csv("matrix.csv")
 
 class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
@@ -69,8 +70,8 @@ if data_para and torch.cuda.device_count() > 1:
 
 model.to(device)
 
-#optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
+optimizer = optim.Adam(model.parameters(), lr=LR)
+#optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_mse = customLoss()
 
@@ -80,15 +81,29 @@ train_losses = []
 def get_batch_size(epoch):
     return min(32 * epoch, 256 * 7)
 
+
+def get_embdeed_smile(index, length=200):
+    smiles = smiles_lookup.iloc[index]
+
+    embedded = []
+    for i in smiles:
+        vocab['']
+
+x
+
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
     for batch_idx, (data, file) in enumerate(train_loader_food):
-        data = data[0]
+        data = data[0].cuda()
         index = map(lambda x : x.split('/')[-1].split('.')[0], file[0])
+
+        ##get rnn stuff
+
         print(index)
+
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
         loss = loss_mse(recon_batch, data, mu, logvar, epoch)
@@ -107,6 +122,7 @@ def train(epoch):
     train_losses.append(train_loss / len(train_loader_food.dataset))
 
 
+
 def interpolate_points(x,y, sampling):
     from sklearn.linear_model import LinearRegression
     ln = LinearRegression()
@@ -121,8 +137,11 @@ def test(epoch):
     model.eval()
     test_loss = 0
     with torch.no_grad():
-        for i, (data, _) in enumerate(val_loader_food):
-            data = data
+        for i, (data, file) in enumerate(val_loader_food):
+            data = data[0]
+            index = map(lambda x: x.split('/')[-1].split('.')[0], file[0])
+            print(index)
+
             recon_batch, mu, logvar = model(data)
             test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
             if i == 0:

@@ -51,7 +51,7 @@ class customLoss(nn.Module):
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return 1.25 * loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.9 * loss_cripsy
+        return 1.25 * loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
 model = None
 if model_load is None:
@@ -67,8 +67,8 @@ if data_para and torch.cuda.device_count() > 1:
 
 model.to(device)
 
-#optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
+optimizer = optim.Adam(model.parameters(), lr=LR)
+#optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_mse = customLoss()
 
