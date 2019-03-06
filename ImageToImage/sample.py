@@ -10,7 +10,7 @@ from torchvision.utils import save_image
 from model import VAE_CNN
 import numpy as np
 from utils import MS_SSIM
-
+import pandas as pd
 starting_epoch=108
 epochs = 150
 no_cuda = False
@@ -34,6 +34,7 @@ kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
 val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
 sample_root = '/homes/aclyde11/imageVAE/draw2dPNG/sample/'
+sample_names = pd.read_csv('/homes/aclyde11/imageVAE/draw2dPNG/matrix.csv')
 
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
@@ -113,7 +114,7 @@ def interpolate_points(x,y, sampling):
 
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
-def smaple():
+def sample(epoch):
     data_loader = torch.utils.data.DataLoader(
         datasets.ImageFolder(sample_root, transform=transforms.ToTensor()),
         batch_size=get_batch_size(epochs), shuffle=False, drop_last=False, **kwargs)
@@ -126,7 +127,9 @@ def smaple():
             recon_batch, mu, logvar = model(data)
             data_results.append(recon_batch.cpu().to_numpy())
             print(recon_batch.shape)
-        np.concatenate(data_results)
+        data_results = np.concatenate(data_results)
+        print(data_results.shape)
+
 
 def test(epoch):
     val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(rampDataSize * data_size))
@@ -177,11 +180,4 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-    train(epoch)
-    test(epoch)
-    torch.save(model.module, 'epoch_' + str(epoch) + '.pt')
-    with torch.no_grad():
-        sample = torch.randn(64, 2700).sort()[0].to(device)
-        sample = model.module.decode(sample).cpu()
-        save_image(sample.view(64, 3, 256, 256),
-                   output_dir + 'sample_' + str(epoch) + '.png')
+    sample(epoch)
