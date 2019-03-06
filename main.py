@@ -23,7 +23,7 @@ KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
 model_load = 'epoch_74.pt'
 cuda = not no_cuda and torch.cuda.is_available()
-data_size = 1500000
+data_size = 1000000
 torch.manual_seed(seed)
 
 device = torch.device("cuda" if cuda else "cpu")
