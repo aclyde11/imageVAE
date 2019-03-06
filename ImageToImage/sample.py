@@ -131,7 +131,7 @@ def sample(epoch):
         print(data_results.shape)
         df = pd.DataFrame(data_results)
         df['DRUG'] = sample_names['drug_name']
-        df.to_table("image_drug_feats.tab", index=False)
+        df.to_csv("image_drug_feats.tab", index=False, sep='\t')
         exit()
 
 
