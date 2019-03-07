@@ -19,6 +19,9 @@ data_para = False
 log_interval = 50
 LR = 0.001           ##adam rate
 rampDataSize = 0.23 ## data set size to use
+embedding_width = 60
+vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
+embedding_size = len(vocab)
 KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
 model_load = None
@@ -26,7 +29,6 @@ cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1000000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/ImageToImage/results/'
-vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
@@ -64,7 +66,7 @@ class customLoss(nn.Module):
 
 model = None
 if model_load is None:
-    model = SmilesToImageModle(SmilesEncoder(50, 50, ), PictureDecoder())
+    model = SmilesToImageModle(SmilesEncoder(embedding_size, embedding_width, ), PictureDecoder())
 else:
     model = torch.load(model_load)
 if load_state is not None:
