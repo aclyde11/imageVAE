@@ -6,7 +6,7 @@ from torch.nn import functional as F
 
 class SmilesEncoder(nn.Module):
 
-    def __init__(self,  vocab_size, max_length_sequence, rep_size = 2500 , embedder = None):
+    def __init__(self,  vocab_size, max_length_sequence, rep_size = 2000 , embedder = None):
         super(SmilesEncoder, self).__init__()
         self.rep_size = rep_size
         self.embeder = embedder
@@ -27,7 +27,7 @@ class SmilesEncoder(nn.Module):
         self.relu = nn.ReLU()
 
         # Latent vectors mu and sigma
-        self.fc1 = nn.Linear(300 * 3, rep_size)
+        self.fc1 = nn.Linear(256 * 2, rep_size)
         self.fc_bn1 = nn.BatchNorm1d(rep_size)
         self.fc21 = nn.Linear(rep_size, rep_size)
         self.fc22 = nn.Linear(rep_size, rep_size)
@@ -40,14 +40,13 @@ class SmilesEncoder(nn.Module):
         x = self.relu(self.conv4(x))
         x = self.relu(self.conv5(x))
         x = self.relu(self.conv6(x))
-        print(x.shape)
-        x = x.view(-1, 300 * 3)
+        x = x.view(-1, 256 * 2)
         x = self.relu(self.fc_bn1(self.fc1(x)))
 
         return self.fc21(x), self.fc22(x)
 
 class PictureDecoder(nn.Module):
-    def __init__(self, rep_size=2500):
+    def __init__(self, rep_size=2000):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
         # Sampling vector
@@ -79,7 +78,7 @@ class PictureDecoder(nn.Module):
         out = self.fc_bn3(self.fc3(z))
         out = self.relu(out)
         out = self.fc_bn4(self.fc4(out))
-        out = self.relu(out).view(-1, 125, 2, 2)
+        out = self.relu(out).view(-1, 125, 4, 4)
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
         out = self.bn15(out)
@@ -108,7 +107,7 @@ class PictureDecoder(nn.Module):
 
 
 class SmilesToImageModle(nn.Module):
-    def __init__(self, encoder_model, decoder_model, rep_size=2500):
+    def __init__(self, encoder_model, decoder_model, rep_size=2000):
         super(SmilesToImageModle, self).__init__()
         self.rep_size = rep_size
 
