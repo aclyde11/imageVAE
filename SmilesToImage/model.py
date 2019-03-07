@@ -6,7 +6,7 @@ from torch.nn import functional as F
 
 class SmilesEncoder(nn.Module):
 
-    def __init__(self,  vocab_size, max_length_sequence, rep_size = 500 * 2, embedder = None):
+    def __init__(self,  vocab_size, max_length_sequence, rep_size = 500 , embedder = None):
         super(SmilesEncoder, self).__init__()
         self.rep_size = rep_size
         self.embeder = embedder
@@ -23,23 +23,23 @@ class SmilesEncoder(nn.Module):
         self.conv4 = nn.Conv1d(128, 300, 4, stride=1)
 
         self.relu = nn.ReLU()
-        self.dense = nn.Linear(300 * 3, rep_size)
+
+        # Latent vectors mu and sigma
+        self.fc1 = nn.Linear(rep_size, rep_size)
+        self.fc_bn1 = nn.BatchNorm1d(rep_size)
+        self.fc21 = nn.Linear(rep_size, rep_size)
+        self.fc22 = nn.Linear(rep_size, rep_size)
 
 
     def forward(self, x):
-        print(x.shape)
         x = self.relu(self.conv1(x))
-        print(x.shape)
         x = self.relu(self.conv2(x))
-        print(x.shape)
         x = self.relu(self.conv3(x))
-        print(x.shape)
         x = self.relu(self.conv4(x))
-        print(x.shape)
         x = x.view(-1, 300 * 3)
-        x = self.relu(self.dense(x))
-        print(x.shape)
-        return x
+        x = self.relu(self.fc_bn1(self.fc1(x)))
+
+        return self.fc21(x), self.fc22(x)
 
 class PictureDecoder(nn.Module):
     def __init__(self, rep_size=500):
@@ -101,11 +101,7 @@ class SmilesToImageModle(nn.Module):
         self.encoder = encoder_model
         self.decoder = decoder_model
 
-        # Latent vectors mu and sigma
-        self.fc1 = nn.Linear(rep_size, rep_size)
-        self.fc_bn1 = nn.BatchNorm1d(rep_size)
-        self.fc21 = nn.Linear(rep_size, rep_size)
-        self.fc22 = nn.Linear(rep_size, rep_size)
+
 
         # Sampling vector
         self.fc3 = nn.Linear(rep_size, rep_size)
@@ -115,11 +111,7 @@ class SmilesToImageModle(nn.Module):
 
 
     def encode(self, x):
-        x = self.encoder(x)
-        print(x.shape)
-        x = torch.split(x, self.rep_size, 1)
-
-        return x[0], x[1]
+        return self.encoder(x)
 
     def reparameterize(self, mu, logvar):
         if self.training:
