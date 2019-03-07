@@ -22,7 +22,7 @@ class SmilesEncoder(nn.Module):
         self.conv3 = nn.Conv1d(64, 64, 4, stride=1)
         self.conv4 = nn.Conv1d(64, 128, 4, stride=1)
         self.conv5 = nn.Conv1d(128, 128, 3, stride=1)
-        self.conv6 = nn.Conv1d(300, 300, 3, stride=1)
+        self.conv6 = nn.Conv1d(128, 256, 3, stride=1)
 
         self.relu = nn.ReLU()
 
