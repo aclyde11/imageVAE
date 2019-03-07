@@ -6,7 +6,7 @@ from torch.nn import functional as F
 
 class SmilesEncoder(nn.Module):
 
-    def __init__(self,  vocab_size, max_length_sequence, rep_size = 2700, embedder = None):
+    def __init__(self,  vocab_size, max_length_sequence, rep_size = 500 * 2, embedder = None):
         super(SmilesEncoder, self).__init__()
         self.rep_size = rep_size
         self.embeder = embedder
@@ -34,7 +34,7 @@ class SmilesEncoder(nn.Module):
         return
 
 class PictureDecoder(nn.Module):
-    def __init__(self, rep_size=2700):
+    def __init__(self, rep_size=500):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
 
@@ -86,7 +86,7 @@ class PictureDecoder(nn.Module):
 
 
 class SmilesToImageModle(nn.Module):
-    def __init__(self, encoder_model, decoder_model, rep_size=2700):
+    def __init__(self, encoder_model, decoder_model, rep_size=500):
         super(SmilesToImageModle, self).__init__()
         self.rep_size = rep_size
 
@@ -119,28 +119,6 @@ class SmilesToImageModle(nn.Module):
         else:
             return mu
 
-    def decode(self, z):
-        out = self.fc_bn3(self.fc3(z))
-        out = self.relu(out)
-        out = self.fc_bn4(self.fc4(out))
-        out = self.relu(out).view(-1, 300, 3, 3)
-        out = self.relu(self.conv15(out))
-        out = self.relu(self.conv15_(out))
-        out = self.bn15(out)
-        out = self.relu(self.conv16(out))
-        ouu = self.relu(self.conv16_(out))
-        out = self.bn16(out)
-        out = self.relu(self.conv20(out))
-        out = self.relu(self.conv20_(out))
-        out = self.bn20(out)
-        out = self.relu(self.conv17(out))
-        out = self.relu(self.conv17_(out))
-        out = self.bn21(out)
-        out = self.relu(self.conv18(out))
-        out = self.relu(self.conv18_(out))
-        out = self.bn22(out)
-        out = self.conv19(out)
-        return out.view(-1, 3, 256, 256)
 
     def encode_latent_(self, x):
         mu, logvar = self.encode(x)
