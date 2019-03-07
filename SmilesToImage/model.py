@@ -81,15 +81,22 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv16(out))
         ouu = self.relu(self.conv16_(out))
         out = self.bn16(out)
+        print(out.shape)
+
         out = self.relu(self.conv20(out))
         out = self.relu(self.conv20_(out))
         out = self.bn20(out)
+        print(out.shape)
+
         out = self.relu(self.conv17(out))
         out = self.relu(self.conv17_(out))
         out = self.bn21(out)
+        print(out.shape)
+
         out = self.relu(self.conv18(out))
         out = self.relu(self.conv18_(out))
         out = self.bn22(out)
+        print(out.shape)
         out = self.conv19(out)
         return out.view(-1, 3, 256, 256)
 
