@@ -90,7 +90,13 @@ def get_batch_size(epoch):
 
 one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
                                      one_hot_index(row, vocab)))
-apply_one_hot =  lambda ch: np.array(map(one_hot_encoded_fn, ch))
+
+def apply_one_hot(ch):
+    return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=0), ch))
+#apply_one_hot =  lambda ch: np.array(map(one_hot_encoded_fn, ch))
+
+
+
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
@@ -106,7 +112,7 @@ def train(epoch):
         t = embed[0]
         print(embed[0])
         print(embed[0].shape)
-        t = np.pad(t, pad_width=[(0,60 - t.shape[0])], mode='constant', constant_values=0)
+        t = np.pad(t, pad_width=[(0,60 - t.shape[0]), (0,0)], mode='constant', constant_values=0)
         print(t)
         print(t.shape)
 
