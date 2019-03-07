@@ -17,15 +17,17 @@ class SmilesEncoder(nn.Module):
 
         ##layers
 
-        self.conv1 = nn.Conv1d(self.vocab_size, 9, 9)
-        self.conv2 = nn.Conv1d(9, 9, 9)
-        self.conv3 = nn.Conv1d(9, 9, 5)
+        self.conv1 = nn.Conv1d(self.vocab_size, 64, 4)
+        self.conv2 = nn.Conv1d(64, 64, 4)
+        self.conv3 = nn.Conv1d(64, 128, 2)
         self.relu = nn.ReLU()
         self.dense = nn.Linear(2000, rep_size)
 
 
     def forward(self, x):
+        print(x.shape)
         x = self.relu(self.conv1(x))
+        print(x.shape)
         x = self.relu(self.conv2(x))
         print(x.shape)
         x = self.relu(self.conv3(x))
