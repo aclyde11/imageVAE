@@ -110,7 +110,6 @@ class SmilesToImageModle(nn.Module):
         self.encoder = encoder_model
         self.decoder = decoder_model
 
-
     def encode(self, x):
         return self.encoder(x)
 

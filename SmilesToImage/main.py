@@ -16,15 +16,15 @@ epochs = 50
 no_cuda = False
 seed = 42
 data_para = True
-log_interval = 15
-LR = 0.001           ##adam rate
+log_interval = 5
+LR = 0.01           ##adam rate
 rampDataSize = 0.15 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
-model_load = None
+model_load = "epoch_2.pt"
 cuda = True
 data_size = 1000000
 torch.manual_seed(seed)
@@ -95,8 +95,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    #return min(32 * epoch, 256 * 7)
-    return 256 * 10
+    return min(64 * epoch, 256 * 12)
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(3), int(rampDataSize * data_size))
