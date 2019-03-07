@@ -88,7 +88,7 @@ train_losses = []
 
 def get_batch_size(epoch):
     #return min(32 * epoch, 256 * 7)
-    return 1024
+    return 128
 
 
 one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
