@@ -106,7 +106,7 @@ def train(epoch):
     train_loss = 0
     for batch_idx, (data, embed) in enumerate(train_loader_food):
         data = data[0]
-        embed = embed.cuda()
+        embed = embed.float().cuda()
         data = data.cuda()
 
         optimizer.zero_grad()
@@ -144,7 +144,7 @@ def test(epoch):
     with torch.no_grad():
         for i, (data, embed) in enumerate(val_loader_food):
             data = data[0]
-            embed = embed.cuda()
+            embed = embed.float().cuda()
             data = data.cuda()
 
             recon_batch, mu, logvar = model(embed)
