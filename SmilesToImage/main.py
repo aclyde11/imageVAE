@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 import datetime
 import torch
@@ -87,7 +87,8 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(32 * epoch, 256 * 7)
+    #return min(32 * epoch, 256 * 7)
+    return 1024
 
 
 one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
