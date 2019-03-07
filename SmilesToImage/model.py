@@ -98,6 +98,9 @@ class PictureDecoder(nn.Module):
         out = self.bn22(out)
         print(out.shape)
         out = self.conv19(out)
+        print(out.shape)
+
+
         return out.view(-1, 3, 256, 256)
 
 
