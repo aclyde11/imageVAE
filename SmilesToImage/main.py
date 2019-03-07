@@ -99,9 +99,9 @@ def apply_one_hot(ch):
 #apply_one_hot =  lambda ch: np.array(map(one_hot_encoded_fn, ch))
 
 
+train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
 
 def train(epoch):
-    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
