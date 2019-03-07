@@ -18,7 +18,7 @@ seed = 42
 data_para = True
 log_interval = 50
 LR = 0.001           ##adam rate
-rampDataSize = 0.23 ## data set size to use
+rampDataSize = 0.1 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
@@ -33,8 +33,8 @@ device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 
-train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
-val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
+train_root = '/homes/aclyde11/moldata/moses/train/'
+val_root = '/homes/aclyde11/moledata/moses/test/'
 smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab")
 
 def one_hot_array(i, n):
@@ -148,10 +148,13 @@ def test(epoch):
     with torch.no_grad():
         for i, (data, file) in enumerate(val_loader_food):
             data = data[0]
-            index = map(lambda x: x.split('/')[-1].split('.')[0], file[0])
-            print(index)
+            index = map(lambda x: int(x.split('/')[-1].split('.')[0]), file[0])
+            index = list(smiles_lookup.iloc[index, 1])
+            embed = apply_one_hot(index)
+            embed = torch.from_numpy(embed).float().cuda()
+            data = data.cuda()
 
-            recon_batch, mu, logvar = model(data)
+            recon_batch, mu, logvar = model(embed)
             test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
             if i == 0:
                 n_image_gen = 8
@@ -197,7 +200,7 @@ for epoch in range(starting_epoch, epochs):
     test(epoch)
     torch.save(model.module, 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
-        sample = torch.randn(64, 2700).sort()[0].to(device)
+        sample = torch.randn(64, 500).sort()[0].to(device)
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    output_dir + 'sample_' + str(epoch) + '.png')
