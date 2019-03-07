@@ -19,7 +19,7 @@ class SmilesEncoder(nn.Module):
 
         self.conv1 = nn.Conv1d(self.vocab_size, 9, 9)
         self.conv2 = nn.Conv1d(9, 9, 9)
-        self.conv3 = nn.Conv1d(9, 10, 11)
+        self.conv3 = nn.Conv1d(9, 9, 5)
         self.relu = nn.ReLU()
         self.dense = nn.Linear(2000, rep_size)
 
@@ -27,7 +27,9 @@ class SmilesEncoder(nn.Module):
     def forward(self, x):
         x = self.relu(self.conv1(x))
         x = self.relu(self.conv2(x))
+        print(x.shape)
         x = self.relu(self.conv3(x))
+        print(x.shape)
         x = x.view(-1, 9 * 10 * 11)
         x = self.relu(self.dense(x))
         print(x.shape)
