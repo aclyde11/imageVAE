@@ -100,7 +100,7 @@ def train(epoch):
         data = data[0]
         index = map(lambda x : int(x.split('/')[-1].split('.')[0]), file[0])
         print(index)
-        index = smiles_lookup.iloc[index,0]
+        index = smiles_lookup.iloc[index,1]
         print(index)
         embed = np.array(one_hot_encoded_fn(index))
 
