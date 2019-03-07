@@ -52,7 +52,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t = self.imgs[index][0]
         t = int(t.split('/')[-1].split('.')[0])
         t = list(smiles_lookup.iloc[t, 1])
-        embed = apply_one_hot([t])[0]
+        embed = apply_one_hot([t])[0].astype(np.float32)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed
 
 def generate_data_loader(root, batch_size, data_size):
@@ -106,7 +106,7 @@ def train(epoch):
     train_loss = 0
     for batch_idx, (data, embed) in enumerate(train_loader_food):
         data = data[0]
-        embed = embed.float().cuda()
+        embed = embed.cuda()
         data = data.cuda()
 
         optimizer.zero_grad()
@@ -144,7 +144,7 @@ def test(epoch):
     with torch.no_grad():
         for i, (data, embed) in enumerate(val_loader_food):
             data = data[0]
-            embed = embed.float().cuda()
+            embed = embed.cuda()
             data = data.cuda()
 
             recon_batch, mu, logvar = model(embed)
