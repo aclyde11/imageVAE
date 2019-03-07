@@ -39,7 +39,7 @@ class SmilesEncoder(nn.Module):
         x = x.view(-1, 300 * 3)
         x = self.relu(self.dense(x))
         print(x.shape)
-        return
+        return x
 
 class PictureDecoder(nn.Module):
     def __init__(self, rep_size=500):
