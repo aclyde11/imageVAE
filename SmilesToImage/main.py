@@ -18,7 +18,7 @@ seed = 42
 data_para = True
 log_interval = 50
 LR = 0.001           ##adam rate
-rampDataSize = 0.1 ## data set size to use
+rampDataSize = 0.15 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
@@ -58,7 +58,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
         ImageFolderWithFile(root, transform=transforms.ToTensor()),
-        batch_size=batch_size, shuffle=False, drop_last=True, **kwargs)
+        batch_size=batch_size, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))), drop_last=True, **kwargs)
 
 
 class customLoss(nn.Module):
