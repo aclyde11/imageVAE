@@ -48,7 +48,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
 
     def __getitem__(self, index):
         t = self.imgs[index]
-        index = map(lambda x: int(x.split('/')[-1].split('.')[0]), t[0])
+        index = map(lambda x: int(x.split('/')[-1].split('.')[0]), t)
         index = list(smiles_lookup.iloc[index, 1])
         embed = apply_one_hot(index)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed
