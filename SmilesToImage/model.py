@@ -45,6 +45,11 @@ class PictureDecoder(nn.Module):
     def __init__(self, rep_size=500):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
+        # Sampling vector
+        self.fc3 = nn.Linear(rep_size, rep_size)
+        self.fc_bn3 = nn.BatchNorm1d(rep_size)
+        self.fc4 = nn.Linear(rep_size, rep_size)
+        self.fc_bn4 = nn.BatchNorm1d(rep_size)
 
         # Decoder
         self.conv15 = nn.ConvTranspose2d(300, 256, kernel_size=2, stride=2, padding=1, output_padding=1, bias=False)
@@ -100,14 +105,6 @@ class SmilesToImageModle(nn.Module):
 
         self.encoder = encoder_model
         self.decoder = decoder_model
-
-
-
-        # Sampling vector
-        self.fc3 = nn.Linear(rep_size, rep_size)
-        self.fc_bn3 = nn.BatchNorm1d(rep_size)
-        self.fc4 = nn.Linear(rep_size, rep_size)
-        self.fc_bn4 = nn.BatchNorm1d(rep_size)
 
 
     def encode(self, x):
