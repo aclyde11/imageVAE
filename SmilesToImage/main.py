@@ -103,8 +103,8 @@ def train(epoch):
         index = list(smiles_lookup.iloc[index,1])
         print(index)
         embed = apply_one_hot(index)
-        print(embed)
-        print(embed.shape)
+        print(embed[0])
+        print(embed[0].shape)
         embed = embed.cuda()
         data = data.cuda()
 
