@@ -106,7 +106,7 @@ def train(epoch):
         t = embed[0]
         print(embed[0])
         print(embed[0].shape)
-        t = np.pad(t, pad_width=[60 - t.shape[0]], constant_values=0)
+        t = np.pad(t, pad_width=[60 - t.shape[0]], mode='constant', constant_values=0)
         print(t)
         print(t.shape)
 
