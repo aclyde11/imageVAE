@@ -54,7 +54,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t = self.imgs[index][0]
         t = int(t.split('/')[-1].split('.')[0])
         t = list(smiles_lookup.iloc[t, 1])
-        embed = apply_one_hot([t], vocab)
+        embed = apply_one_hot([t])
         print(embed)
         print(embed.shape)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed
