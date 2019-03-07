@@ -23,7 +23,7 @@ class SmilesEncoder(nn.Module):
         self.conv4 = nn.Conv1d(128, 256, 4, stride=1)
 
         self.relu = nn.ReLU()
-        self.dense = nn.Linear(2000, rep_size)
+        self.dense = nn.Linear(256 * 6, rep_size)
 
 
     def forward(self, x):
