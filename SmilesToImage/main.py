@@ -15,7 +15,7 @@ starting_epoch=1
 epochs = 50
 no_cuda = False
 seed = 42
-data_para = False
+data_para = True
 log_interval = 50
 LR = 0.001           ##adam rate
 rampDataSize = 0.1 ## data set size to use
@@ -106,8 +106,7 @@ def train(epoch):
     train_loss = 0
     for batch_idx, (data, embed) in enumerate(train_loader_food):
         data = data[0]
-        print(embed.shape)
-        embed = torch.from_numpy(embed).float().cuda()
+        embed = embed.cuda()
         data = data.cuda()
 
         optimizer.zero_grad()
@@ -143,12 +142,9 @@ def test(epoch):
     model.eval()
     test_loss = 0
     with torch.no_grad():
-        for i, (data, file) in enumerate(val_loader_food):
+        for i, (data, embed) in enumerate(val_loader_food):
             data = data[0]
-            index = map(lambda x: int(x.split('/')[-1].split('.')[0]), file[0])
-            index = list(smiles_lookup.iloc[index, 1])
-            embed = apply_one_hot(index)
-            embed = torch.from_numpy(embed).float().cuda()
+            embed = embed.cuda()
             data = data.cuda()
 
             recon_batch, mu, logvar = model(embed)
