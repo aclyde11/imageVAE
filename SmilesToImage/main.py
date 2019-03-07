@@ -98,7 +98,7 @@ def train(epoch):
     train_loss = 0
     for batch_idx, (data, file) in enumerate(train_loader_food):
         data = data[0]
-        index = map(lambda x : x.split('/')[-1].split('.')[0], file[0])
+        index = map(lambda x : int(x.split('/')[-1].split('.')[0]), file[0])
         print(index)
         index = smiles_lookup.iloc[index,:]
         embed = np.array(one_hot_encoded_fn(index))
