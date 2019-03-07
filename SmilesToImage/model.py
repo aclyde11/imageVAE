@@ -25,7 +25,7 @@ class SmilesEncoder(nn.Module):
         self.relu = nn.ReLU()
 
         # Latent vectors mu and sigma
-        self.fc1 = nn.Linear(rep_size, rep_size)
+        self.fc1 = nn.Linear(300 * 3, rep_size)
         self.fc_bn1 = nn.BatchNorm1d(rep_size)
         self.fc21 = nn.Linear(rep_size, rep_size)
         self.fc22 = nn.Linear(rep_size, rep_size)
