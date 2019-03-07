@@ -88,7 +88,7 @@ def get_batch_size(epoch):
     return min(32 * epoch, 256 * 7)
 
 
-one_hot_encoded_fn = lambda row: np.arrau(map(lambda x: one_hot_array(x, len(vocab)),
+one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
                                      one_hot_index(row, vocab)))
 apply_one_hot =  lambda ch: np.array(map(one_hot_encoded_fn, ch))
 def train(epoch):
