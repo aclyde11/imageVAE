@@ -109,7 +109,7 @@ def train(epoch):
         index = map(lambda x : int(x.split('/')[-1].split('.')[0]), file[0])
         index = list(smiles_lookup.iloc[index,1])
         embed = apply_one_hot(index)
-        embed = torch.from_numpy(embed).cuda()
+        embed = torch.from_numpy(embed).float().cuda()
         data = data.cuda()
 
         optimizer.zero_grad()
