@@ -21,7 +21,7 @@ LR = 0.0001           ##adam rate
 rampDataSize = 0.3 ## data set size to use
 KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
-model_load = '../epoch_123.pt'
+model_load = 'epoch_123.pt'
 cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1000000
 torch.manual_seed(seed)
