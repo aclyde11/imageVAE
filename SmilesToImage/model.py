@@ -19,7 +19,9 @@ class SmilesEncoder(nn.Module):
 
         self.conv1 = nn.Conv1d(self.vocab_size, 64, 9)
         self.conv2 = nn.Conv1d(64, 64, 5)
-        self.conv3 = nn.Conv1d(64, 128, 3)
+        self.conv3 = nn.Conv1d(64, 128, 5)
+        self.conv3 = nn.Conv1d(128, 256, 3)
+
         self.relu = nn.ReLU()
         self.dense = nn.Linear(2000, rep_size)
 
