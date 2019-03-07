@@ -111,6 +111,7 @@ def train(epoch):
         embed = apply_one_hot(index)
         print(embed.shape)
         print(embed)
+        print(embed[0,...])
 
         embed = embed.cuda()
         data = data.cuda()
