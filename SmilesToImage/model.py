@@ -71,7 +71,6 @@ class PictureDecoder(nn.Module):
         self.relu = nn.ReLU()
 
     def decode(self, z):
-        print(z.shape)
         out = self.fc_bn3(self.fc3(z))
         out = self.relu(out)
         out = self.fc_bn4(self.fc4(out))
@@ -82,25 +81,19 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv16(out))
         ouu = self.relu(self.conv16_(out))
         out = self.bn16(out)
-        print(out.shape)
 
         out = self.relu(self.conv20(out))
         out = self.relu(self.conv20_(out))
         out = self.bn20(out)
-        print(out.shape)
 
         out = self.relu(self.conv17(out))
         out = self.relu(self.conv17_(out))
         out = self.bn21(out)
-        print(out.shape)
 
         out = self.relu(self.conv18(out))
         out = self.relu(self.conv18_(out))
         out = self.bn22(out)
-        print(out.shape)
         out = self.conv19(out)
-        print(out.shape)
-
 
         return out
 
