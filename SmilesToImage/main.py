@@ -26,7 +26,7 @@ cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1000000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/ImageToImage/results/'
-vocab = pickle.load( open( "/homes/aclyde11/moldata/vocab.p", "rb" ) )
+vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
