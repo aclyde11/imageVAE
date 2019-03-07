@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 from model import SmilesToImageModle, SmilesEncoder, PictureDecoder
-
+import pickle
 import numpy as np
 import pandas as pd
 starting_epoch=1
@@ -26,7 +26,7 @@ cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1000000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/ImageToImage/results/'
-vocab = {}
+vocab = pickle.load( open( "vocab.p", "rb" ) )
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
@@ -34,6 +34,12 @@ kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
 val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
 smiles_lookup = pd.read_csv("matrix.csv")
+
+def one_hot_array(i, n):
+    return map(int, [ix == i for ix in range(n)])
+
+def one_hot_index(vec, charset):
+    return map(charset.index, vec)
 
 class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
@@ -82,14 +88,8 @@ def get_batch_size(epoch):
     return min(32 * epoch, 256 * 7)
 
 
-def get_embdeed_smile(index, length=200):
-    smiles = smiles_lookup.iloc[index]
-
-    embedded = []
-    for i in smiles:
-        vocab['']
-
-x
+one_hot_encoded_fn = lambda row: map(lambda x: one_hot_array(x, len(vocab)),
+                                     one_hot_index(row, vocab))
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
@@ -97,12 +97,13 @@ def train(epoch):
     model.train()
     train_loss = 0
     for batch_idx, (data, file) in enumerate(train_loader_food):
-        data = data[0].cuda()
+        data = data[0]
         index = map(lambda x : x.split('/')[-1].split('.')[0], file[0])
+        index = smiles_lookup.iloc[index,:]
+        embed = np.array(one_hot_encoded_fn(index))
 
-        ##get rnn stuff
-
-        print(index)
+        embed = embed.cuda()
+        data = data.cuda()
 
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
