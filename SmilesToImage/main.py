@@ -66,7 +66,7 @@ class customLoss(nn.Module):
 
 model = None
 if model_load is None:
-    model = SmilesToImageModle(SmilesEncoder(embedding_size, embedding_width, ), PictureDecoder())
+    model = SmilesToImageModle(SmilesEncoder(embedding_width, embedding_size, ), PictureDecoder())
 else:
     model = torch.load(model_load)
 if load_state is not None:
