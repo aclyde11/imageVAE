@@ -90,7 +90,7 @@ def get_batch_size(epoch):
 
 one_hot_encoded_fn = lambda row: map(lambda x: one_hot_array(x, len(vocab)),
                                      one_hot_index(row, vocab))
-
+apply_one_hot =  lambda ch: np.array(map(one_hot_encoded_fn, ch))
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
@@ -100,9 +100,9 @@ def train(epoch):
         data = data[0]
         index = map(lambda x : int(x.split('/')[-1].split('.')[0]), file[0])
         print(index)
-        index = smiles_lookup.iloc[index,1]
+        index = list(smiles_lookup.iloc[index,1])
         print(index)
-        embed = np.array(one_hot_encoded_fn(index))
+        embed = apply_one_hot(index)
 
         embed = embed.cuda()
         data = data.cuda()
