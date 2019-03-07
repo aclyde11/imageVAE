@@ -11,7 +11,7 @@ from model import SmilesToImageModle, SmilesEncoder, PictureDecoder
 import pickle
 import numpy as np
 import pandas as pd
-starting_epoch=1
+starting_epoch=3
 epochs = 50
 no_cuda = False
 seed = 42
