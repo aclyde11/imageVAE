@@ -25,7 +25,7 @@ model_load = '../epoch_108.pt'
 cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1000000
 torch.manual_seed(seed)
-output_dir = '/homes/aclyde11/imageVAE/ImageToImage/results/'
+output_dir = '/homes/aclyde11/imageVAE/results/'
 
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
