@@ -33,7 +33,7 @@ kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 train_root = '/homes/aclyde11/imageVAE/draw2dPNG/train/'
 val_root = '/homes/aclyde11/imageVAE/draw2dPNG/test/'
-smiles_lookup = pd.read_csv("matrix.csv")
+smiles_lookup = pd.read_table("moses_cleaned.tab")
 
 def one_hot_array(i, n):
     return map(int, [ix == i for ix in range(n)])
