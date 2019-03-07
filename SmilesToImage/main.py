@@ -55,6 +55,8 @@ class ImageFolderWithFile(datasets.ImageFolder):
         index = int(t.split('/')[-1].split('.')[0])
         index = list(smiles_lookup.iloc[index, 1])
         embed = one_hot_index(index, vocab)
+        print(embed)
+        print(embed.shape)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed
 
 def generate_data_loader(root, batch_size, data_size):
