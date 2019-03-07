@@ -105,19 +105,13 @@ def train(epoch):
     for batch_idx, (data, file) in enumerate(train_loader_food):
         data = data[0]
         index = map(lambda x : int(x.split('/')[-1].split('.')[0]), file[0])
-        print(index)
         index = list(smiles_lookup.iloc[index,1])
-        print(index)
         embed = apply_one_hot(index)
-        print(embed.shape)
-        print(embed)
-        print(embed[0,0,...])
-
-        embed = embed.cuda()
+        embed = torch.from_numpy(embed).cuda()
         data = data.cuda()
 
         optimizer.zero_grad()
-        recon_batch, mu, logvar = model(data)
+        recon_batch, mu, logvar = model(embed)
         loss = loss_mse(recon_batch, data, mu, logvar, epoch)
         loss.backward()
         train_loss += loss.item()
