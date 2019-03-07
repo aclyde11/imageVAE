@@ -12,20 +12,20 @@ import pickle
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=16
+starting_epoch=0
 epochs = 50
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 5
-LR = 0.001           ##adam rate
-rampDataSize = 0.35 ## data set size to use
+LR = 0.01           ##adam rate
+rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
-KLD_annealing = 0.02  ##set to 1 if not wanted.
+KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
-model_load = "epoch_15.pt"
+model_load = None
 cuda = True
 data_size = 1000000
 torch.manual_seed(seed)
