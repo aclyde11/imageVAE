@@ -115,7 +115,9 @@ class SmilesToImageModle(nn.Module):
 
 
     def encode(self, x):
-        x = torch.split(self.encoder(x), self.rep_size, 1)
+        x = self.encode(x)
+        print(x.shape)
+        x = torch.split(x, self.rep_size, 1)
 
         return x[0], x[1]
 
