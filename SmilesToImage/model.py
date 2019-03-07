@@ -115,7 +115,7 @@ class SmilesToImageModle(nn.Module):
 
 
     def encode(self, x):
-        x = self.encode(x)
+        x = self.encoder(x)
         print(x.shape)
         x = torch.split(x, self.rep_size, 1)
 
@@ -138,4 +138,4 @@ class SmilesToImageModle(nn.Module):
     def forward(self, x):
         mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar)
-        return self.decode(z), mu, logvar
+        return self.decoder(z), mu, logvar
