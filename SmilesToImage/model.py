@@ -122,6 +122,8 @@ class SmilesToImageModle(nn.Module):
         else:
             return mu
 
+    def decode(self, z):
+        return self.decoder(z)
 
     def encode_latent_(self, x):
         mu, logvar = self.encode(x)
@@ -131,4 +133,4 @@ class SmilesToImageModle(nn.Module):
     def forward(self, x):
         mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar)
-        return self.decoder(z), mu, logvar
+        return self.decode(z), mu, logvar
