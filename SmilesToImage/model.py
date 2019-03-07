@@ -74,7 +74,7 @@ class PictureDecoder(nn.Module):
         out = self.fc_bn3(self.fc3(z))
         out = self.relu(out)
         out = self.fc_bn4(self.fc4(out))
-        out = self.relu(out).view(-1, 300, 3, 3)
+        out = self.relu(out).view(-1, 125, 4, 4)
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
         out = self.bn15(out)
