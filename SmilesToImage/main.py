@@ -48,15 +48,11 @@ def apply_one_hot(ch):
     return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=0), ch))
 
 class ImageFolderWithFile(datasets.ImageFolder):
-
-
     def __getitem__(self, index):
         t = self.imgs[index][0]
         t = int(t.split('/')[-1].split('.')[0])
         t = list(smiles_lookup.iloc[t, 1])
         embed = apply_one_hot([t])
-        print(embed)
-        print(embed.shape)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed
 
 def generate_data_loader(root, batch_size, data_size):
@@ -115,9 +111,9 @@ def train(epoch):
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
-    for batch_idx, (data, file) in enumerate(train_loader_food):
+    for batch_idx, (data, embed) in enumerate(train_loader_food):
         data = data[0]
-        print(file.shape)
+        print(embed.shape)
         embed = torch.from_numpy(embed).float().cuda()
         data = data.cuda()
 
