@@ -42,16 +42,19 @@ def one_hot_array(i, n):
 
 def one_hot_index(vec, charset):
     return map(charset.index, vec)
+one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
+                                     one_hot_index(row, vocab)))
+def apply_one_hot(ch):
+    return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=0), ch))
 
 class ImageFolderWithFile(datasets.ImageFolder):
 
 
     def __getitem__(self, index):
-        t = self.imgs[index]
-        print(t)
-        index = map(lambda x: int(x.split('/')[-1].split('.')[0]), t)
+        t = self.imgs[index][0]
+        index = int(t.split('/')[-1].split('.')[0])
         index = list(smiles_lookup.iloc[index, 1])
-        embed = apply_one_hot(index)
+        embed = one_hot_index(index, vocab)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed
 
 def generate_data_loader(root, batch_size, data_size):
@@ -98,11 +101,8 @@ def get_batch_size(epoch):
     return 256 * 13
 
 
-one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
-                                     one_hot_index(row, vocab)))
 
-def apply_one_hot(ch):
-    return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=0), ch))
+
 #apply_one_hot =  lambda ch: np.array(map(one_hot_encoded_fn, ch))
 
 
