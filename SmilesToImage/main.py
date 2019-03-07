@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5,6,7'
 
 import datetime
 import torch
@@ -15,7 +15,7 @@ starting_epoch=1
 epochs = 50
 no_cuda = False
 seed = 42
-data_para = False
+data_para = True
 log_interval = 50
 LR = 0.001           ##adam rate
 rampDataSize = 0.23 ## data set size to use
@@ -88,7 +88,7 @@ train_losses = []
 
 def get_batch_size(epoch):
     #return min(32 * epoch, 256 * 7)
-    return 128
+    return 128 * 7
 
 
 one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
