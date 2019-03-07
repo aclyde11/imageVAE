@@ -36,7 +36,7 @@ class SmilesEncoder(nn.Module):
         print(x.shape)
         x = self.relu(self.conv4(x))
         print(x.shape)
-        x = x.view(-1, 9 * 10 * 11)
+        x = x.view(-1, 256 * 6)
         x = self.relu(self.dense(x))
         print(x.shape)
         return
