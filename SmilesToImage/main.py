@@ -34,7 +34,7 @@ kwargs = {'num_workers': 32, 'pin_memory': True} if cuda else {}
 
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
-val_root = '/homes/aclyde11/moledata/moses/test/'
+val_root =   '/homes/aclyde11/moldata/moses/test/'
 smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab")
 
 def one_hot_array(i, n):
@@ -96,7 +96,7 @@ train_losses = []
 
 def get_batch_size(epoch):
     #return min(32 * epoch, 256 * 7)
-    return 256 * 13
+    return 256 * 10
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(3), int(rampDataSize * data_size))
