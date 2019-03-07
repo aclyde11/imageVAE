@@ -11,17 +11,17 @@ from model import VAE_CNN
 import numpy as np
 from utils import MS_SSIM
 
-starting_epoch=108
-epochs = 150
+starting_epoch=124
+epochs = 175
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 0.001           ##adam rate
-rampDataSize = 0.23 ## data set size to use
+LR = 0.0001           ##adam rate
+rampDataSize = 0.3 ## data set size to use
 KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
-model_load = '../epoch_108.pt'
+model_load = '../epoch_123.pt'
 cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1000000
 torch.manual_seed(seed)
@@ -51,7 +51,7 @@ class customLoss(nn.Module):
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return  loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
+        return  loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  0.5 * loss_cripsy
 
 model = None
 if model_load is None:
