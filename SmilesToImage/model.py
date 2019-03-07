@@ -34,6 +34,7 @@ class SmilesEncoder(nn.Module):
 
 
     def forward(self, x):
+        print(x.shape)
         x = self.relu(self.conv1(x))
         x = self.relu(self.conv2(x))
         x = self.relu(self.conv3(x))
