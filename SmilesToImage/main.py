@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '6,7'
 
 import datetime
 import torch
@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 starting_epoch=1
 epochs = 50
-no_cuda = True
+no_cuda = False
 seed = 42
 data_para = False
 log_interval = 50
@@ -28,7 +28,7 @@ model_load = None
 cuda = not no_cuda and torch.cuda.is_available()
 data_size = 1000000
 torch.manual_seed(seed)
-output_dir = '/homes/aclyde11/imageVAE/ImageToImage/results/'
+output_dir = '/homes/aclyde11/imageVAE/SmilesToImage/results/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
