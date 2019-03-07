@@ -98,13 +98,6 @@ def get_batch_size(epoch):
     #return min(32 * epoch, 256 * 7)
     return 256 * 13
 
-
-
-
-#apply_one_hot =  lambda ch: np.array(map(one_hot_encoded_fn, ch))
-
-
-
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(3), int(rampDataSize * data_size))
 
