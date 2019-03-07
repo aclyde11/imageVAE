@@ -15,7 +15,7 @@ starting_epoch=1
 epochs = 50
 no_cuda = False
 seed = 42
-data_para = True
+data_para = False
 log_interval = 50
 LR = 0.001           ##adam rate
 rampDataSize = 0.1 ## data set size to use
@@ -44,8 +44,14 @@ def one_hot_index(vec, charset):
     return map(charset.index, vec)
 
 class ImageFolderWithFile(datasets.ImageFolder):
+
+
     def __getitem__(self, index):
-        return  super(ImageFolderWithFile, self).__getitem__(index), self.imgs[index]
+        t = self.imgs[index]
+        index = map(lambda x: int(x.split('/')[-1].split('.')[0]), t[0])
+        index = list(smiles_lookup.iloc[index, 1])
+        embed = apply_one_hot(index)
+        return  super(ImageFolderWithFile, self).__getitem__(index), embed
 
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
@@ -99,17 +105,16 @@ def apply_one_hot(ch):
 #apply_one_hot =  lambda ch: np.array(map(one_hot_encoded_fn, ch))
 
 
-train_loader_food = generate_data_loader(train_root, get_batch_size(  3), int(rampDataSize * data_size))
 
 def train(epoch):
+    train_loader_food = generate_data_loader(train_root, get_batch_size(3), int(rampDataSize * data_size))
+
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
     for batch_idx, (data, file) in enumerate(train_loader_food):
         data = data[0]
-        index = map(lambda x : int(x.split('/')[-1].split('.')[0]), file[0])
-        index = list(smiles_lookup.iloc[index,1])
-        embed = apply_one_hot(index)
+        print(file.shape)
         embed = torch.from_numpy(embed).float().cuda()
         data = data.cuda()
 
