@@ -30,7 +30,7 @@ cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/im_im/results/'
-save_files = '/homes/aclyde11/imageVAE/im_im_model/'
+save_files = '/homes/aclyde11/imageVAE/im_im/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
