@@ -19,7 +19,7 @@ seed = 42
 data_para = False
 log_interval = 15
 LR = 0.001           ##adam rate
-rampDataSize = 0.2 ## data set size to use
+rampDataSize = 0.05 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
@@ -27,7 +27,7 @@ KLD_annealing = 0.1  ##set to 1 if not wanted.
 load_state = None
 model_load = None
 cuda = True
-data_size = 1000000
+data_size = 1400000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/im_im/results/'
 save_files = '/homes/aclyde11/imageVAE/im_im_model/'
