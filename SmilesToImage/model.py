@@ -90,6 +90,7 @@ class SmilesEncoder(nn.Module):
 class PictureEncoder(nn.Module):
     def __init__(self, rep_size=2000):
         super(PictureEncoder, self).__init__()
+        self.rep_size = rep_size
         self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size * 2)
 
     def forward(self, x):
