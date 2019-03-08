@@ -31,7 +31,7 @@ data_size = 1000000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/SmilesToImage/results/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 32, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
