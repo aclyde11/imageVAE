@@ -13,8 +13,6 @@ class SmilesEncoder(nn.Module):
         self.vocab_size = vocab_size
         self.max_length_sequence = max_length_sequence
 
-
-
         ##layers
 
         self.conv1 = nn.Conv1d(self.vocab_size, 64, 9)
