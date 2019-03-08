@@ -80,7 +80,7 @@ model = None
 encoder = None
 decoder = None
 if model_load is None:
-    encoder = PictureEncoder(embedding_width, embedding_size, )
+    encoder = PictureEncoder()
     decoder = PictureDecoder()
 else:
     encoder = torch.load(model_load['encoder'])
