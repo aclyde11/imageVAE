@@ -143,7 +143,7 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(rampDataSize * data_size))
+    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(20000))
     model.eval()
     test_loss = 0
     with torch.no_grad():
