@@ -13,7 +13,7 @@ from utils import MS_SSIM
 import numpy as np
 import pandas as pd
 starting_epoch=1
-epochs = 50
+epochs = 150
 no_cuda = False
 seed = 42
 data_para = False
@@ -98,7 +98,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(64 * epoch, 256 * 12)
+    return min(32 * epoch, 256 * 12)
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(3), int(rampDataSize * data_size))
@@ -195,7 +195,7 @@ for epoch in range(starting_epoch, epochs):
     test(epoch)
     torch.save(model.module, 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
-        sample = torch.randn(64, 500).sort()[0].to(device)
+        sample = torch.randn(64, 2000).to(device)
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    output_dir + 'sample_' + str(epoch) + '.png')
