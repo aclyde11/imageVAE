@@ -3,6 +3,58 @@ from torch.autograd import Variable
 from skimage import io, transform
 from torch import nn, optim
 from torch.nn import functional as F
+from ResNet import ResNet, BasicBlock
+
+
+class TimeDistributed(nn.Module):
+    def __init__(self, module, batch_first=True):
+        super(TimeDistributed, self).__init__()
+        self.module = module
+        self.batch_first = batch_first
+
+    def forward(self, x):
+
+        if len(x.size()) <= 2:
+            return self.module(x)
+
+        # Squash samples and timesteps into a single axis
+        x_reshape = x.contiguous().view(-1, x.size(-1))  # (samples * timesteps, input_size)
+
+        y = self.module(x_reshape)
+
+        # We have to reshape Y
+        if self.batch_first:
+            y = y.contiguous().view(x.size(0), -1, y.size(-1))  # (samples, timesteps, output_size)
+        else:
+            y = y.view(-1, x.size(1), y.size(-1))  # (timesteps, samples, output_size)
+
+        return y
+
+class SmilesDecoder(nn.Module):
+    def __init__(self,  vocab_size, max_length_sequence, rep_size = 2000 , embedder = None):
+        super(SmilesDecoder, self).__init__()
+        self.rep_size = rep_size
+        self.embeder = embedder
+        self.vocab_size = vocab_size
+        self.max_length_sequence = max_length_sequence
+
+        self.repeat_vector = lambda x : x.unsqueeze(2).expand(-1, max_length_sequence)
+        self.gru1 = nn.GRU(input_size = 1, num_layers=1, hidden_size=501, batch_first=True)
+        self.gru2 = nn.GRU(input_size = 1, num_layers=1, hidden_size=501, batch_first=True)
+        self.gru3 = nn.GRU(input_size = 1, num_layers=1, hidden_size=501, batch_first=True)
+        self.dense = nn.Linear(501, vocab_size)
+        self.timedib = TimeDistributed(self.dense, batch_first=True)
+        self.relu = nn.ReLU()
+        self.tanh = nn.Tanh()
+
+    def forward(self, x):
+        x = self.repeat_vector(x)
+        x, b = self.tanh(self.gru1(x))
+        x, b = self.tanh(self.gru2(x, b))
+        x, _ = self.tanh(self.gru3(x, b))
+        x = self.relu(self.timedib(x))
+        return x
+
 
 class SmilesEncoder(nn.Module):
 
@@ -15,33 +67,34 @@ class SmilesEncoder(nn.Module):
 
         ##layers
 
-        self.conv1 = nn.Conv1d(self.vocab_size, 64, 9)
-        self.conv2 = nn.Conv1d(64, 64, 7, stride=1)
-        self.conv3 = nn.Conv1d(64, 64, 4, stride=1)
-        self.conv4 = nn.Conv1d(64, 128, 4, stride=1)
-        self.conv5 = nn.Conv1d(128, 128, 3, stride=1)
-        self.conv6 = nn.Conv1d(128, 256, 3, stride=1)
+        self.conv1 = nn.Conv1d(in_channels=self.vocab_size, out_channels=9, kernel_size=9, stride=1)
+        self.conv2 = nn.Conv1d(in_channels=9, out_channels=9, kernel_size=9, stride=1)
+        self.conv3 = nn.Conv1d(in_channels=9, out_channels=10, kernel_size=11, stride=1)
 
         self.relu = nn.ReLU()
 
         # Latent vectors mu and sigma
-        self.fc1 = nn.Linear(256 * 2, rep_size)
-        self.fc_bn1 = nn.BatchNorm1d(rep_size)
-        self.fc21 = nn.Linear(rep_size, rep_size)
-        self.fc22 = nn.Linear(rep_size, rep_size)
+        self.fc22 = nn.Linear(256 * 2, rep_size)
+        self.fc21 = nn.Linear(256 * 2, rep_size)
 
 
     def forward(self, x):
         x = self.relu(self.conv1(x))
         x = self.relu(self.conv2(x))
         x = self.relu(self.conv3(x))
-        x = self.relu(self.conv4(x))
-        x = self.relu(self.conv5(x))
-        x = self.relu(self.conv6(x))
+        print(x.shape)
         x = x.view(-1, 256 * 2)
-        x = self.relu(self.fc_bn1(self.fc1(x)))
 
         return self.fc21(x), self.fc22(x)
+
+class PictureEncoder(nn.Module):
+    def __init__(self, rep_size=2000):
+        super(PictureEncoder, self).__init__()
+        self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size * 2)
+
+    def forward(self, x):
+        return self.encoder(x)
+
 
 class PictureDecoder(nn.Module):
     def __init__(self, rep_size=2000):
@@ -102,9 +155,9 @@ class PictureDecoder(nn.Module):
         return self.decode(z)
 
 
-class SmilesToImageModle(nn.Module):
+class GeneralVae(nn.Module):
     def __init__(self, encoder_model, decoder_model, rep_size=2000):
-        super(SmilesToImageModle, self).__init__()
+        super(GeneralVae, self).__init__()
         self.rep_size = rep_size
 
         self.encoder = encoder_model
