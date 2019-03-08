@@ -93,7 +93,9 @@ class PictureEncoder(nn.Module):
         self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size * 2)
 
     def forward(self, x):
-        return self.encoder(x)
+        x = torch.split(self.encoder(x), self.rep_size, 1)
+
+        return x[0], x[1]
 
 
 class PictureDecoder(nn.Module):
