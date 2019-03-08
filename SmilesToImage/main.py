@@ -18,8 +18,8 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 15
-LR = 0.01           ##adam rate
-rampDataSize = 0.3 ## data set size to use
+LR = 0.001           ##adam rate
+rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
@@ -98,7 +98,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(32 * epoch, 256 * 12)
+    return min(16 * epoch, 256 * 12)
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(3), int(rampDataSize * data_size))
