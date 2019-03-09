@@ -89,6 +89,7 @@ class SmilesEncoder(nn.Module):
         x = self.relu(self.conv1(x))
         x = self.relu(self.conv2(x))
         x = self.relu(self.conv3(x))
+        print(x.shape)
         x = x.view(-1, 900)
 
         return self.fc21(x), self.fc22(x)
