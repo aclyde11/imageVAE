@@ -107,7 +107,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(32 * epoch, 512 * 4)
+    return min(16 * epoch, 512 )
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
