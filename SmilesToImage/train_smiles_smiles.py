@@ -22,7 +22,7 @@ LR = 0.001           ##adam rate
 rampDataSize = 0.1 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
-vocab.insert(' ', 0)
+vocab.insert(0,' ')
 print(vocab)
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
