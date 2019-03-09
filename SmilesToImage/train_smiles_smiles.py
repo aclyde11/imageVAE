@@ -78,7 +78,7 @@ class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         #self.mse_loss = nn.MSELoss(reduction="sum")
-        self.mse_loss = nn.BCELoss()
+        self.mse_loss = nn.NLLLoss()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         print(x, x.shape)
