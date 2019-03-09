@@ -30,6 +30,22 @@ class TimeDistributed(nn.Module):
 
         return y
 
+class Repeat(nn.Module):
+
+    def __init__(self, rep):
+        super(Repeat, self).__init__()
+
+        self.rep = rep
+
+    def forward(self, x):
+        size = tuple(x.size())
+        size = (size[0], 1) + size[1:]
+        x_expanded = x.view(*size)
+        n = [1 for _ in size]
+        n[1] = self.rep
+        return x_expanded.repeat(*n)
+
+
 
 class SmilesDecoder(nn.Module):
     def __init__(self,  vocab_size, max_length_sequence, rep_size = 2000 , embedder = None):
@@ -38,11 +54,9 @@ class SmilesDecoder(nn.Module):
         self.embeder = embedder
         self.vocab_size = vocab_size
         self.max_length_sequence = max_length_sequence
-
-        self.gru1 = nn.GRU(input_size = rep_size, num_layers=1, hidden_size=501, batch_first=True)
-        self.gru2 = nn.GRU(input_size = 501, num_layers=1, hidden_size=501, batch_first=True)
-        self.gru3 = nn.GRU(input_size = 501, num_layers=1, hidden_size=501, batch_first=True)
-        self.dense = nn.Sequential(nn.Linear(501, vocab_size), nn.Softmax(1))
+        self.repeat_vector = Repeat(self.max_length_sequence)
+        self.gru1 = nn.GRU(input_size = rep_size, num_layers=3, hidden_size=501, batch_first=True)
+        self.dense = nn.Sequential(nn.Linear(501, vocab_size), nn.Softmax(2))
         self.timedib = TimeDistributed(self.dense, batch_first=True)
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
@@ -50,7 +64,7 @@ class SmilesDecoder(nn.Module):
 
 
     def forward(self, x):
-        x = x.unsqueeze(1).expand(-1, self.max_length_sequence, self.rep_size) #repeat vector
+        x = self.repeat_vector(x)
         x, b = self.gru1(x)
         x = self.tanh(x)
         x, b = self.gru2(x, b)
