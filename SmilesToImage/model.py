@@ -45,7 +45,11 @@ class Repeat(nn.Module):
         n[1] = self.rep
         return x_expanded.repeat(*n)
 
+class Flatten(nn.Module):
 
+    def forward(self, x):
+        size = x.size()  # read in N, C, H, W
+        return x.view(size[0], -1)
 
 class SmilesDecoder(nn.Module):
     def __init__(self,  vocab_size, max_length_sequence, rep_size = 2000 , embedder = None):
@@ -96,7 +100,7 @@ class SmilesEncoder(nn.Module):
         x = self.relu(self.conv1(x))
         x = self.relu(self.conv2(x))
         x = self.relu(self.conv3(x))
-        x = x.view(-1, 900)
+        x = Flatten()(x)
 
         return self.fc21(x), self.fc22(x)
 
