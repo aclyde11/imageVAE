@@ -51,6 +51,7 @@ class SmilesDecoder(nn.Module):
 
 
     def forward(self, x):
+        print("DECODER in:", x.shape)
         x = x.unsqueeze(1).expand(-1, self.max_length_sequence, self.rep_size) #repeat vector
         x, b = self.gru1(x)
         x = self.tanh(x)
