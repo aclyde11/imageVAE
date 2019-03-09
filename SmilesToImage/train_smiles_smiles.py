@@ -60,7 +60,7 @@ one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(voc
 def apply_t(x):
 
     print(x)
-    x = x ++ list((''.join([char*(embedding_width - len(x)) for char in [' ']])))
+    x = x + list((''.join([char*(embedding_width - len(x)) for char in [' ']])))
     smi = one_hot_encoded_fn(x)
     print(smi)
     return smi
