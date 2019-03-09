@@ -16,7 +16,7 @@ starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
-data_para = True
+data_para = False
 log_interval = 25
 LR = 0.001           ##adam rate
 rampDataSize = 0.1 ## data set size to use
@@ -84,6 +84,8 @@ class customLoss(nn.Module):
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = embedding_width * self.mse_loss(x_recon.view(-1, embedding_width * embedding_size), x.view(-1, embedding_width * embedding_size))
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        print(x_recon)
+        print(x)
         return loss_MSE + loss_KLD
 
 model = None
@@ -113,7 +115,7 @@ train_losses = []
 
 def get_batch_size(epoch):
     #return min(16 * epoch, 512)
-    return 1024
+    return 2
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
