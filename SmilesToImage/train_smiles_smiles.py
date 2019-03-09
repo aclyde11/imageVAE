@@ -18,7 +18,7 @@ no_cuda = False
 seed = 42
 data_para = False
 log_interval = 25
-LR = 0.001           ##adam rate
+LR = 0.01           ##adam rate
 rampDataSize = 0.1 ## data set size to use
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
@@ -48,7 +48,6 @@ def from_one_hot_array(vec):
     return int(oh[0][0])
 
 def decode_smiles_from_indexes(vec, charset):
-    print(vec)
     return "".join(map(lambda x: charset[x], vec)).strip()
 
 def one_hot_array(i, n):
@@ -170,12 +169,8 @@ def test(epoch):
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
     for i in range(recon_batch.shape[0]):
-        print(recon_batch.shape)
-        sampled = recon_batch.cpu().numpy()[i,...]
-        print(sampled.shape)
-        print(embed.shape)
+        sampled = recon_batch.cpu().numpy()[i,...].argmax(axis=1)
         mol = embed.cpu().numpy()[i,...].argmax(axis=1)
-        print(mol.shape)
         mol = decode_smiles_from_indexes(mol, vocab)
         sampled = decode_smiles_from_indexes(sampled, vocab)
         print("Orig: ", mol, " Sample: ", sampled)
