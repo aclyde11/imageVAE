@@ -22,8 +22,8 @@ LR = 0.001           ##adam rate
 rampDataSize = 0.1 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
-for key, value in vocab.iteritems() :
-    print(key, value)
+vocab.append(' ')
+print(vocab)
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
@@ -58,7 +58,7 @@ def one_hot_index(vec, charset):
 one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
                                      one_hot_index(row, vocab)))
 def apply_one_hot(ch):
-    return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=0), ch))
+    return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=27), ch))
 
 class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
@@ -122,6 +122,7 @@ def train(epoch):
     model.train()
     train_loss = 0
     for batch_idx, (_, embed) in enumerate(train_loader_food):
+        print(embed.numpy()[0,...])
         embed = embed.float().cuda()
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(embed)
