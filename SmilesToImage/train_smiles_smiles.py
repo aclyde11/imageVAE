@@ -167,10 +167,11 @@ def test(epoch):
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
-    sampled = recon_batch.cpu().numpy().argmax(axis=2)[0]
-    mol = embed.cpu().numpy().argmax(axis=2)[0]
-    mol = decode_smiles_from_indexes(mol, vocab)
-    sampled = decode_smiles_from_indexes(sampled, vocab)
+    for i in range(recon_batch.shape[0]):
+        sampled = recon_batch.cpu().numpy()[i,...].argmax(axis=1)[0]
+        mol = embed.cpu().numpy()[i,...].argmax(axis=1)[0]
+        mol = decode_smiles_from_indexes(mol, vocab)
+        sampled = decode_smiles_from_indexes(sampled, vocab)
     print(mol)
     print(sampled)
 
