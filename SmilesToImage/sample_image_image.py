@@ -132,8 +132,7 @@ def sample(epoch, model, data):
 
 
 for epoch in range(starting_epoch, epochs):
-    for param_group in optimizer.param_groups:
-        print("Current learning rate is: {}".format(param_group['lr']))
+
     #train(epoch)
 
     data, _ = generate_data_loader(val_root, get_batch_size(epoch), int(20000))[0]
