@@ -42,7 +42,7 @@ class SmilesDecoder(nn.Module):
         self.gru1 = nn.GRU(input_size = rep_size, num_layers=1, hidden_size=501, batch_first=True)
         self.gru2 = nn.GRU(input_size = 501, num_layers=1, hidden_size=501, batch_first=True)
         self.gru3 = nn.GRU(input_size = 501, num_layers=1, hidden_size=501, batch_first=True)
-        self.dense = nn.Sequential(nn.Linear(501, vocab_size), nn.Softmax())
+        self.dense = nn.Sequential(nn.Linear(501, vocab_size), nn.Softmax(1))
         self.timedib = TimeDistributed(self.dense, batch_first=True)
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()

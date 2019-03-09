@@ -170,11 +170,16 @@ def test(epoch):
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
     for i in range(recon_batch.shape[0]):
-        sampled = recon_batch.cpu().numpy()[i,...].argmax(axis=1)
+        print(recon_batch.shape)
+        sampled = recon_batch.cpu().numpy()[i,...]
+        print(sampled.shape)
+        print(embed.shape)
         mol = embed.cpu().numpy()[i,...].argmax(axis=1)
+        print(mol.shape)
         mol = decode_smiles_from_indexes(mol, vocab)
         sampled = decode_smiles_from_indexes(sampled, vocab)
         print("Orig: ", mol, " Sample: ", sampled)
+        exit()
 
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
