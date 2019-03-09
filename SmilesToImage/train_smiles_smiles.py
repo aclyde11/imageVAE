@@ -174,7 +174,6 @@ def test(epoch):
         mol = decode_smiles_from_indexes(mol, vocab)
         sampled = decode_smiles_from_indexes(sampled, vocab)
         print("Orig: ", mol, " Sample: ", sampled)
-        exit()
 
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
