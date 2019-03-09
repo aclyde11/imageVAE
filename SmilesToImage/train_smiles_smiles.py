@@ -84,7 +84,7 @@ class customLoss(nn.Module):
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon.view(-1, embedding_width * embedding_size), x.view(-1, embedding_width * embedding_size))
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD
+        return loss_MSE + loss_KLD
 
 model = None
 encoder = None
