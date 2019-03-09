@@ -65,12 +65,7 @@ class SmilesDecoder(nn.Module):
 
     def forward(self, x):
         x = self.repeat_vector(x)
-        x, b = self.gru1(x)
-        x = self.tanh(x)
-        x, b = self.gru2(x, b)
-        x = self.tanh(x)
-        x, _ = self.gru3(x, b)
-        x = self.tanh(x)
+        x, _ = self.gru1(x)
         x = self.timedib(x)
         return x
 
