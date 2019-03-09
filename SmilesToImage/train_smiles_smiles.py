@@ -66,7 +66,7 @@ def generate_data_loader(root, batch_size, data_size):
 class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
-        self.mse_loss = nn.MSELoss(reduction="sum")
+        #self.mse_loss = nn.MSELoss(reduction="sum")
         self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
@@ -97,7 +97,7 @@ model.to(device)
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
-#loss_mse = customLoss()
+loss_mse = customLoss()
 val_losses = []
 train_losses = []
 
@@ -110,21 +110,22 @@ def train(epoch):
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
-    for batch_idx, (data, _) in enumerate(train_loader_food):
-        data = data.cuda()
+    for batch_idx, (_, embed) in enumerate(train_loader_food):
+        embed = embed.cuda()
 
         optimizer.zero_grad()
-        recon_batch, mu, logvar = model(data)
-        loss = loss_mse(recon_batch, data, mu, logvar, epoch)
+        recon_batch, mu, logvar = model(embed)
+        print(recon_batch.shape)
+        loss = loss_mse(recon_batch, embed, mu, logvar, epoch)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
-                epoch, batch_idx * len(data), len(train_loader_food.dataset),
+                epoch, batch_idx * len(embed), len(train_loader_food.dataset),
                        100. * batch_idx / len(train_loader_food),
-                       loss.item() / len(data), datetime.datetime.now()))
+                       loss.item() / len(embed), datetime.datetime.now()))
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, train_loss / len(train_loader_food.dataset)))
@@ -146,43 +147,12 @@ def test(epoch):
     model.eval()
     test_loss = 0
     with torch.no_grad():
-        for i, (data, _) in enumerate(val_loader_food):
-            data = data.cuda()
+        for i, (_, embed) in enumerate(val_loader_food):
+            embed = embed.cuda()
 
-            recon_batch, mu, logvar = model(data)
-            test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
-            if i == 0:
-                n_image_gen = 8
-                images = []
-                n_samples_linspace = 16
-                for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data)
-                    pt_1 = data_latent[i * 2, ...].cpu().numpy()
-                    pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
-                    sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                    sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec).cpu())
-                save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
+            recon_batch, mu, logvar = model(embed)
+            test_loss += loss_mse(recon_batch, embed, mu, logvar, epoch).item()
 
-                n_image_gen = 8
-                images = []
-                n_samples_linspace = 16
-                for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data)
-                    pt_1 = data_latent[i, ...].cpu().numpy()
-                    pt_2 = data_latent[i + 1, ...].cpu().numpy()
-                    sample_vec = interpolate_points(pt_1, pt_2,
-                                                    np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                    sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec).cpu())
-                save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
-
-                ##
-                n = min(data.size(0), 8)
-                comparison = torch.cat([data[:n],
-                                        recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
-                save_image(comparison.cpu(),
-                           output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
 
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
@@ -195,8 +165,8 @@ for epoch in range(starting_epoch, epochs):
     test(epoch)
     torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
     torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
-    with torch.no_grad():
-        sample = torch.randn(64, 2000).to(device)
-        sample = model.module.decode(sample).cpu()
-        save_image(sample.view(64, 3, 256, 256),
-                   output_dir + 'sample_' + str(epoch) + '.png')
+    # with torch.no_grad():
+    #     sample = torch.randn(64, 2000).to(device)
+    #     sample = model.module.decode(sample).cpu()
+    #     save_image(sample.view(64, 3, 256, 256),
+    #                output_dir + 'sample_' + str(epoch) + '.png')

@@ -48,11 +48,17 @@ class SmilesDecoder(nn.Module):
         self.tanh = nn.Tanh()
 
     def forward(self, x):
+        print(x.shape)
         x = self.repeat_vector(x)
+        print(x.shape)
         x, b = self.tanh(self.gru1(x))
+        print(x.shape, b.shape)
         x, b = self.tanh(self.gru2(x, b))
+        print(x.shape, b.shape)
         x, _ = self.tanh(self.gru3(x, b))
+        print(x.shape)
         x = self.relu(self.timedib(x))
+        print(x.shape)
         return x
 
 
