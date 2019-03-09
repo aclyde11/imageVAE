@@ -74,7 +74,7 @@ class SmilesEncoder(nn.Module):
         ##layers
 
         self.conv1 = nn.Conv1d(in_channels=self.max_length_sequence, out_channels=9, kernel_size=9, stride=1)
-        self.conv2 = nn.Conv1d(in_channels=9, out_channels=9, kernel_size=9, stride=1)
+        self.conv2 = nn.Conv1d(in_channels=9, out_channels=9, kernel_size=10, stride=1)
         self.conv3 = nn.Conv1d(in_channels=9, out_channels=10, kernel_size=9, stride=1)
 
         self.relu = nn.ReLU()
