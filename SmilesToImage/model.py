@@ -45,7 +45,9 @@ class SmilesDecoder(nn.Module):
         self.dense = nn.Linear(501, vocab_size)
         self.timedib = TimeDistributed(self.dense, batch_first=True)
         self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
         self.tanh = nn.Tanh()
+        self.softmax = nn.Softmax(dim=2)
 
     def forward(self, x):
         print(x.shape)
@@ -60,7 +62,7 @@ class SmilesDecoder(nn.Module):
         x, _ = self.gru3(x, b)
         x = self.tanh(x)
         print(x.shape)
-        x = self.relu(self.timedib(x))
+        x = self.softmax(self.timedib(x))
         print(x.shape)
         return x
 
