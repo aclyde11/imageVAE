@@ -48,6 +48,7 @@ def from_one_hot_array(vec):
     return int(oh[0][0])
 
 def decode_smiles_from_indexes(vec, charset):
+    print(vec)
     return "".join(map(lambda x: charset[x], vec)).strip()
 
 def one_hot_array(i, n):
