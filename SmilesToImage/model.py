@@ -50,7 +50,6 @@ class SmilesDecoder(nn.Module):
         self.softmax = nn.Softmax(dim=2)
 
     def forward(self, x):
-        print(x.shape)
         x = self.repeat_vector(x)
         x, b = self.gru1(x)
         x = self.tanh(x)

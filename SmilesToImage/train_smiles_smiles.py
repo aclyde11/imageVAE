@@ -113,10 +113,8 @@ def train(epoch):
     train_loss = 0
     for batch_idx, (_, embed) in enumerate(train_loader_food):
         embed = embed.float().cuda()
-
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(embed)
-        print(recon_batch.shape)
         loss = loss_mse(recon_batch, embed, mu, logvar, epoch)
         loss.backward()
         train_loss += loss.item()
