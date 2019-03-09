@@ -151,7 +151,7 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(20000))
+    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch / 2), int(20000))
     model.eval()
     test_loss = 0
     recon_batch = None
@@ -167,13 +167,12 @@ def test(epoch):
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
-    for i in range(embed.shape[0]):
-        sampled = recon_batch.cpu().numpy().argmax(axis=2)[0]
-        mol = embed.cpu().numpy().argmax(axis=2)[0]
-        mol = decode_smiles_from_indexes(mol, vocab)
-        sampled = decode_smiles_from_indexes(sampled, vocab)
-        print(mol)
-        print(sampled)
+    sampled = recon_batch.cpu().numpy().argmax(axis=2)[0]
+    mol = embed.cpu().numpy().argmax(axis=2)[0]
+    mol = decode_smiles_from_indexes(mol, vocab)
+    sampled = decode_smiles_from_indexes(sampled, vocab)
+    print(mol)
+    print(sampled)
 
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
