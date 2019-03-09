@@ -51,7 +51,6 @@ class SmilesDecoder(nn.Module):
 
 
     def forward(self, x):
-        print("DECODER in:", x.shape)
         x = x.unsqueeze(1).expand(-1, self.max_length_sequence, self.rep_size) #repeat vector
         x, b = self.gru1(x)
         x = self.tanh(x)
@@ -89,7 +88,6 @@ class SmilesEncoder(nn.Module):
         x = self.relu(self.conv1(x))
         x = self.relu(self.conv2(x))
         x = self.relu(self.conv3(x))
-        print(x.shape)
         x = x.view(-1, 900)
 
         return self.fc21(x), self.fc22(x)
