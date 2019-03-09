@@ -130,7 +130,7 @@ def train(epoch):
         train_loss += loss.item()
         optimizer.step()
 
-        for i in range(recon_batch.shape[0], 10):
+        for i in range(recon_batch.shape[0]):
             sampled = recon_batch.cpu().numpy()[i, ...].argmax(axis=1)
             mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
             mol = decode_smiles_from_indexes(mol, vocab)
@@ -169,7 +169,7 @@ def test(epoch):
             embed = embed.cuda()
 
             recon_batch, mu, logvar = model(embed)
-            for i in range(recon_batch.shape[0], 10):
+            for i in range(recon_batch.shape[0]):
                 sampled = recon_batch.cpu().numpy()[i, ...].argmax(axis=1)
                 mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
                 mol = decode_smiles_from_indexes(mol, vocab)
