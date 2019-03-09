@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '4,5,6,7'
 
 import datetime
 import torch
@@ -16,9 +16,9 @@ starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
-data_para = False
+data_para = True
 log_interval = 25
-LR = 0.01           ##adam rate
+LR = 0.001          ##adam rate
 rampDataSize = 0.1 ## data set size to use
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
@@ -118,7 +118,7 @@ train_losses = []
 
 def get_batch_size(epoch):
     #return min(16 * epoch, 512)
-    return 1024
+    return 1024 * 3
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
@@ -135,18 +135,19 @@ def train(epoch):
         train_loss += loss.item()
         optimizer.step()
 
-        for i in range(recon_batch.shape[0]):
-            sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
-            mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
-            mol = decode_smiles_from_indexes(mol, vocab)
-            sampled = decode_smiles_from_indexes(sampled, vocab)
-            print("Orig: ", mol, " Sample: ", sampled)
+
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                 epoch, batch_idx * len(embed), len(train_loader_food.dataset),
                        100. * batch_idx / len(train_loader_food),
                        loss.item() / len(embed), datetime.datetime.now()))
+            for i in range(3):
+                sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
+                mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
+                mol = decode_smiles_from_indexes(mol, vocab)
+                sampled = decode_smiles_from_indexes(sampled, vocab)
+                print("Orig: ", mol, " Sample: ", sampled)
 
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
