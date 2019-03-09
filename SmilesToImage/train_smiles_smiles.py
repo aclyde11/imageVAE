@@ -136,6 +136,12 @@ def train(epoch):
                        100. * batch_idx / len(train_loader_food),
                        loss.item() / len(embed), datetime.datetime.now()))
 
+        sampled = recon_batch.cpu().numpy()[0, ...].argmax(axis=1)
+        mol = embed.cpu().numpy()[0, ...].argmax(axis=1)
+        mol = decode_smiles_from_indexes(mol, vocab)
+        sampled = decode_smiles_from_indexes(sampled, vocab)
+        print("Orig: ", mol, " Sample: ", sampled)
+
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, train_loss / len(train_loader_food.dataset)))
     train_losses.append(train_loss / len(train_loader_food.dataset))
