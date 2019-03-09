@@ -156,25 +156,25 @@ def test(epoch):
     val_loader_food = generate_data_loader(val_root, get_batch_size(epoch / 2), int(5000))
     model.eval()
     test_loss = 0
-    recon_batch = None
-    embed = None
+
     with torch.no_grad():
         for i, (_, embed) in enumerate(val_loader_food):
             embed = embed.cuda()
 
             recon_batch, mu, logvar = model(embed)
+            for i in range(recon_batch.shape[0]):
+                sampled = recon_batch.cpu().numpy()[i, ...].argmax(axis=1)
+                mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
+                mol = decode_smiles_from_indexes(mol, vocab)
+                sampled = decode_smiles_from_indexes(sampled, vocab)
+                print("Orig: ", mol, " Sample: ", sampled)
             test_loss += loss_mse(recon_batch, embed, mu, logvar, epoch).item()
 
 
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
-    for i in range(recon_batch.shape[0]):
-        sampled = recon_batch.cpu().numpy()[i,...].argmax(axis=1)
-        mol = embed.cpu().numpy()[i,...].argmax(axis=1)
-        mol = decode_smiles_from_indexes(mol, vocab)
-        sampled = decode_smiles_from_indexes(sampled, vocab)
-        print("Orig: ", mol, " Sample: ", sampled)
+
 
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
