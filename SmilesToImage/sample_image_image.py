@@ -25,7 +25,7 @@ vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_52.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_52.pt'}
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_51.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_51.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
@@ -80,25 +80,8 @@ class customLoss(nn.Module):
 
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
-model = None
-encoder = None
-decoder = None
-if model_load is None:
-    encoder = PictureEncoder()
-    decoder = PictureDecoder()
-else:
-    encoder = torch.load(model_load['encoder'])
-    decoder = torch.load(model_load['decoder'])
-model = GeneralVae(encoder, decoder)
 
 
-if data_para and torch.cuda.device_count() > 1:
-    print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model = nn.DataParallel(model)
-
-model.to(device)
-
-optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_mse = customLoss()
@@ -108,34 +91,6 @@ train_losses = []
 
 def get_batch_size(epoch):
     return min(16 * epoch, 512 )
-
-def train(epoch):
-    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
-
-    print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
-    model.train()
-    train_loss = 0
-    for batch_idx, (data, _) in enumerate(train_loader_food):
-        data = data.cuda()
-
-        optimizer.zero_grad()
-        recon_batch, mu, logvar = model(data)
-        loss = loss_mse(recon_batch, data, mu, logvar, epoch)
-        loss.backward()
-        train_loss += loss.item()
-        optimizer.step()
-
-        if batch_idx % log_interval == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
-                epoch, batch_idx * len(data), len(train_loader_food.dataset),
-                       100. * batch_idx / len(train_loader_food),
-                       loss.item() / len(data), datetime.datetime.now()))
-
-    print('====> Epoch: {} Average loss: {:.4f}'.format(
-        epoch, train_loss / len(train_loader_food.dataset)))
-    train_losses.append(train_loss / len(train_loader_food.dataset))
-
-
 
 def interpolate_points(x,y, sampling):
     from sklearn.linear_model import LinearRegression
