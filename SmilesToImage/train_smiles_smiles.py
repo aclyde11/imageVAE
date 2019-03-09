@@ -40,6 +40,15 @@ train_root = '/homes/aclyde11/moldata/moses/train/'
 val_root =   '/homes/aclyde11/moldata/moses/test/'
 smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab")
 
+def from_one_hot_array(vec):
+    oh = np.where(vec == 1)
+    if oh[0].shape == (0, ):
+        return None
+    return int(oh[0][0])
+
+def decode_smiles_from_indexes(vec, charset):
+    return "".join(map(lambda x: charset[x], vec)).strip()
+
 def one_hot_array(i, n):
     return map(int, [ix == i for ix in range(n)])
 
@@ -103,7 +112,7 @@ train_losses = []
 
 def get_batch_size(epoch):
     #return min(16 * epoch, 512)
-    return 2096
+    return 2096 * 3
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(3), int(rampDataSize * data_size))
@@ -145,6 +154,8 @@ def test(epoch):
     val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(20000))
     model.eval()
     test_loss = 0
+    recon_batch = None
+    embed = None
     with torch.no_grad():
         for i, (_, embed) in enumerate(val_loader_food):
             embed = embed.cuda()
@@ -156,6 +167,12 @@ def test(epoch):
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
+
+    sampled = recon_batch.cpu().numpy().argmax(axis=2)[0]
+    mol = decode_smiles_from_indexes(map(from_one_hot_array, embed.cpu().numpy()), vocab)
+    sampled = decode_smiles_from_indexes(sampled, vocab)
+    print(mol)
+    print(sampled)
 
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
