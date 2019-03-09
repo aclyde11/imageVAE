@@ -57,8 +57,12 @@ def one_hot_index(vec, charset):
     return map(charset.index, vec)
 one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
                                      one_hot_index(row, vocab)))
+def apply_t(x):
+    smi = one_hot_encoded_fn(x)
+    print(smi.shape)
+
 def apply_one_hot(ch):
-    return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=0), ch))
+    return np.array(map(apply_t, ch))
 
 class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
@@ -169,12 +173,12 @@ def test(epoch):
             embed = embed.cuda()
 
             recon_batch, mu, logvar = model(embed)
-            for i in range(recon_batch.shape[0]):
-                sampled = recon_batch.cpu().numpy()[i, ...].argmax(axis=1)
-                mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
-                mol = decode_smiles_from_indexes(mol, vocab)
-                sampled = decode_smiles_from_indexes(sampled, vocab)
-                print("Orig: ", mol, " Sample: ", sampled)
+            # for i in range(recon_batch.shape[0]):
+            #     sampled = recon_batch.cpu().numpy()[i, ...].argmax(axis=1)
+            #     mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
+            #     mol = decode_smiles_from_indexes(mol, vocab)
+            #     sampled = decode_smiles_from_indexes(sampled, vocab)
+            #     print("Orig: ", mol, " Sample: ", sampled)
             test_loss += loss_mse(recon_batch, embed, mu, logvar, epoch).item()
 
 
