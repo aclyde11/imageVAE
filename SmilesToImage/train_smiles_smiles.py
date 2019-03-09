@@ -131,7 +131,7 @@ def train(epoch):
         optimizer.step()
 
         for i in range(recon_batch.shape[0]):
-            sampled = recon_batch.cpu().deatch().numpy()[i, ...].argmax(axis=1)
+            sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
             mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
             mol = decode_smiles_from_indexes(mol, vocab)
             sampled = decode_smiles_from_indexes(sampled, vocab)
