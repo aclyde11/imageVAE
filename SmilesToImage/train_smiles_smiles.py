@@ -122,7 +122,7 @@ def train(epoch):
     model.train()
     train_loss = 0
     for batch_idx, (_, embed) in enumerate(train_loader_food):
-        print(embed.numpy()[0,...])
+        print(embed.numpy()[0,...], embed.shape)
         embed = embed.float().cuda()
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(embed)
