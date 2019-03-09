@@ -42,12 +42,11 @@ class SmilesDecoder(nn.Module):
         self.gru1 = nn.GRU(input_size = rep_size, num_layers=1, hidden_size=501, batch_first=True)
         self.gru2 = nn.GRU(input_size = 501, num_layers=1, hidden_size=501, batch_first=True)
         self.gru3 = nn.GRU(input_size = 501, num_layers=1, hidden_size=501, batch_first=True)
-        self.dense = nn.Linear(501, vocab_size)
+        self.dense = nn.Sequential(nn.Linear(501, vocab_size), nn.Softmax())
         self.timedib = TimeDistributed(self.dense, batch_first=True)
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
         self.tanh = nn.Tanh()
-        self.softmax = nn.Softmax(dim=2)
 
 
     def forward(self, x):
@@ -58,7 +57,7 @@ class SmilesDecoder(nn.Module):
         x = self.tanh(x)
         x, _ = self.gru3(x, b)
         x = self.tanh(x)
-        x = self.softmax(self.timedib(x))
+        x = self.timedib(x)
         return x
 
 
