@@ -80,8 +80,8 @@ model = None
 encoder = None
 decoder = None
 if model_load is None:
-    encoder = SmilesEncoder()
-    decoder = SmilesDecoder()
+    encoder = SmilesEncoder(len(vocab), embedding_width)
+    decoder = SmilesDecoder(len(vocab), embedding_width)
 else:
     encoder = torch.load(model_load['encoder'])
     decoder = torch.load(model_load['decoder'])
