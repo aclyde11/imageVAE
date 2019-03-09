@@ -80,8 +80,8 @@ class SmilesEncoder(nn.Module):
         self.relu = nn.ReLU()
 
         # Latent vectors mu and sigma
-        self.fc22 = nn.Linear(256 * 2, rep_size)
-        self.fc21 = nn.Linear(256 * 2, rep_size)
+        self.fc22 = nn.Linear(900, rep_size)
+        self.fc21 = nn.Linear(900, rep_size)
 
 
     def forward(self, x):
@@ -92,7 +92,7 @@ class SmilesEncoder(nn.Module):
         print(x.shape)
         x = self.relu(self.conv3(x))
         print(x.shape)
-        x = x.view(-1, 256 * 2)
+        x = x.view(-1, 900)
 
         return self.fc21(x), self.fc22(x)
 
