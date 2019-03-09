@@ -52,18 +52,13 @@ class SmilesDecoder(nn.Module):
     def forward(self, x):
         print(x.shape)
         x = self.repeat_vector(x)
-        print(x.shape)
         x, b = self.gru1(x)
         x = self.tanh(x)
-        print(x.shape, b.shape)
         x, b = self.gru2(x, b)
         x = self.tanh(x)
-        print(x.shape, b.shape)
         x, _ = self.gru3(x, b)
         x = self.tanh(x)
-        print(x.shape)
         x = self.softmax(self.timedib(x))
-        print(x.shape)
         return x
 
 
@@ -90,13 +85,9 @@ class SmilesEncoder(nn.Module):
 
 
     def forward(self, x):
-        print(x.shape)
         x = self.relu(self.conv1(x))
-        print(x.shape)
         x = self.relu(self.conv2(x))
-        print(x.shape)
         x = self.relu(self.conv3(x))
-        print(x.shape)
         x = x.view(-1, 900)
 
         return self.fc21(x), self.fc22(x)
