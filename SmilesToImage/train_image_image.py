@@ -12,20 +12,20 @@ import pickle
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=1
-epochs = 150
+starting_epoch=8
+epochs = 200
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
 LR = 0.001           ##adam rate
-rampDataSize = 0.1 ## data set size to use
+rampDataSize = 0.15 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
-model_load = None
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_7.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_7.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
