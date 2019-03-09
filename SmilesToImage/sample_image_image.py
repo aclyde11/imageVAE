@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 import datetime
 import torch
@@ -187,7 +187,7 @@ for epoch in range(starting_epoch, epochs):
 
         encoder = torch.load('/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_' + str(i)+ '.pt')
         decoder = torch.load('/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_' + str(i)+ '.pt')
-        model = GeneralVae(encoder, decoder)
+        model = GeneralVae(encoder, decoder).cuda()
         sample(i, model, data)
         del model
 
