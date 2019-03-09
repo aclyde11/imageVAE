@@ -20,10 +20,10 @@ data_para = True
 log_interval = 25
 LR = 0.001           ##adam rate
 rampDataSize = 0.1 ## data set size to use
-embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
 print(vocab)
+embedding_width = 60
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
@@ -84,7 +84,7 @@ class customLoss(nn.Module):
     def forward(self, x_recon, x, mu, logvar, epoch):
         print('sp1: ', x.shape)
         print('sp2: ', x_recon.shape)
-        loss_MSE = self.mse_loss(x_recon, x)
+        loss_MSE = self.mse_loss(x_recon.view(-1, embedding_width * embedding_size), x.view(-1, embedding_width * embedding_size))
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         print('bfe loss', loss_MSE)
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD
