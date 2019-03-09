@@ -82,6 +82,9 @@ class customLoss(nn.Module):
         self.mse_loss = nn.BCELoss()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
+        print(x.shape)
+        print(x_recon.shape)
+        exit()
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
