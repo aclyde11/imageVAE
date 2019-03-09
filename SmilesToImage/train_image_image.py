@@ -12,20 +12,20 @@ import pickle
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=35
+starting_epoch=39
 epochs = 200
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
 LR = 0.001           ##adam rate
-rampDataSize = 0.2 ## data set size to use
+rampDataSize = 0.25 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_34.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_34.pt'}
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_38.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_38.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
@@ -74,7 +74,7 @@ class customLoss(nn.Module):
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD + 0.5 * loss_cripsy
+        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
 model = None
 encoder = None
