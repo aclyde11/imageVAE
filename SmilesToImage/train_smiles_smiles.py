@@ -174,8 +174,7 @@ def test(epoch):
         mol = embed.cpu().numpy()[i,...].argmax(axis=1)
         mol = decode_smiles_from_indexes(mol, vocab)
         sampled = decode_smiles_from_indexes(sampled, vocab)
-    print(mol)
-    print(sampled)
+        print("Orig: ", mol, " Sample: ", sampled)
 
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
