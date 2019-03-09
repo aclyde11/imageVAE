@@ -132,10 +132,13 @@ def sample(epoch, model, data):
 
 
 for epoch in range(starting_epoch, epochs):
-
+    loader = generate_data_loader(val_root, get_batch_size(epoch), int(20000))
     #train(epoch)
-
-    data, _ = generate_data_loader(val_root, get_batch_size(epoch), int(20000))[0]
+    data = None
+    for d, _ in loader:
+        data = d
+        break
+    data, _ =
     data = data.cuda()
     for i in range(1, epoch):
 
