@@ -58,6 +58,8 @@ def one_hot_index(vec, charset):
 one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
                                      one_hot_index(row, vocab)))
 def apply_t(x):
+
+    print(x)
     x = x + str(''.join([char*(embedding_width - len(x)) for char in [' ']]))
     smi = one_hot_encoded_fn(x)
     print(smi)
