@@ -38,7 +38,7 @@ class SmilesDecoder(nn.Module):
         self.vocab_size = vocab_size
         self.max_length_sequence = max_length_sequence
 
-        self.repeat_vector = lambda x : x.unsqueeze(2).expand(-1, max_length_sequence)
+        self.repeat_vector = lambda x : x.unsqueeze(2).expand(-1, max_length_sequence, rep_size)
         self.gru1 = nn.GRU(input_size = 1, num_layers=1, hidden_size=501, batch_first=True)
         self.gru2 = nn.GRU(input_size = 1, num_layers=1, hidden_size=501, batch_first=True)
         self.gru3 = nn.GRU(input_size = 1, num_layers=1, hidden_size=501, batch_first=True)
