@@ -58,7 +58,7 @@ def one_hot_index(vec, charset):
 one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
                                      one_hot_index(row, vocab)))
 def apply_one_hot(ch):
-    return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=27), ch))
+    return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=0), ch))
 
 class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
