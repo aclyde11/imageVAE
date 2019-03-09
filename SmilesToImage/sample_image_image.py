@@ -138,7 +138,6 @@ for epoch in range(starting_epoch, epochs):
     for d, _ in loader:
         data = d
         break
-    data, _ =
     data = data.cuda()
     for i in range(1, epoch):
 
