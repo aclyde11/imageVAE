@@ -1,36 +1,36 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '7'
 
 import datetime
 import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-from model import GeneralVae, SmilesEncoder, PictureDecoder, PictureEncoder
+from model import GeneralVae, SmilesEncoder, PictureDecoder, PictureEncoder, SmilesDecoder
 import pickle
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=39
+starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
-data_para = True
+data_para = False
 log_interval = 50
-LR = 0.0005           ##adam rate
+LR = 0.001           ##adam rate
 rampDataSize = 0.25 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_38.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_38.pt'}
+model_load = None
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
-output_dir = '/homes/aclyde11/imageVAE/im_im/results/'
-save_files = '/homes/aclyde11/imageVAE/im_im/model/'
+output_dir = '/homes/aclyde11/imageVAE/smi_smi/results/'
+save_files = '/homes/aclyde11/imageVAE/smi_smi/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
@@ -59,7 +59,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
 
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
-        datasets.ImageFolder(root, transform=transforms.ToTensor()),
+        ImageFolderWithFile(root, transform=transforms.ToTensor()),
         batch_size=batch_size, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))), drop_last=True, **kwargs)
 
 
@@ -70,7 +70,7 @@ class customLoss(nn.Module):
         self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
-        loss_MSE = self.mse_loss(x_recon, x)
+        loss_MSE = torch.nn.functional.binary_cross_entropy(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss_cripsy = self.crispyLoss(x_recon, x)
 
@@ -80,8 +80,8 @@ model = None
 encoder = None
 decoder = None
 if model_load is None:
-    encoder = PictureEncoder()
-    decoder = PictureDecoder()
+    encoder = SmilesEncoder()
+    decoder = SmilesDecoder()
 else:
     encoder = torch.load(model_load['encoder'])
     decoder = torch.load(model_load['decoder'])
@@ -97,8 +97,7 @@ model.to(device)
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
-loss_mse = customLoss()
-
+#loss_mse = customLoss()
 val_losses = []
 train_losses = []
 
