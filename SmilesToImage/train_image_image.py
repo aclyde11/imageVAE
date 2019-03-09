@@ -53,14 +53,18 @@ class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
         t = self.imgs[index][0]
         t = int(t.split('/')[-1].split('.')[0])
-        t = list(smiles_lookup.iloc[t, 1])
+        try:
+            t = list(smiles_lookup.iloc[t, 1])
+        except:
+            print(t)
+            exit()
         embed = apply_one_hot([t])[0].astype(np.float32)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed
 
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
         datasets.ImageFolder(root, transform=transforms.ToTensor()),
-        batch_size=batch_size, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))), drop_last=True, **kwargs)
+        batch_size=batch_size, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
 
 class customLoss(nn.Module):
