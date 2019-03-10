@@ -154,7 +154,6 @@ class PictureDecoder(nn.Module):
         out = self.fc_bn4(self.fc4(out))
         out = self.relu(out).view(-1, 125, 2, 2)
         out = self.relu(self.preconv(out))
-        print(out.shape)
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
         out = self.bn15(out)
@@ -173,7 +172,6 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv18_(out))
         out = self.bn22(out)
         out = self.conv19(out)
-        print(out.shape)
         return out
 
 
