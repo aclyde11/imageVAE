@@ -10,6 +10,7 @@ from torchvision.utils import save_image
 from model import GeneralVae, SmilesEncoder, PictureDecoder, PictureEncoder, SmilesDecoder
 import pickle
 from torch.nn import init
+torch.set_printoptions(profile="full")
 
 from utils import MS_SSIM
 import numpy as np
