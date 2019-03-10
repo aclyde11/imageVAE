@@ -87,7 +87,7 @@ class customLoss(nn.Module):
         #self.mse_loss = nn.MSELoss(reduction="sum")
         self.mse_loss = nn.BCELoss(size_average=True)
 
-    def forward(self, x_recon, x):
+    def forward(self, x_recon, x, mu, logvar):
         loss_MSE = embedding_width * self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1. + logvar - mu.pow(2) - logvar.exp())
         return loss_MSE + loss_KLD
@@ -97,7 +97,7 @@ class customLossTest(nn.Module):
         #self.mse_loss = nn.MSELoss(reduction="sum")
         self.mse_loss = nn.BCELoss(size_average=True)
 
-    def forward(self, x_recon, x, mu, logvar, epoch):
+    def forward(self, x_recon, x):
         loss_MSE = embedding_width * self.mse_loss(x_recon, x)
         return loss_MSE
 
@@ -153,7 +153,7 @@ def train(epoch):
         embed = embed.float().cuda()
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(embed)
-        loss = loss_mse(recon_batch, embed, mu, logvar, epoch)
+        loss = loss_mse(recon_batch, embed, mu, logvar)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -204,7 +204,7 @@ def test(epoch):
             #     mol = decode_smiles_from_indexes(mol, vocab)
             #     sampled = decode_smiles_from_indexes(sampled, vocab)
             #     print("Orig: ", mol, " Sample: ", sampled)
-            test_loss += loss_mse(recon_batch, embed, mu, logvar, epoch).item()
+            test_loss += loss_mse(recon_batch, embed, mu, logvar).item()
 
 
     test_loss /= len(val_loader_food.dataset)
