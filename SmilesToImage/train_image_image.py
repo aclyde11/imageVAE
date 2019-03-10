@@ -118,7 +118,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(32 * epoch, 512 )
+    return min(64 * epoch, 512 )
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
@@ -212,7 +212,7 @@ for epoch in range(starting_epoch, epochs):
     torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
     torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
-        sample = torch.randn(64, 2000).to(device)
+        sample = torch.randn(64, 500).to(device)
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    output_dir + 'sample_' + str(epoch) + '.png')
