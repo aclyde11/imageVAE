@@ -156,7 +156,7 @@ def train(epoch):
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                 epoch, batch_idx * len(embed), len(train_loader_food.dataset),
                        100. * batch_idx / len(train_loader_food),
-                       loss.item() / len(embed), datetime.datetime.now()))
+                       loss.item(), datetime.datetime.now()))
             for i in range(3):
                 sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
                 mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
