@@ -23,7 +23,7 @@ seed = 42
 data_para = True
 log_interval = 50
 LR = 0.001          ##adam rate
-rampDataSize = 0.1 ## data set size to use
+rampDataSize = 0.07 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
@@ -89,7 +89,7 @@ class customLoss(nn.Module):
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  0*loss_cripsy
+        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  0.25*loss_cripsy
 
 model = None
 encoder = None
