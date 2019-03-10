@@ -89,10 +89,21 @@ class customLoss(nn.Module):
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = embedding_width * self.mse_loss(x_recon, x)
-        #loss_KLD = -0.5 * torch.sum(1. + logvar - mu.pow(2) - logvar.exp())
-        loss_KLD = 0
+        loss_KLD = -0.5 * torch.sum(1. + logvar - mu.pow(2) - logvar.exp())
         return loss_MSE + loss_KLD
+class customLossTest(nn.Module):
+    def __init__(self):
+        super(customLossTest, self).__init__()
+        #self.mse_loss = nn.MSELoss(reduction="sum")
+        self.mse_loss = nn.BCELoss(size_average=True)
 
+    def forward(self, x_recon, x, mu, logvar, epoch):
+        loss_MSE = embedding_width * self.mse_loss(x_recon, x)
+        return loss_MSE
+
+
+
+test_loss =customLossTest()
 model = None
 encoder = None
 decoder = None
@@ -159,7 +170,7 @@ def train(epoch):
                 mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
                 mol = decode_smiles_from_indexes(mol, vocab)
                 sampled = decode_smiles_from_indexes(sampled, vocab)
-                print("Orig: ", mol, " Sample: ", sampled)
+                print("Orig: ", mol, " Sample: ", sampled, ' BCE: ', test_loss(recon_batch, embed), " Embed ", embed, " recon ", recon_batch)
 
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
