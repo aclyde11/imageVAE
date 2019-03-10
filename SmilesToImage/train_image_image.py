@@ -127,6 +127,8 @@ def train(epoch):
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
+        print(data)
+        print(data.shape)
         data = data.cuda()
 
         optimizer.zero_grad()
