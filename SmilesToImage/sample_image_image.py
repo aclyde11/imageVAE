@@ -176,7 +176,7 @@ def sample_plot(epoch, model, data):
 
 
 for epoch in range(starting_epoch, epochs):
-    loader = generate_data_loader(val_root, get_batch_size(epoch), int(20000))
+    loader = generate_data_loader(val_root, 100, int(20000))
     #train(epoch)
     data = None
     for d, _ in loader:
