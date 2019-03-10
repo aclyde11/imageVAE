@@ -331,7 +331,7 @@ class Lambda(nn.Module):
 
 class MolEncoder(nn.Module):
 
-    def __init__(self, i=60, o=292, c=27):
+    def __init__(self, i=120, o=292, c=27):
         super(MolEncoder, self).__init__()
 
         self.i = i
@@ -366,7 +366,7 @@ class MolEncoder(nn.Module):
 
 class MolDecoder(nn.Module):
 
-    def __init__(self, i=292, o=60, c=27):
+    def __init__(self, i=292, o=120, c=27):
         super(MolDecoder, self).__init__()
 
         self.latent_input = nn.Sequential(nn.Linear(i, i),

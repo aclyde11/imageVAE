@@ -3,6 +3,7 @@ import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '7'
 from itertools import chain
 import datetime
+import h5py
 import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
@@ -11,6 +12,19 @@ from model import GeneralVae, MolEncoder, MolDecoder
 import pickle
 from torch.nn import init
 torch.set_printoptions(profile="full")
+def load_dataset(filename, split=True):
+    h5f = h5py.File(filename, 'r')
+    if split:
+        data_train = h5f['data_train'][:]
+    else:
+        data_train = None
+    data_test = h5f['data_test'][:]
+    charset = h5f['charset'][:]
+    h5f.close()
+    if split:
+        return (data_train, data_test, charset)
+    else:
+        return (data_test, charset)
 
 from utils import MS_SSIM
 import numpy as np
@@ -40,7 +54,10 @@ save_files = '/homes/aclyde11/imageVAE/smi_smi/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
-
+data_train, data_val, charset = load_dataset('/homes/aclyde11/chembl22.h5')
+vocab=charset
+vocab = charset
+embedding_size=len(vocab)
 train_root = '/homes/aclyde11/moldata/moses/train/'
 val_root =   '/homes/aclyde11/moldata/moses/test/'
 smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab")
@@ -96,8 +113,8 @@ class customLoss(nn.Module):
 
 
 model = None
-encoder = MolEncoder().cuda()
-decoder = MolDecoder().cuda()
+encoder = MolEncoder(c=embedding_size).cuda()
+decoder = MolDecoder(c=embedding_size).cuda()
 # if model_load is None:
 #     encoder =
 #     decoder =
@@ -128,22 +145,8 @@ optimizer = optim.Adam(chain(encoder.parameters(), decoder.parameters()), lr=LR)
 loss_mse = customLoss()
 val_losses = []
 train_losses = []
-def load_dataset(filename, split=True):
-    h5f = h5py.File(filename, 'r')
-    if split:
-        data_train = h5f['data_train'][:]
-    else:
-        data_train = None
-    data_test = h5f['data_test'][:]
-    charset = h5f['charset'][:]
-    h5f.close()
-    if split:
-        return (data_train, data_test, charset)
-    else:
-        return (data_test, charset)
 
-data_train, data_val, charset = load_dataset('/homes/aclyde11/chembl22.h5')
-vocab=charset
+
 train = torch.utils.data.TensorDataset(data_train, torch.zeros(data_train.size()[0]))
 train_loader = torch.utils.data.DataLoader(train, batch_size=3000, shuffle=True)
 
