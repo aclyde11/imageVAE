@@ -7,7 +7,7 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-from model import GeneralVae, SmilesEncoder, PictureDecoder, PictureEncoder, SmilesDecoder
+from model import GeneralVae, SmilesEncoder, PictureDecoder, PictureEncoder, SmilesDecoder, MolEncoder, MolDecoder
 import pickle
 from torch.nn import init
 torch.set_printoptions(profile="full")
@@ -144,6 +144,9 @@ def get_batch_size(epoch):
     #return min(16 * epoch, 512)
     return 1024
 
+decoder = MolDecoder().cuda()
+encoder = MolEncoder().cuda()
+
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch))
 
@@ -152,14 +155,21 @@ def train(epoch):
     train_loss = 0
     for batch_idx, (_, embed) in enumerate(train_loader_food):
         embed = embed.float().cuda()
+        # optimizer.zero_grad()
+        # recon_batch, mu, logvar = model(embed)
+        # loss = loss_mse(recon_batch, embed, mu, logvar)
+        # loss.backward()
+        # train_loss += loss.item()
+        # optimizer.step()
+
+        y_var = encoder(embed)
+        recon_batch = decoder(y_var)
+
+        loss = encoder.vae_loss(recon_batch, embed)
+
         optimizer.zero_grad()
-        recon_batch, mu, logvar = model(embed)
-        loss = loss_mse(recon_batch, embed, mu, logvar)
         loss.backward()
-        train_loss += loss.item()
         optimizer.step()
-
-
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
