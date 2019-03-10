@@ -9,6 +9,7 @@ from torchvision import datasets, transforms
 from torchvision.utils import save_image
 from model import GeneralVae, SmilesEncoder, PictureDecoder, PictureEncoder
 import pickle
+from PIL import  ImageOps
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
@@ -61,6 +62,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
             exit()
         embed = apply_one_hot([t])[0].astype(np.float32)
         im = super(ImageFolderWithFile, self).__getitem__(index)
+        im = ImageOps.invert(im)
         print(im)
         return  im, embed
 
