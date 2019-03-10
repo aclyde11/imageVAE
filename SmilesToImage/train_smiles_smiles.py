@@ -9,6 +9,8 @@ from torchvision import datasets, transforms
 from torchvision.utils import save_image
 from model import GeneralVae, SmilesEncoder, PictureDecoder, PictureEncoder, SmilesDecoder
 import pickle
+from torch.nn import init
+
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
@@ -88,7 +90,7 @@ class customLoss(nn.Module):
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = embedding_width * self.mse_loss(x_recon, x)
         #loss_KLD = -0.5 * torch.sum(1. + logvar - mu.pow(2) - logvar.exp())
-        loss_KLD = 0l
+        loss_KLD = 0
         return loss_MSE + loss_KLD
 
 model = None
@@ -102,6 +104,16 @@ else:
     decoder = torch.load(model_load['decoder'])
 model = GeneralVae(encoder, decoder)
 
+def initialize_weights(m):
+    if (isinstance(m, nn.Linear) or isinstance(m, nn.Conv1d)):
+        init.xavier_uniform(m.weight.data)
+    elif isinstance(m, nn.GRU):
+        for weights in m.all_weights:
+            for weight in weights:
+                if len(weight.size()) > 1:
+                    init.xavier_uniform(weight.data)
+
+model.apply(initialize_weights)
 
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
