@@ -105,19 +105,21 @@ class SmilesEncoder(nn.Module):
         return self.fc21(x), self.fc22(x)
 
 class PictureEncoder(nn.Module):
-    def __init__(self, rep_size=2000):
+    def __init__(self, rep_size=500):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
-        self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size * 2)
+        self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size)
+        self.mu = nn.Linear(rep_size, rep_size)
+        self.logvar = nn.Linear(rep_size, rep_size)
 
     def forward(self, x):
-        x = torch.split(self.encoder(x), self.rep_size, 1)
+        x = self.encoder(x)
 
-        return x[0], x[1]
+        return self.mu(x), self.logvar(x)
 
 
 class PictureDecoder(nn.Module):
-    def __init__(self, rep_size=2000):
+    def __init__(self, rep_size=500):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
         # Sampling vector
@@ -149,7 +151,7 @@ class PictureDecoder(nn.Module):
         out = self.fc_bn3(self.fc3(z))
         out = self.relu(out)
         out = self.fc_bn4(self.fc4(out))
-        out = self.relu(out).view(-1, 125, 4, 4)
+        out = self.relu(out).view(-1, 125, 2, 2)
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
         out = self.bn15(out)
