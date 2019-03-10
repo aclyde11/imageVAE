@@ -148,7 +148,7 @@ def imscatter(x, y, ax, imageData, zoom):
         x0, y0 = x[i], y[i]
         # Convert to image
         img = imageData[i] * 255.
-        img = np.transpose(img.astype(np.uint8))
+        img = np.transpose(img.astype(np.uint8), (1,2,0))
         alpha = (100 * (img[:,:,0]  <= 254)).astype(np.uint8)[:, :, np.newaxis]
         img = np.append(img, alpha, axis=2)
         print(img.shape)
@@ -178,7 +178,7 @@ def sample_plot(epoch, model, data):
     # Plot images according to t-sne embedding
     print("Plotting t-SNE visualization...")
     fig, ax = plt.subplots()
-    imscatter(X_tsne[:, 0], X_tsne[:, 1], imageData=data, ax=ax, zoom=0.2)
+    imscatter(X_tsne[:, 0], X_tsne[:, 1], imageData=data, ax=ax, zoom=0.1)
 
     plt.savefig('books_read.png', dpi=420)
 
