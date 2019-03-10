@@ -22,7 +22,7 @@ seed = 42
 data_para = True
 log_interval = 25
 LR = 0.001          ##adam rate
-rampDataSize = 0.25 ## data set size to use
+rampDataSize = 0.15 ## data set size to use
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
 print(vocab)
@@ -134,7 +134,7 @@ train_losses = []
 
 def get_batch_size(epoch):
     #return min(16 * epoch, 512)
-    return 6000
+    return min(1024 + epoch * 64, 8069)
 
 
 def train(epoch):
@@ -210,8 +210,8 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
-    #torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
-    #torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     # with torch.no_grad():
     #     sample = torch.randn(64, 2000).to(device)
     #     sample = model.module.decode(sample).cpu()
