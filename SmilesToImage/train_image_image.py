@@ -16,7 +16,7 @@ from invert import Invert
 
 import numpy as np
 import pandas as pd
-starting_epoch=1
+starting_epoch=6
 epochs = 200
 no_cuda = False
 seed = 42
@@ -28,8 +28,8 @@ embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
-load_state = None
-#model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_55.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_55.pt'}
+#load_state = None
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_5.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_5.pt'}
 model_load = None
 cuda = True
 data_size = 1400000
@@ -75,7 +75,7 @@ def generate_data_loader(root, batch_size, data_size):
     ])
     return torch.utils.data.DataLoader(
         ImageFolderWithFile(root, transform=invert),
-        batch_size=batch_size, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
+        batch_size=batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
 
 class customLoss(nn.Module):
@@ -100,7 +100,7 @@ if model_load is None:
 else:
     encoder = torch.load(model_load['encoder'])
     decoder = torch.load(model_load['decoder'])
-model = GeneralVae(encoder, decoder)
+model = GeneralVae(encoder, decoder, rep_size=500)
 
 
 if data_para and torch.cuda.device_count() > 1:
