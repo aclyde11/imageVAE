@@ -176,27 +176,25 @@ def sample_plot(epoch, model, data):
     print("Plotting t-SNE visualization...")
     fig, ax = plt.subplots()
     imscatter(X_tsne[:, 0], X_tsne[:, 1], imageData=data, ax=ax, zoom=0.6)
-    plt.tight_layout()
 
     plt.savefig('books_read.png', dpi=420)
 
 
-for epoch in range(starting_epoch, epochs):
-    loader = generate_data_loader(val_root, 100, int(20000))
-    #train(epoch)
-    data = None
-    for d, _ in loader:
-        data = d
-        break
-    data = data.cuda()
-    for i in range(50, 51):
+loader = generate_data_loader(val_root, 100, int(20000))
+#train(epoch)
+data = None
+for d, _ in loader:
+    data = d
+    break
+data = data.cuda()
+for i in range(50, 51):
 
-        encoder = torch.load('/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_' + str(i)+ '.pt')
-        decoder = torch.load('/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_' + str(i)+ '.pt')
-        model = GeneralVae(encoder, decoder).cuda()
-        #sample(i, model, data)
-        sample_plot(i, model, data)
-        del model
+    encoder = torch.load('/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_' + str(i)+ '.pt')
+    decoder = torch.load('/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_' + str(i)+ '.pt')
+    model = GeneralVae(encoder, decoder).cuda()
+    #sample(i, model, data)
+    sample_plot(i, model, data)
+    del model
 
 
 
