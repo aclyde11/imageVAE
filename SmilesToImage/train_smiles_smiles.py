@@ -15,14 +15,14 @@ torch.set_printoptions(profile="full")
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=1
+starting_epoch=37
 epochs = 200
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 25
-LR = 0.01          ##adam rate
-rampDataSize = 0.2 ## data set size to use
+LR = 0.001          ##adam rate
+rampDataSize = 0.25 ## data set size to use
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
 print(vocab)
@@ -30,7 +30,7 @@ embedding_width = 60
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
-model_load = None
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_36.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_36.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
@@ -107,16 +107,17 @@ else:
     decoder = torch.load(model_load['decoder'])
 model = GeneralVae(encoder, decoder, rep_size=500)
 
-def initialize_weights(m):
-    if (isinstance(m, nn.Linear) or isinstance(m, nn.Conv1d)):
-        init.xavier_uniform(m.weight.data)
-    elif isinstance(m, nn.GRU):
-        for weights in m.all_weights:
-            for weight in weights:
-                if len(weight.size()) > 1:
-                    init.xavier_uniform(weight.data)
+if starting_epoch ==1 :
+    def initialize_weights(m):
+        if (isinstance(m, nn.Linear) or isinstance(m, nn.Conv1d)):
+            init.xavier_uniform(m.weight.data)
+        elif isinstance(m, nn.GRU):
+            for weights in m.all_weights:
+                for weight in weights:
+                    if len(weight.size()) > 1:
+                        init.xavier_uniform(weight.data)
 
-model.apply(initialize_weights)
+    model.apply(initialize_weights)
 
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -133,7 +134,7 @@ train_losses = []
 
 def get_batch_size(epoch):
     #return min(16 * epoch, 512)
-    return 4096
+    return 6000
 
 
 def train(epoch):
