@@ -170,6 +170,7 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv18_(out))
         out = self.bn22(out)
         out = self.conv19(out)
+        print(out.shape)
         return out
 
 
