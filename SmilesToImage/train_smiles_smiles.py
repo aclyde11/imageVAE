@@ -116,7 +116,7 @@ if model_load is None:
 else:
     encoder = torch.load(model_load['encoder'])
     decoder = torch.load(model_load['decoder'])
-model = GeneralVae(encoder, decoder)
+model = GeneralVae(encoder, decoder, rep_size=500)
 
 def initialize_weights(m):
     if (isinstance(m, nn.Linear) or isinstance(m, nn.Conv1d)):

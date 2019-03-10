@@ -236,26 +236,11 @@ def ConvSELU(i, o, kernel_size=3, padding=0, p=0.):
     return nn.Sequential(*model)
 
 
-class Lambda(nn.Module):
-
-    def __init__(self, i=435, o=292, scale=1E-2):
-        super(Lambda, self).__init__()
-
-        self.scale = scale
-        self.z_mean = nn.Linear(i, o)
-        self.z_log_var = nn.Linear(i, o)
-
-    def forward(self, x):
-        self.mu = self.z_mean(x)
-        self.log_v = self.z_log_var(x)
-        eps = self.scale * Variable(torch.randn(*self.log_v.size())
-                                    ).type_as(self.log_v)
-        return self.mu + torch.exp(self.log_v / 2.) * eps
 
 
 class MolEncoder(nn.Module):
 
-    def __init__(self, i=60, o=2000, c=27):
+    def __init__(self, i=60, o=500, c=27):
         super(MolEncoder, self).__init__()
 
         self.i = i
@@ -283,7 +268,7 @@ class MolEncoder(nn.Module):
 
 class MolDecoder(nn.Module):
 
-    def __init__(self, i=2000, o=60, c=27):
+    def __init__(self, i=500, o=60, c=27):
         super(MolDecoder, self).__init__()
 
         self.latent_input = nn.Sequential(nn.Linear(i, i),
