@@ -12,20 +12,20 @@ import pickle
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=50
+starting_epoch=56
 epochs = 200
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
 LR = 0.001          ##adam rate
-rampDataSize = 0.33 ## data set size to use
+rampDataSize = 0.5 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_49.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_49.pt'}
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_55.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_55.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
@@ -54,7 +54,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t = self.imgs[index][0]
         t = int(t.split('/')[-1].split('.')[0])
         try:
-            t = list(smiles_lookup.iloc[t, 1])
+            t = list(smiles_lookup.iloc[t-1, 1])
         except:
             print(t)
             exit()
