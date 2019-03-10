@@ -166,7 +166,7 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch / 2), int(5000))
+    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch))
     model.eval()
     test_loss = 0
 
