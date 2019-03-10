@@ -123,7 +123,7 @@ decoder = MolDecoder()
 #     model = nn.DataParallel(model)
 
 #optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
+optimizer = torch.optim.SGD(encoder.parameters(), decoder.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_mse = customLoss()
 val_losses = []
