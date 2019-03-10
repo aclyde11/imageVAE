@@ -74,7 +74,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         embed = apply_one_hot([t])[0].astype(np.float32)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed
 
-def generate_data_loader(root, batch_size, data_size):
+def generate_data_loader(root, batch_size):
     return torch.utils.data.DataLoader(
         ImageFolderWithFile(root, transform=transforms.ToTensor()),
         batch_size=batch_size, shuffle=True, drop_last=True, **kwargs)
