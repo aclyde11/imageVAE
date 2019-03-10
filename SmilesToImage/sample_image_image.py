@@ -162,7 +162,7 @@ def sample_plot(epoch, model, data):
     # Compute latent space representation
     print("Computing latent space projection...")
     X_encoded = model.reparameterize(model.encoder(data)).cpu().numpy()
-
+    print("gt latent")
     # Compute t-SNE embedding of latent space
     print("Computing t-SNE embedding...")
     tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
