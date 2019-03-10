@@ -96,36 +96,34 @@ class customLoss(nn.Module):
 
 
 model = None
-encoder = None
-decoder = None
-if model_load is None:
-    encoder = MolEncoder()
-    decoder = MolDecoder()
-else:
-    encoder = torch.load(model_load['encoder'])
-    decoder = torch.load(model_load['decoder'])
-model = GeneralVae(encoder, decoder, rep_size=500)
+encoder = MolEncoder()
+decoder = MolDecoder()
+# if model_load is None:
+#     encoder =
+#     decoder =
+# else:
+#     encoder = torch.load(model_load['encoder'])
+#     decoder = torch.load(model_load['decoder'])
+# model = GeneralVae(encoder, decoder, rep_size=500)
+#
+# if starting_epoch ==1 :
+#     def initialize_weights(m):
+#         if (isinstance(m, nn.Linear) or isinstance(m, nn.Conv1d)):
+#             init.xavier_uniform(m.weight.data)
+#         elif isinstance(m, nn.GRU):
+#             for weights in m.all_weights:
+#                 for weight in weights:
+#                     if len(weight.size()) > 1:
+#                         init.xavier_uniform(weight.data)
+#
+#     model.apply(initialize_weights)
+#
+# if data_para and torch.cuda.device_count() > 1:
+#     print("Let's use", torch.cuda.device_count(), "GPUs!")
+#     model = nn.DataParallel(model)
 
-if starting_epoch ==1 :
-    def initialize_weights(m):
-        if (isinstance(m, nn.Linear) or isinstance(m, nn.Conv1d)):
-            init.xavier_uniform(m.weight.data)
-        elif isinstance(m, nn.GRU):
-            for weights in m.all_weights:
-                for weight in weights:
-                    if len(weight.size()) > 1:
-                        init.xavier_uniform(weight.data)
-
-    model.apply(initialize_weights)
-
-if data_para and torch.cuda.device_count() > 1:
-    print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model = nn.DataParallel(model)
-
-model.to(device)
-
-optimizer = optim.Adam(model.parameters(), lr=LR)
-#optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
+#optimizer = optim.Adam(model.parameters(), lr=LR)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_mse = customLoss()
 val_losses = []
@@ -144,12 +142,20 @@ def train(epoch):
     train_loss = 0
     for batch_idx, (_, embed) in enumerate(train_loader_food):
         embed = embed.float().cuda()
-        recon_batch, mu, logvar = model(embed)
-        loss = loss_mse(recon_batch, embed, mu, logvar)
+        #recon_batch, mu, logvar = model(embed)
+        #loss = loss_mse(recon_batch, embed, mu, logvar)
+        y_var = encoder(embed)
+        recon_batch = decoder(y_var)
+
+        loss = encoder.vae_loss(recon_batch, embed)
+        train_loss += loss.item()
+        if (batch_idx + 1) % log_interval == 0:
+            print('t = %d, loss = %.4f' % (batch_idx + 1, loss.data[0]))
+
         optimizer.zero_grad()
         loss.backward()
-        train_loss += loss.item()
         optimizer.step()
+
 
 
         if batch_idx % log_interval == 0:
@@ -162,7 +168,7 @@ def train(epoch):
                 mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
                 mol = decode_smiles_from_indexes(mol, vocab)
                 sampled = decode_smiles_from_indexes(sampled, vocab)
-                print("Orig: ", mol, " Sample: ", sampled, ' BCE: ', loss_mse(recon_batch, embed, mu, logvar).item())
+                print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
 
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
@@ -188,15 +194,17 @@ def test(epoch):
     with torch.no_grad():
         for i, (_, embed) in enumerate(val_loader_food):
             embed = embed.cuda()
+            y_var = encoder(embed)
+            recon_batch = decoder(y_var)
 
-            recon_batch, mu, logvar = model(embed)
+            loss = encoder.vae_loss(recon_batch, embed)
             # for i in range(recon_batch.shape[0]):
             #     sampled = recon_batch.cpu().numpy()[i, ...].argmax(axis=1)
             #     mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
             #     mol = decode_smiles_from_indexes(mol, vocab)
             #     sampled = decode_smiles_from_indexes(sampled, vocab)
             #     print("Orig: ", mol, " Sample: ", sampled)
-            test_loss += loss_mse(recon_batch, embed, mu, logvar).item()
+            test_loss += loss.item()
 
 
     test_loss /= len(val_loader_food.dataset)
