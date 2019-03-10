@@ -151,7 +151,7 @@ def train(epoch):
         loss = encoder.vae_loss(recon_batch, embed)
         train_loss += loss.item()
         if (batch_idx + 1) % log_interval == 0:
-            print('t = %d, loss = %.4f' % (batch_idx + 1, loss.data[0]))
+            print('t = %d, loss = %.4f' % (batch_idx + 1, loss.item()))
 
         optimizer.zero_grad()
         loss.backward()
