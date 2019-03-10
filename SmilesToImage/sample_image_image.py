@@ -180,7 +180,7 @@ def sample_plot(epoch, model, data):
     fig, ax = plt.subplots()
     imscatter(X_tsne[:, 0], X_tsne[:, 1], imageData=data, ax=ax, zoom=0.1)
 
-    plt.savefig('books_read.png', dpi=420)
+    plt.savefig('books_read.png', dpi=900)
 
 
 loader = generate_data_loader(val_root, 200, int(20000))
