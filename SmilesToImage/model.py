@@ -52,7 +52,7 @@ class Flatten(nn.Module):
         return x.view(size[0], -1)
 
 class SmilesDecoder(nn.Module):
-    def __init__(self,  vocab_size, max_length_sequence, rep_size = 2000 , embedder = None):
+    def __init__(self,  vocab_size, max_length_sequence, rep_size = 200 , embedder = None):
         super(SmilesDecoder, self).__init__()
         self.rep_size = rep_size
         self.embeder = embedder
@@ -76,7 +76,7 @@ class SmilesDecoder(nn.Module):
 
 class SmilesEncoder(nn.Module):
 
-    def __init__(self,  vocab_size, max_length_sequence, rep_size = 2000 , embedder = None):
+    def __init__(self,  vocab_size, max_length_sequence, rep_size = 200 , embedder = None):
         super(SmilesEncoder, self).__init__()
         self.rep_size = rep_size
         self.embeder = embedder
