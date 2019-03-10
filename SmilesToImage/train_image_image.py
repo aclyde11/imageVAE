@@ -7,10 +7,13 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
+import torchvision
 from model import GeneralVae, SmilesEncoder, PictureDecoder, PictureEncoder
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
+from invert import Invert
+
 import numpy as np
 import pandas as pd
 starting_epoch=1
@@ -62,13 +65,16 @@ class ImageFolderWithFile(datasets.ImageFolder):
             exit()
         embed = apply_one_hot([t])[0].astype(np.float32)
         im = super(ImageFolderWithFile, self).__getitem__(index)
-        im = ImageOps.invert(im)
-        print(im)
+
         return  im, embed
 
 def generate_data_loader(root, batch_size, data_size):
+    invert = transforms.Compose([
+        Invert(),
+        transforms.ToTensor()
+    ])
     return torch.utils.data.DataLoader(
-        ImageFolderWithFile(root, transform=transforms.ToTensor()),
+        ImageFolderWithFile(root, transform=invert),
         batch_size=batch_size, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
 
