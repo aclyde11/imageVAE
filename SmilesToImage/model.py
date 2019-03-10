@@ -266,7 +266,9 @@ class MolEncoder(nn.Module):
         self.dense_1 = nn.Sequential(nn.Linear((c - 29 + 3) * 10, 435),
                                      SELU(inplace=True))
 
-        self.lmbd = Lambda(435, o)
+        self.z_mean = nn.Linear(i, o)
+        self.z_log_var = nn.Linear(i, o)
+
 
     def forward(self, x):
         out = self.conv_1(x)
@@ -275,17 +277,8 @@ class MolEncoder(nn.Module):
         out = Flatten()(out)
         out = self.dense_1(out)
 
-        return self.lmbd(out)
+        return self.z_mean(out), self.z_log_var(out)
 
-    def vae_loss(self, x_decoded_mean, x):
-        z_mean, z_log_var = self.lmbd.mu, self.lmbd.log_v
-
-        bce = nn.BCELoss(size_average=True)
-        xent_loss = self.i * bce(x_decoded_mean, x.detach())
-        kl_loss = -0.5 * torch.mean(1. + z_log_var - z_mean ** 2. -
-                                    torch.exp(z_log_var))
-
-        return kl_loss + xent_loss
 
 
 class MolDecoder(nn.Module):
