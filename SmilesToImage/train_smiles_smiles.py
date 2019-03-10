@@ -15,7 +15,7 @@ torch.set_printoptions(profile="full")
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=1
+starting_epoch=12
 epochs = 200
 no_cuda = False
 seed = 42
@@ -30,15 +30,15 @@ embedding_width = 60
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
-model_load = None
-#model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_36.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_36.pt'}
+#model_load = None
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_11.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_11.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/smi_smi/results/'
 save_files = '/homes/aclyde11/imageVAE/smi_smi/model/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 32, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
@@ -80,7 +80,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
         ImageFolderWithFile(root, transform=transforms.ToTensor()),
-        batch_size=batch_size, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
+        batch_size=batch_size, drop_last=True, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
 
 class customLoss(nn.Module):
