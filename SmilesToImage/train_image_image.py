@@ -66,7 +66,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
 
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
-        datasets.ImageFolder(root, transform=transforms.ToTensor()),
+        ImageFolderWithFile(root, transform=transforms.ToTensor()),
         batch_size=batch_size, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
 
