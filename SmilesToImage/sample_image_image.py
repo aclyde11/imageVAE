@@ -183,7 +183,7 @@ def sample_plot(epoch, model, data):
     plt.savefig('books_read.png', dpi=420)
 
 
-loader = generate_data_loader(val_root, 260, int(20000))
+loader = generate_data_loader(val_root, 200, int(20000))
 #train(epoch)
 data = None
 for d, _ in loader:
