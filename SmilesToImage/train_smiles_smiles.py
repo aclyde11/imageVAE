@@ -171,7 +171,7 @@ def train(epoch):
                 mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
                 mol = decode_smiles_from_indexes(mol, vocab)
                 sampled = decode_smiles_from_indexes(sampled, vocab)
-                print("Orig: ", mol, " Sample: ", sampled, ' BCE: ', test_loss(recon_batch, embed), " Embed ", embed, " recon ", recon_batch)
+                print("Orig: ", mol, " Sample: ", sampled, ' BCE: ', test_loss(recon_batch, embed).item())
 
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
