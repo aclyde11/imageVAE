@@ -7,7 +7,7 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-from model import GeneralVae, SmilesEncoder, PictureDecoder, PictureEncoder, SmilesDecoder, MolEncoder, MolDecoder
+from model import GeneralVae, MolEncoder, MolDecoder
 import pickle
 from torch.nn import init
 torch.set_printoptions(profile="full")
@@ -15,14 +15,14 @@ torch.set_printoptions(profile="full")
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=12
+starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
 data_para = False
 log_interval = 25
 LR = 0.001          ##adam rate
-rampDataSize = 0.15 ## data set size to use
+rampDataSize = 0.1 ## data set size to use
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
 print(vocab)
@@ -30,8 +30,8 @@ embedding_width = 60
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
-#model_load = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_11.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_11.pt'}
+model_load = None
+#model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_11.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_11.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
@@ -99,8 +99,6 @@ model = None
 encoder = None
 decoder = None
 if model_load is None:
-    # encoder = SmilesEncoder(max_length_sequence = embedding_width, vocab_size=len(vocab))
-    # decoder = SmilesDecoder(len(vocab), embedding_width)
     encoder = MolEncoder()
     decoder = MolDecoder()
 else:
