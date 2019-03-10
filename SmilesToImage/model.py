@@ -266,8 +266,8 @@ class MolEncoder(nn.Module):
         self.dense_1 = nn.Sequential(nn.Linear((c - 29 + 3) * 10, 435),
                                      SELU(inplace=True))
 
-        self.z_mean = nn.Linear(i, o)
-        self.z_log_var = nn.Linear(i, o)
+        self.z_mean = nn.Linear(435, o)
+        self.z_log_var = nn.Linear(435, o)
 
 
     def forward(self, x):
