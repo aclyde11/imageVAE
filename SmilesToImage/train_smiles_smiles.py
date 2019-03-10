@@ -138,7 +138,8 @@ def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
-    model.train()
+    encoder.train()
+    decoder.train()
     train_loss = 0
     for batch_idx, (_, embed) in enumerate(train_loader_food):
         embed = embed.float().cuda()
@@ -188,7 +189,8 @@ def interpolate_points(x,y, sampling):
 
 def test(epoch):
     val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
-    model.eval()
+    encoder.eval()
+    decoder.eval()
     test_loss = 0
 
     with torch.no_grad():
