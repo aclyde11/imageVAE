@@ -128,6 +128,27 @@ optimizer = optim.Adam(chain(encoder.parameters(), decoder.parameters()), lr=LR)
 loss_mse = customLoss()
 val_losses = []
 train_losses = []
+def load_dataset(filename, split=True):
+    h5f = h5py.File(filename, 'r')
+    if split:
+        data_train = h5f['data_train'][:]
+    else:
+        data_train = None
+    data_test = h5f['data_test'][:]
+    charset = h5f['charset'][:]
+    h5f.close()
+    if split:
+        return (data_train, data_test, charset)
+    else:
+        return (data_test, charset)
+
+data_train, data_val, charset = load_dataset('/homes/aclyde11/chembl22.h5')
+vocab=charset
+train = torch.utils.data.TensorDataset(data_train, torch.zeros(data_train.size()[0]))
+train_loader = torch.utils.data.DataLoader(train, batch_size=3000, shuffle=True)
+
+val = torch.utils.data.TensorDataset(data_val, torch.zeros(data_val.size()[0]))
+val_loader = torch.utils.data.DataLoader(val, batch_size=3000, shuffle=True)
 
 def get_batch_size(epoch):
     #return min(16 * epoch, 512)
@@ -135,13 +156,13 @@ def get_batch_size(epoch):
 
 
 def train(epoch):
-    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
+    #train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     encoder.train()
     decoder.train()
     train_loss = 0
-    for batch_idx, (_, embed) in enumerate(train_loader_food):
+    for batch_idx, (_, embed) in enumerate(train_loader):
         embed = embed.float().cuda()
         #recon_batch, mu, logvar = model(embed)
         #loss = loss_mse(recon_batch, embed, mu, logvar)
@@ -161,8 +182,8 @@ def train(epoch):
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
-                epoch, batch_idx * len(embed), len(train_loader_food.dataset),
-                       100. * batch_idx / len(train_loader_food),
+                epoch, batch_idx * len(embed), len(train_loader.dataset),
+                       100. * batch_idx / len(train_loader),
                        loss.item(), datetime.datetime.now()))
             for i in range(3):
                 sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
@@ -173,8 +194,8 @@ def train(epoch):
 
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
-        epoch, train_loss / len(train_loader_food.dataset)))
-    train_losses.append(train_loss / len(train_loader_food.dataset))
+        epoch, train_loss / len(train_loader.dataset)))
+    train_losses.append(train_loss / len(train_loader.dataset))
 
 
 
@@ -188,13 +209,13 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
+    #val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
     encoder.eval()
     decoder.eval()
     test_loss = 0
 
     with torch.no_grad():
-        for i, (_, embed) in enumerate(val_loader_food):
+        for i, (_, embed) in enumerate(val_loader):
             embed = embed.cuda()
             y_var = encoder(embed)
             recon_batch = decoder(y_var)
@@ -209,7 +230,7 @@ def test(epoch):
             test_loss += loss.item()
 
 
-    test_loss /= len(val_loader_food.dataset)
+    test_loss /= len(val_loader.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
 
