@@ -54,7 +54,7 @@ save_files = '/homes/aclyde11/imageVAE/smi_smi/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
-data_train, data_val, charset = load_dataset('/homes/aclyde11/chembl22.h5')
+data_train, data_val, charset = load_dataset('/homes/aclyde11/keras-molecules/data/chembl22_proc_noshuff.h5')
 vocab=charset
 vocab = charset
 embedding_size=len(vocab)
