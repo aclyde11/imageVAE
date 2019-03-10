@@ -7,6 +7,8 @@ import random, string
 import numpy as np
 from scipy.stats import norm
 from sklearn import manifold
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
