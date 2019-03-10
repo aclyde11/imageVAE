@@ -146,7 +146,7 @@ def imscatter(x, y, ax, imageData, zoom):
         x0, y0 = x[i], y[i]
         # Convert to image
         img = imageData[i] * 255.
-        img = img.astype(np.uint8).reshape([imageSize, imageSize])
+        img = img.astype(np.uint8).reshape([28, 28])
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         # Note: OpenCV uses BGR and plt uses RGB
         image = OffsetImage(img, zoom=zoom)
