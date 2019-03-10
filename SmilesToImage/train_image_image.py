@@ -12,25 +12,26 @@ import pickle
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=56
+starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
-data_para = True
+data_para = False
 log_interval = 50
 LR = 0.001          ##adam rate
-rampDataSize = 0.5 ## data set size to use
+rampDataSize = 0.1 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_55.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_55.pt'}
+#model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_55.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_55.pt'}
+model_load = None
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
-output_dir = '/homes/aclyde11/imageVAE/im_im/results/'
-save_files = '/homes/aclyde11/imageVAE/im_im/model/'
+output_dir = '/homes/aclyde11/imageVAE/im_im_small/results/'
+save_files = '/homes/aclyde11/imageVAE/im_im_small/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
@@ -59,7 +60,9 @@ class ImageFolderWithFile(datasets.ImageFolder):
             print(t)
             exit()
         embed = apply_one_hot([t])[0].astype(np.float32)
-        return  super(ImageFolderWithFile, self).__getitem__(index), embed
+        im = super(ImageFolderWithFile, self).__getitem__(index)
+        print(im)
+        return  im, embed
 
 def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
@@ -78,7 +81,7 @@ class customLoss(nn.Module):
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
+        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  0*loss_cripsy
 
 model = None
 encoder = None
