@@ -129,8 +129,9 @@ class PictureDecoder(nn.Module):
         self.fc_bn4 = nn.BatchNorm1d(rep_size)
 
         # Decoder
+        self.preconv = nn.ConvTranspose2d(125, 125, kernel_size=2, stride=1, padding=2, bias=False)
         self.conv15 = nn.ConvTranspose2d(125, 128, kernel_size=2, stride=2, padding=0,  bias=False)
-        self.conv15_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv15_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=0, padding=1, bias=False)
         self.bn15 = nn.BatchNorm2d(128)
         self.conv16 = nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1, bias=False)
         self.conv16_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
@@ -152,6 +153,8 @@ class PictureDecoder(nn.Module):
         out = self.relu(out)
         out = self.fc_bn4(self.fc4(out))
         out = self.relu(out).view(-1, 125, 2, 2)
+        out = self.relu(self.preconv(out))
+        print(out.shape)
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
         out = self.bn15(out)
