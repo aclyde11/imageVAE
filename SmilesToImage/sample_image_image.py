@@ -148,7 +148,7 @@ def imscatter(x, y, ax, imageData, zoom):
         x0, y0 = x[i], y[i]
         # Convert to image
         img = imageData[i] * 255.
-        img = img.astype(np.uint8).reshape([256, 256, 3])
+        img = np.transpose(img.astype(np.uint8))
         #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         # Note: OpenCV uses BGR and plt uses RGB
         image = OffsetImage(img, zoom=zoom)
@@ -176,7 +176,9 @@ def sample_plot(epoch, model, data):
     print("Plotting t-SNE visualization...")
     fig, ax = plt.subplots()
     imscatter(X_tsne[:, 0], X_tsne[:, 1], imageData=data, ax=ax, zoom=0.6)
-    plt.savefig('books_read.png')
+    plt.tight_layout()
+
+    plt.savefig('books_read.png', dpi=420)
 
 
 for epoch in range(starting_epoch, epochs):
@@ -187,7 +189,7 @@ for epoch in range(starting_epoch, epochs):
         data = d
         break
     data = data.cuda()
-    for i in range(50, epoch):
+    for i in range(50, 51):
 
         encoder = torch.load('/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_' + str(i)+ '.pt')
         decoder = torch.load('/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_' + str(i)+ '.pt')
