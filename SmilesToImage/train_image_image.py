@@ -127,9 +127,7 @@ def train(epoch):
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader_food):
-        print(data)
-        print(data.shape)
-        data = data.cuda()
+        data = data[0].cuda()
 
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
@@ -165,7 +163,7 @@ def test(epoch):
     test_loss = 0
     with torch.no_grad():
         for i, (data, _) in enumerate(val_loader_food):
-            data = data.cuda()
+            data = data[0].cuda()
 
             recon_batch, mu, logvar = model(data)
             test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
