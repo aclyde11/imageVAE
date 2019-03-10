@@ -147,10 +147,10 @@ val_losses = []
 train_losses = []
 
 
-train = torch.utils.data.TensorDataset(data_train, torch.zeros(data_train.size()[0]))
+train = torch.utils.data.TensorDataset(data_train, torch.zeros(data_train.size[0]))
 train_loader = torch.utils.data.DataLoader(train, batch_size=3000, shuffle=True)
 
-val = torch.utils.data.TensorDataset(data_val, torch.zeros(data_val.size()[0]))
+val = torch.utils.data.TensorDataset(data_val, torch.zeros(data_val.size[0]))
 val_loader = torch.utils.data.DataLoader(val, batch_size=3000, shuffle=True)
 
 def get_batch_size(epoch):
