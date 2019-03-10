@@ -22,7 +22,7 @@ seed = 42
 data_para = True
 log_interval = 25
 LR = 0.01          ##adam rate
-rampDataSize = 0.5 ## data set size to use
+rampDataSize = 0.2 ## data set size to use
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
 print(vocab)
@@ -76,10 +76,10 @@ class ImageFolderWithFile(datasets.ImageFolder):
         embed = apply_one_hot([t])[0].astype(np.float32)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed
 
-def generate_data_loader(root, batch_size):
+def generate_data_loader(root, batch_size, data_size):
     return torch.utils.data.DataLoader(
         ImageFolderWithFile(root, transform=transforms.ToTensor()),
-        batch_size=batch_size, shuffle=True, drop_last=True, **kwargs)
+        batch_size=batch_size, shuffle=False, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
 
 class customLoss(nn.Module):
@@ -137,7 +137,7 @@ def get_batch_size(epoch):
 
 
 def train(epoch):
-    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch))
+    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
@@ -181,7 +181,7 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch))
+    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
     model.eval()
     test_loss = 0
 
