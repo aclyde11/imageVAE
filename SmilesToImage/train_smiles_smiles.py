@@ -15,7 +15,7 @@ torch.set_printoptions(profile="full")
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=37
+starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
@@ -30,7 +30,8 @@ embedding_width = 60
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_36.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_36.pt'}
+model_load = None
+#model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_36.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_36.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
