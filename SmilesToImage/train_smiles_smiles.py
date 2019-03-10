@@ -109,8 +109,10 @@ model = None
 encoder = None
 decoder = None
 if model_load is None:
-    encoder = SmilesEncoder(max_length_sequence = embedding_width, vocab_size=len(vocab))
-    decoder = SmilesDecoder(len(vocab), embedding_width)
+    # encoder = SmilesEncoder(max_length_sequence = embedding_width, vocab_size=len(vocab))
+    # decoder = SmilesDecoder(len(vocab), embedding_width)
+    encoder = MolEncoder()
+    decoder = MolDecoder()
 else:
     encoder = torch.load(model_load['encoder'])
     decoder = torch.load(model_load['decoder'])
@@ -144,9 +146,7 @@ def get_batch_size(epoch):
     #return min(16 * epoch, 512)
     return 1024
 
-decoder = MolDecoder()
-encoder = MolEncoder()
-model = GeneralVae(encoder, decoder, rep_size=292).cuda()
+
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch))
 
