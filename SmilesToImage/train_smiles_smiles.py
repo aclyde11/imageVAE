@@ -121,7 +121,7 @@ def get_batch_size(epoch):
     return 1024 * 3
 
 def train(epoch):
-    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
+    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch))
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
