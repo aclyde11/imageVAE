@@ -22,8 +22,8 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 0.001          ##adam rate
-rampDataSize = 0.07 ## data set size to use
+LR = 0.0005          ##adam rate
+rampDataSize = 0.05 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
@@ -118,7 +118,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(48 * epoch, 512 )
+    return min(64  + 2 * epoch, 512 )
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
@@ -158,7 +158,7 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(20000))
+    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
     model.eval()
     test_loss = 0
     with torch.no_grad():
