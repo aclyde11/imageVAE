@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '7'
 
 import datetime
 import torch
@@ -15,11 +15,11 @@ torch.set_printoptions(profile="full")
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=21
+starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
-data_para = True
+data_para = False
 log_interval = 25
 LR = 0.001          ##adam rate
 rampDataSize = 0.1 ## data set size to use
@@ -30,8 +30,8 @@ embedding_width = 60
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
-#model_load = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_20.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_20.pt'}
+model_load = None
+#model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_20.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_20.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
@@ -133,7 +133,7 @@ train_losses = []
 
 def get_batch_size(epoch):
     #return min(16 * epoch, 512)
-    return min(1024 + epoch * 64, 8069)
+    return 1024
 
 
 def train(epoch):
@@ -209,8 +209,8 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
-    torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
-    torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     # with torch.no_grad():
     #     sample = torch.randn(64, 2000).to(device)
     #     sample = model.module.decode(sample).cpu()
