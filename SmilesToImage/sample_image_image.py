@@ -162,7 +162,7 @@ def sample_plot(epoch, model, data):
     # Compute latent space representation
     print("Computing latent space projection...")
     mu, logvar = model.encoder(data)
-    X_encoded = model.reparameterize(mu, logvar).cpu().numpy()
+    X_encoded = model.reparameterize(mu, logvar).cpu().detach().numpy()
     print("gt latent")
     # Compute t-SNE embedding of latent space
     print("Computing t-SNE embedding...")
