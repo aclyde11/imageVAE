@@ -96,8 +96,8 @@ class customLoss(nn.Module):
 
 
 model = None
-encoder = MolEncoder()
-decoder = MolDecoder()
+encoder = MolEncoder().cuda()
+decoder = MolDecoder().cuda()
 # if model_load is None:
 #     encoder =
 #     decoder =
