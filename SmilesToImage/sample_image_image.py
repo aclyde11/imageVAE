@@ -1,5 +1,15 @@
 import os
+import sys
+import cv2
+import math
+import random, string
 
+import numpy as np
+from scipy.stats import norm
+from sklearn import manifold
+import matplotlib.pyplot as plt
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 import datetime
@@ -130,6 +140,40 @@ def sample(epoch, model, data):
         save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
 
+def imscatter(x, y, ax, imageData, zoom):
+    images = []
+    for i in range(len(x)):
+        x0, y0 = x[i], y[i]
+        # Convert to image
+        img = imageData[i] * 255.
+        img = img.astype(np.uint8).reshape([imageSize, imageSize])
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        # Note: OpenCV uses BGR and plt uses RGB
+        image = OffsetImage(img, zoom=zoom)
+        ab = AnnotationBbox(image, (x0, y0), xycoords='data', frameon=False)
+        images.append(ax.add_artist(ab))
+
+    ax.update_datalim(np.column_stack([x, y]))
+    ax.autoscale()
+
+def sample_plot(epoch, model, data):
+    model.eval()
+    data = data.cuda()
+    # Compute latent space representation
+    print("Computing latent space projection...")
+    X_encoded = model.encoder(data).cpu().numpy()
+
+    # Compute t-SNE embedding of latent space
+    print("Computing t-SNE embedding...")
+    tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
+    X_tsne = tsne.fit_transform(X_encoded)
+
+    # Plot images according to t-sne embedding
+    print("Plotting t-SNE visualization...")
+    fig, ax = plt.subplots()
+    imscatter(X_tsne[:, 0], X_tsne[:, 1], imageData=data, ax=ax, zoom=0.6)
+    plt.savefig('books_read.png')
+
 
 for epoch in range(starting_epoch, epochs):
     loader = generate_data_loader(val_root, get_batch_size(epoch), int(20000))
@@ -139,12 +183,13 @@ for epoch in range(starting_epoch, epochs):
         data = d
         break
     data = data.cuda()
-    for i in range(1, epoch):
+    for i in range(50, epoch):
 
         encoder = torch.load('/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_' + str(i)+ '.pt')
         decoder = torch.load('/homes/aclyde11/imageVAE/im_im/model/decoder_epoch_' + str(i)+ '.pt')
         model = GeneralVae(encoder, decoder).cuda()
-        sample(i, model, data)
+        #sample(i, model, data)
+        sample_plot(i, model, data)
         del model
 
 
