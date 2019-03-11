@@ -113,8 +113,8 @@ class customLoss(nn.Module):
 
 
 model = None
-encoder = MolEncoder(i=embedding_width, o = 292, c=embedding_size)
-decoder = MolDecoder(i=292, o=embedding_width, c=embedding_size)
+encoder = MolEncoder(i=embedding_width, o = 292, c=embedding_size).cuda()
+decoder = MolDecoder(i=292, o=embedding_width, c=embedding_size).cuda()
 #model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 # if model_load is None:
 #     encoder =
