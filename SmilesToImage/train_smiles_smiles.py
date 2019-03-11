@@ -54,10 +54,10 @@ save_files = '/homes/aclyde11/imageVAE/smi_smi/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 24, 'pin_memory': True} if cuda else {}
 
-data_train, data_val, charset = load_dataset('/homes/aclyde11/keras-molecules/data/chembl22_proc_noshuff.h5')
-vocab=charset
-vocab = charset
-embedding_size=len(vocab)
+#data_train, data_val, charset = load_dataset('/homes/aclyde11/keras-molecules/data/chembl22_proc_noshuff.h5')
+#vocab=charset
+#vocab = charset
+#embedding_size=len(vocab)
 train_root = '/homes/aclyde11/moldata/moses/train/'
 val_root =   '/homes/aclyde11/moldata/moses/test/'
 smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab")
@@ -113,8 +113,8 @@ class customLoss(nn.Module):
 
 
 model = None
-encoder = MolEncoder(c=embedding_size).cuda()
-decoder = MolDecoder(c=embedding_size).cuda()
+encoder = MolEncoder(i=embedding_width, o = 292, c=embedding_size).cuda()
+decoder = MolDecoder(i=292, o=embedding_width, c=embedding_size).cuda()
 # if model_load is None:
 #     encoder =
 #     decoder =
