@@ -225,8 +225,8 @@ def test(epoch):
         for i, (_, embed) in enumerate(val_loader):
             embed = embed.float().cuda()
             recon_batch, mu, logvar = model(embed)
+            loss = loss_mse(recon_batch, embed, mu, logvar)
 
-            loss = encoder.vae_loss(recon_batch, embed, mu, logvar)
             # for i in range(recon_batch.shape[0]):
             #     sampled = recon_batch.cpu().numpy()[i, ...].argmax(axis=1)
             #     mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
