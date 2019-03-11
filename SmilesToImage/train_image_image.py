@@ -16,20 +16,20 @@ from invert import Invert
 
 import numpy as np
 import pandas as pd
-starting_epoch=58
+starting_epoch=107
 epochs = 200
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 0.00025          ##adam rate
-rampDataSize = 0.15 ## data set size to use
+LR = 0.0005          ##adam rate
+rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_57.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_57.pt'}
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_106.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_106.pt'}
 model_load = None
 cuda = True
 data_size = 1400000
@@ -89,7 +89,7 @@ class customLoss(nn.Module):
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  0.75*loss_cripsy
+        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
 model = None
 encoder = None
@@ -118,7 +118,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(64  + 2 * epoch, 512 )
+    return min(64  + 2 * epoch, 300 )
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
