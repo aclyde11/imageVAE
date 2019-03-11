@@ -51,58 +51,58 @@ class Flatten(nn.Module):
         size = x.size()  # read in N, C, H, W
         return x.view(size[0], -1)
 
-class SmilesDecoder(nn.Module):
-    def __init__(self,  vocab_size, max_length_sequence, rep_size = 200 , embedder = None):
-        super(SmilesDecoder, self).__init__()
-        self.rep_size = rep_size
-        self.embeder = embedder
-        self.vocab_size = vocab_size
-        self.max_length_sequence = max_length_sequence
-        self.repeat_vector = Repeat(self.max_length_sequence)
-        self.gru1 = nn.GRU(input_size = rep_size, num_layers=3, hidden_size=501, batch_first=True)
-        self.dense = nn.Sequential(nn.Linear(501, vocab_size), nn.Softmax())
-        self.timedib = TimeDistributed(self.dense, batch_first=True)
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
-        self.tanh = nn.Tanh()
-
-
-    def forward(self, x):
-        x = self.repeat_vector(x)
-        x, _ = self.gru1(x)
-        x = self.timedib(x)
-        return x
-
-
-class SmilesEncoder(nn.Module):
-
-    def __init__(self,  vocab_size, max_length_sequence, rep_size = 200 , embedder = None):
-        super(SmilesEncoder, self).__init__()
-        self.rep_size = rep_size
-        self.embeder = embedder
-        self.vocab_size = vocab_size
-        self.max_length_sequence = max_length_sequence
-
-        ##layers
-
-        self.conv1 = nn.Conv1d(in_channels=self.max_length_sequence, out_channels=90, kernel_size=9, stride=1)
-        self.conv2 = nn.Conv1d(in_channels=90, out_channels=300, kernel_size=10, stride=1)
-        self.conv3 = nn.Conv1d(in_channels=300, out_channels=900, kernel_size=10, stride=1)
-
-        self.relu = nn.ReLU()
-
-        # Latent vectors mu and sigma
-        self.fc22 = nn.Linear(900, rep_size)
-        self.fc21 = nn.Linear(900, rep_size)
-
-
-    def forward(self, x):
-        x = self.relu(self.conv1(x))
-        x = self.relu(self.conv2(x))
-        x = self.relu(self.conv3(x))
-        x = Flatten()(x)
-
-        return self.fc21(x), self.fc22(x)
+# class SmilesDecoder(nn.Module):
+#     def __init__(self,  vocab_size, max_length_sequence, rep_size = 200 , embedder = None):
+#         super(SmilesDecoder, self).__init__()
+#         self.rep_size = rep_size
+#         self.embeder = embedder
+#         self.vocab_size = vocab_size
+#         self.max_length_sequence = max_length_sequence
+#         self.repeat_vector = Repeat(self.max_length_sequence)
+#         self.gru1 = nn.GRU(input_size = rep_size, num_layers=3, hidden_size=501, batch_first=True)
+#         self.dense = nn.Sequential(nn.Linear(501, vocab_size), nn.Softmax())
+#         self.timedib = TimeDistributed(self.dense, batch_first=True)
+#         self.relu = nn.ReLU()
+#         self.sigmoid = nn.Sigmoid()
+#         self.tanh = nn.Tanh()
+#
+#
+#     def forward(self, x):
+#         x = self.repeat_vector(x)
+#         x, _ = self.gru1(x)
+#         x = self.timedib(x)
+#         return x
+#
+#
+# class SmilesEncoder(nn.Module):
+#
+#     def __init__(self,  vocab_size, max_length_sequence, rep_size = 200 , embedder = None):
+#         super(SmilesEncoder, self).__init__()
+#         self.rep_size = rep_size
+#         self.embeder = embedder
+#         self.vocab_size = vocab_size
+#         self.max_length_sequence = max_length_sequence
+#
+#         ##layers
+#
+#         self.conv1 = nn.Conv1d(in_channels=self.max_length_sequence, out_channels=90, kernel_size=9, stride=1)
+#         self.conv2 = nn.Conv1d(in_channels=90, out_channels=300, kernel_size=10, stride=1)
+#         self.conv3 = nn.Conv1d(in_channels=300, out_channels=900, kernel_size=10, stride=1)
+#
+#         self.relu = nn.ReLU()
+#
+#         # Latent vectors mu and sigma
+#         self.fc22 = nn.Linear(900, rep_size)
+#         self.fc21 = nn.Linear(900, rep_size)
+#
+#
+#     def forward(self, x):
+#         x = self.relu(self.conv1(x))
+#         x = self.relu(self.conv2(x))
+#         x = self.relu(self.conv3(x))
+#         x = Flatten()(x)
+#
+#         return self.fc21(x), self.fc22(x)
 
 class PictureEncoder(nn.Module):
     def __init__(self, rep_size=500):
