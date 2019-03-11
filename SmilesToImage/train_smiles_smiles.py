@@ -45,7 +45,7 @@ embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
 model_load = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_199.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_199.pt'}
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_199.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_199.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
