@@ -413,7 +413,7 @@ class TestVAE(nn.Module):
         z_mean, z_log_var = self.mu, self.log_v
 
         bce = nn.BCELoss(size_average=True)
-        xent_loss = self.i * bce(x_decoded_mean, x.detach())
+        xent_loss = 60 * bce(x_decoded_mean, x.detach())
         kl_loss = -0.5 * torch.mean(1. + z_log_var - z_mean ** 2. -
                                     torch.exp(z_log_var))
 
