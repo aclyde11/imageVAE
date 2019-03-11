@@ -166,7 +166,7 @@ def train(epoch):
     encoder.train()
     decoder.train()
     train_loss = 0
-    for batch_idx, (_, embed) in enumerate(train_loader):
+    for batch_idx, embed in enumerate(train_loader):
         embed = embed.float().cuda()
         #recon_batch, mu, logvar = model(embed)
         #loss = loss_mse(recon_batch, embed, mu, logvar)
@@ -219,8 +219,8 @@ def test(epoch):
     test_loss = 0
 
     with torch.no_grad():
-        for i, (_, embed) in enumerate(val_loader):
-            embed = embed.cuda()
+        for i, embed in enumerate(val_loader):
+            embed = embed.float().cuda()
             y_var = encoder(embed)
             recon_batch = decoder(y_var)
 
