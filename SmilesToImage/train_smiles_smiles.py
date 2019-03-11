@@ -113,8 +113,10 @@ class customLoss(nn.Module):
 
 
 model = None
-encoder = MolEncoder(i=embedding_width, o = 500, c=embedding_size)
-decoder = MolDecoder(i=500, o=embedding_width, c=embedding_size)
+#encoder = MolEncoder(i=embedding_width, o = 500, c=embedding_size)
+#decoder = MolDecoder(i=500, o=embedding_width, c=embedding_size)
+decoder = torch.load(model_load['decoder'])
+encoder = torch.load(model_load['encoder'])
 model = TestVAE(encoder, decoder).cuda()
 #model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 # if model_load is None:
