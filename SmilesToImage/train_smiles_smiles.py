@@ -115,6 +115,7 @@ class customLoss(nn.Module):
 model = None
 encoder = MolEncoder(i=embedding_width, o = 292, c=embedding_size).cuda()
 decoder = MolDecoder(i=292, o=embedding_width, c=embedding_size).cuda()
+model = GeneralVae(encoder, decoder, rep_size=500)
 # if model_load is None:
 #     encoder =
 #     decoder =
@@ -173,12 +174,9 @@ def train(epoch):
     for batch_idx, (_, embed) in enumerate(train_loader):
 
         embed = embed.float().cuda()
-        #recon_batch, mu, logvar = model(embed)
-        #loss = loss_mse(recon_batch, embed, mu, logvar)
-        y_var = encoder(embed)
-        recon_batch = decoder(y_var)
+        recon_batch, mu, logvar = model(embed)
+        loss = loss_mse(recon_batch, embed, mu, logvar)
 
-        loss = encoder.vae_loss(recon_batch, embed)
         train_loss += loss.item()
         if (batch_idx + 1) % log_interval == 0:
             print('t = %d, loss = %.4f' % (batch_idx + 1, loss.item()))
@@ -226,10 +224,9 @@ def test(epoch):
     with torch.no_grad():
         for i, (_, embed) in enumerate(val_loader):
             embed = embed.float().cuda()
-            y_var = encoder(embed)
-            recon_batch = decoder(y_var)
+            recon_batch, mu, logvar = model(embed)
 
-            loss = encoder.vae_loss(recon_batch, embed)
+            loss = encoder.vae_loss(recon_batch, embed, mu, logvar)
             # for i in range(recon_batch.shape[0]):
             #     sampled = recon_batch.cpu().numpy()[i, ...].argmax(axis=1)
             #     mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
