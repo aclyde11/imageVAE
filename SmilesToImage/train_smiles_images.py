@@ -178,7 +178,7 @@ def test(epoch):
         for i, (data, embed) in enumerate(val_loader):
             data = data[0].cuda()
             embed = embed.cuda()
-            recon_batch = model(data)
+            recon_batch = model(embed)
             test_loss += model.vae_loss(recon_batch, data)
             if i == 0:
                 n_image_gen = 8
