@@ -52,7 +52,7 @@ torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/smi_smi/results/'
 save_files = '/homes/aclyde11/imageVAE/smi_smi/model/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': 24, 'pin_memory': True} if cuda else {}
 
 data_train, data_val, charset = load_dataset('/homes/aclyde11/keras-molecules/data/chembl22_proc_noshuff.h5')
 vocab=charset
@@ -146,13 +146,17 @@ loss_mse = customLoss()
 val_losses = []
 train_losses = []
 
-data_train = torch.from_numpy(data_train)
-data_val = torch.from_numpy(data_val)
-train = torch.utils.data.TensorDataset(data_train)
-train_loader = torch.utils.data.DataLoader(train, batch_size=1000, shuffle=True)
+#data_train = torch.from_numpy(data_train)
+#data_val = torch.from_numpy(data_val)
+#train = torch.utils.data.TensorDataset(data_train)
+#train_loader = torch.utils.data.DataLoader(train, batch_size=1000, shuffle=True)
 
-val = torch.utils.data.TensorDataset(data_val)
-val_loader = torch.utils.data.DataLoader(val, batch_size=1000, shuffle=True)
+#val = torch.utils.data.TensorDataset(data_val)
+#val_loader = torch.utils.data.DataLoader(val, batch_size=1000, shuffle=True)
+
+train_loader = generate_data_loader(train_root, 1024, int(75000))
+val_loader = generate_data_loader(val_root, 1024, int(10000))
+
 
 def get_batch_size(epoch):
     #return min(16 * epoch, 512)
