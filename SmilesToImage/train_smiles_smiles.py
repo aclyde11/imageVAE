@@ -167,7 +167,7 @@ def train(epoch):
     decoder.train()
     train_loss = 0
     for batch_idx, embed in enumerate(train_loader):
-        print(embed)
+        embed = embed[0]
 
         embed = embed.float().cuda()
         #recon_batch, mu, logvar = model(embed)
