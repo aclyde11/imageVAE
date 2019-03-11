@@ -26,6 +26,10 @@ LR = 0.001         ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
+vocab.insert(0,' ')
+print(vocab)
+embedding_width = 60
+embedding_size = len(vocab)
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
@@ -44,6 +48,15 @@ train_root = '/homes/aclyde11/moldata/moses/train/'
 val_root =   '/homes/aclyde11/moldata/moses/test/'
 smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab")
 
+def from_one_hot_array(vec):
+    oh = np.where(vec == 1)
+    if oh[0].shape == (0, ):
+        return None
+    return int(oh[0][0])
+
+def decode_smiles_from_indexes(vec, charset):
+    return "".join(map(lambda x: charset[x], vec)).strip()
+
 def one_hot_array(i, n):
     return map(int, [ix == i for ix in range(n)])
 
@@ -51,22 +64,21 @@ def one_hot_index(vec, charset):
     return map(charset.index, vec)
 one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
                                      one_hot_index(row, vocab)))
+def apply_t(x):
+    x = x + list((''.join([char*(embedding_width - len(x)) for char in [' ']])))
+    smi = one_hot_encoded_fn(x)
+    return smi
+
 def apply_one_hot(ch):
-    return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=0), ch))
+    return np.array(map(apply_t, ch))
 
 class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
         t = self.imgs[index][0]
         t = int(t.split('/')[-1].split('.')[0])
-        try:
-            t = list(smiles_lookup.iloc[t-1, 1])
-        except:
-            print(t)
-            exit()
+        t = list(smiles_lookup.iloc[t-1, 1])
         embed = apply_one_hot([t])[0].astype(np.float32)
-        im = super(ImageFolderWithFile, self).__getitem__(index)
-
-        return  im, embed
+        return  super(ImageFolderWithFile, self).__getitem__(index), embed
 
 def generate_data_loader(root, batch_size, data_size):
     invert = transforms.Compose([
