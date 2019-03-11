@@ -351,8 +351,8 @@ class MolEncoder(nn.Module):
                                      SELU(inplace=True))
 
         #self.lmbd = Lambda(435, o)
-        self.z_mean = nn.Linear(i, o)
-        self.z_log_var = nn.Linear(i, o)
+        self.z_mean = nn.Linear(435, o)
+        self.z_log_var = nn.Linear(435, o)
 
 
     def forward(self, x):
