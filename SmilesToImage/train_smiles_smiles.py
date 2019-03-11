@@ -115,7 +115,7 @@ class customLoss(nn.Module):
 model = None
 encoder = MolEncoder(i=embedding_width, o = 292, c=embedding_size)
 decoder = MolDecoder(i=292, o=embedding_width, c=embedding_size)
-model = GeneralVae(encoder, decoder, rep_size=500).cuda()
+#model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 # if model_load is None:
 #     encoder =
 #     decoder =
@@ -168,13 +168,18 @@ def train(epoch):
     #train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
-    model.train()
+    encoder.train()
+    decoder.train()
     train_loss = 0
     for batch_idx, (_, embed) in enumerate(train_loader):
 
         embed = embed.float().cuda()
-        recon_batch, mu, logvar = model(embed)
-        loss = loss_mse(recon_batch, embed, mu, logvar)
+        # recon_batch, mu, logvar = model(embed)
+        # loss = loss_mse(recon_batch, embed, mu, logvar)
+
+        y = encoder(embed)
+        recon_batch = decoder(y)
+        loss = loss_mse(recon_batch, embed)
 
         train_loss += loss.item()
         if (batch_idx + 1) % log_interval == 0:
@@ -216,14 +221,16 @@ def interpolate_points(x,y, sampling):
 
 def test(epoch):
     #val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
-    model.eval()
+    encoder.eval()
+    decoder.eval()
     test_loss = 0
 
     with torch.no_grad():
         for i, (_, embed) in enumerate(val_loader):
             embed = embed.float().cuda()
-            recon_batch, mu, logvar = model(embed)
-            loss = loss_mse(recon_batch, embed, mu, logvar)
+            y = encoder(embed)
+            recon_batch = decoder(y)
+            loss = loss_mse(recon_batch, embed)
 
             # for i in range(recon_batch.shape[0]):
             #     sampled = recon_batch.cpu().numpy()[i, ...].argmax(axis=1)
@@ -244,8 +251,8 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
-    torch.save(model.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
-    torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
+    torch.save(encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    torch.save(decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     # with torch.no_grad():
     #     sample = torch.randn(64, 2000).to(device)
     #     sample = model.module.decode(sample).cpu()
