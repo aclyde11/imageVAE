@@ -401,6 +401,16 @@ class TestVAE(nn.Module):
         self.encoder = encoder
         self.decoder = decoder
 
+    def encode(self, x):
+        self.mu, self.log_v = self.encoder(x)
+
+        std = self.log_v.mul(0.5).exp_()
+        eps = Variable(std.data.new(std.size()).normal_())
+        y =  eps.mul(std).add_(self.mu)
+        return y
+
+    def decode(self,x):
+        return self.decoder(x)
     def forward(self, x):
         self.mu, self.log_v = self.encoder(x)
 

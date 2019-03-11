@@ -20,7 +20,7 @@ starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
-data_para = False
+data_para = True
 log_interval = 10
 LR = 0.001         ##adam rate
 rampDataSize = 0.2 ## data set size to use
@@ -145,7 +145,7 @@ def train(epoch):
 
         optimizer.zero_grad()
         recon_batch= model(embed)
-        loss = model.vae_loss(recon_batch, data)
+        loss = model.module.vae_loss(recon_batch, data)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -179,7 +179,7 @@ def test(epoch):
             data = data[0].cuda()
             embed = embed.cuda()
             recon_batch = model(embed)
-            test_loss += model.vae_loss(recon_batch, data)
+            test_loss += model.module.vae_loss(recon_batch, data)
             if i == 0:
                 n_image_gen = 8
                 images = []
@@ -222,8 +222,8 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
-    torch.save(model.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
-    torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
         sample = model.module.decode(sample).cpu()
