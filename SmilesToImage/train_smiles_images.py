@@ -20,7 +20,7 @@ starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
-data_para = True
+data_para = False
 log_interval = 10
 LR = 0.001         ##adam rate
 rampDataSize = 0.2 ## data set size to use
@@ -145,7 +145,7 @@ def train(epoch):
 
         optimizer.zero_grad()
         recon_batch= model(embed)
-        loss = model.module.vae_loss(recon_batch, data)
+        loss = model.vae_loss(recon_batch, data)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -179,31 +179,31 @@ def test(epoch):
             data = data[0].cuda()
             embed = embed.cuda()
             recon_batch = model(embed)
-            test_loss += model.module.vae_loss(recon_batch, data)
+            test_loss += model.vae_loss(recon_batch, data)
             if i == 0:
                 n_image_gen = 8
                 images = []
                 n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(embed)
+                    data_latent = model.encode(embed)
                     pt_1 = data_latent[i * 2, ...].cpu().numpy()
                     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec).cpu())
+                    images.append(model.decode(sample_vec).cpu())
                 save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
                 n_image_gen = 8
                 images = []
                 n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(embed)
+                    data_latent = model.encode(embed)
                     pt_1 = data_latent[i, ...].cpu().numpy()
                     pt_2 = data_latent[i + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2,
                                                     np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec).cpu())
+                    images.append(model.decode(sample_vec).cpu())
                 save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
                 ##

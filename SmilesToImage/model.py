@@ -411,6 +411,8 @@ class TestVAE(nn.Module):
 
     def decode(self,x):
         return self.decoder(x)
+
+
     def forward(self, x):
         self.mu, self.log_v = self.encoder(x)
 
