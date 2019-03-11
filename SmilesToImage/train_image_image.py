@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import GeneralVae, SmilesEncoder, PictureDecoder, PictureEncoder
+from model import GeneralVae,  PictureDecoder, PictureEncoder
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
