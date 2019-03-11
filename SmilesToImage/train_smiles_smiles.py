@@ -161,7 +161,7 @@ val_loader = generate_data_loader(val_root, 1024, int(10000))
 
 def get_batch_size(epoch):
     #return min(16 * epoch, 512)
-    return 1024
+    return 1024 * 3
 
 
 def train(epoch):
