@@ -147,6 +147,7 @@ val_losses = []
 train_losses = []
 
 print(data_train)
+data_train = torch.from_numpy(data_train)
 train = torch.utils.data.TensorDataset(data_train)
 train_loader = torch.utils.data.DataLoader(train, batch_size=3000, shuffle=True)
 
