@@ -222,7 +222,7 @@ def test(epoch):
 
     with torch.no_grad():
         for i, embed in enumerate(val_loader):
-            embed = embed.float().cuda()
+            embed = embed[0].float().cuda()
             y_var = encoder(embed)
             recon_batch = decoder(y_var)
 
