@@ -175,17 +175,17 @@ def test(epoch):
     model.eval()
     test_loss = 0
     with torch.no_grad():
-        for i, (data, _) in enumerate(val_loader):
+        for i, (data, embed) in enumerate(val_loader):
             data = data[0].cuda()
-
-            recon_batch, mu, logvar = model(data)
-            test_loss += model.vae_loss(recon_batch, data).item()
+            embed = embed.cuda()
+            recon_batch = model(data)
+            test_loss += model.vae_loss(recon_batch, data)
             if i == 0:
                 n_image_gen = 8
                 images = []
                 n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data)
+                    data_latent = model.module.encode_latent_(embed)
                     pt_1 = data_latent[i * 2, ...].cpu().numpy()
                     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
@@ -197,7 +197,7 @@ def test(epoch):
                 images = []
                 n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data)
+                    data_latent = model.module.encode_latent_(embed)
                     pt_1 = data_latent[i, ...].cpu().numpy()
                     pt_2 = data_latent[i + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2,
