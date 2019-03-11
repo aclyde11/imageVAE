@@ -124,8 +124,8 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 512, int(75000))
-val_loader = generate_data_loader(val_root, 512, int(10000))
+train_loader = generate_data_loader(train_root, 550, int(75000))
+val_loader = generate_data_loader(val_root, 550, int(10000))
 
 
 val_losses = []
@@ -222,10 +222,10 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
-    torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
-    torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
-        sample = model.module.decode(sample).cpu()
+        sample = model.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    output_dir + 'sample_' + str(epoch) + '.png')
