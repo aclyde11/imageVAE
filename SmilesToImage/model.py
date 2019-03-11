@@ -324,9 +324,17 @@ class Lambda(nn.Module):
     def forward(self, x):
         self.mu = self.z_mean(x)
         self.log_v = self.z_log_var(x)
-        eps = self.scale * Variable(torch.randn(*self.log_v.size())
-                                    ).type_as(self.log_v)
-        return self.mu + torch.exp(self.log_v / 2.) * eps
+
+        std = self.log_v.mul(0.5).exp_()
+        eps = Variable(std.data.new(std.size()).normal_())
+        return eps.mul(std).add_(self.mu)
+
+    # def forward(self, x):
+    #     self.mu = self.z_mean(x)
+    #     self.log_v = self.z_log_var(x)
+    #     eps = self.scale * Variable(torch.randn(*self.log_v.size())
+    #                                 ).type_as(self.log_v)
+    #     return self.mu + torch.exp(self.log_v / 2.) * eps
 
 
 class MolEncoder(nn.Module):
