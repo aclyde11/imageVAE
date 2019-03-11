@@ -29,8 +29,8 @@ def load_dataset(filename, split=True):
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=1
-epochs = 200
+starting_epoch=200
+epochs = 1000
 no_cuda = False
 seed = 42
 data_para = False
@@ -45,7 +45,7 @@ embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
 model_load = None
-#model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_20.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_20.pt'}
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_199.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im/model/encoder_epoch_199.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
@@ -156,8 +156,8 @@ train_losses = []
 #val = torch.utils.data.TensorDataset(data_val)
 #val_loader = torch.utils.data.DataLoader(val, batch_size=1000, shuffle=True)
 
-train_loader = generate_data_loader(train_root, 1024, int(75000))
-val_loader = generate_data_loader(val_root, 1024, int(10000))
+train_loader = generate_data_loader(train_root, 1024, int(125000))
+val_loader = generate_data_loader(val_root, 1024, int(15000))
 
 
 def get_batch_size(epoch):
