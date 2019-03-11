@@ -132,7 +132,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(64  + 2 * epoch, 400 )
+    return min(128  + 2 * epoch, 400 )
 
 def train(epoch):
 
