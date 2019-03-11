@@ -179,7 +179,7 @@ def train(epoch):
 
         y = encoder(embed)
         recon_batch = decoder(y)
-        loss = loss_mse(recon_batch, embed)
+        loss = encoder.vae_loss(recon_batch, embed)
 
         train_loss += loss.item()
         if (batch_idx + 1) % log_interval == 0:
@@ -230,7 +230,7 @@ def test(epoch):
             embed = embed.float().cuda()
             y = encoder(embed)
             recon_batch = decoder(y)
-            loss = loss_mse(recon_batch, embed)
+            loss = encoder.vae_loss(recon_batch, embed)
 
             # for i in range(recon_batch.shape[0]):
             #     sampled = recon_batch.cpu().numpy()[i, ...].argmax(axis=1)
