@@ -8,7 +8,7 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-from model import GeneralVae, MolEncoder, MolDecoder
+from model import GeneralVae, MolEncoder, MolDecoder, TestVAE
 import pickle
 from torch.nn import init
 torch.set_printoptions(profile="full")
@@ -113,8 +113,9 @@ class customLoss(nn.Module):
 
 
 model = None
-encoder = MolEncoder(i=embedding_width, o = 292, c=embedding_size).cuda()
-decoder = MolDecoder(i=292, o=embedding_width, c=embedding_size).cuda()
+encoder = MolEncoder(i=embedding_width, o = 292, c=embedding_size)
+decoder = MolDecoder(i=292, o=embedding_width, c=embedding_size)
+model = TestVAE(encoder, decoder).cuda()
 #model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 # if model_load is None:
 #     encoder =
@@ -168,8 +169,7 @@ def train(epoch):
     #train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
-    encoder.train()
-    decoder.train()
+    model.train()
     train_loss = 0
     for batch_idx, (_, embed) in enumerate(train_loader):
 
@@ -177,9 +177,9 @@ def train(epoch):
         # recon_batch, mu, logvar = model(embed)
         # loss = loss_mse(recon_batch, embed, mu, logvar)
 
-        y = encoder(embed)
-        recon_batch = decoder(y)
-        loss = encoder.vae_loss(recon_batch, embed)
+        #y = encoder(embed)
+        recon_batch = model(embed)
+        loss = model.vae_loss(recon_batch, embed)
 
         train_loss += loss.item()
         if (batch_idx + 1) % log_interval == 0:
@@ -221,16 +221,14 @@ def interpolate_points(x,y, sampling):
 
 def test(epoch):
     #val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
-    encoder.eval()
-    decoder.eval()
+    model.eval()
     test_loss = 0
 
     with torch.no_grad():
         for i, (_, embed) in enumerate(val_loader):
             embed = embed.float().cuda()
-            y = encoder(embed)
-            recon_batch = decoder(y)
-            loss = encoder.vae_loss(recon_batch, embed)
+            recon_batch = model(embed)
+            loss = model.vae_loss(recon_batch, embed)
 
             # for i in range(recon_batch.shape[0]):
             #     sampled = recon_batch.cpu().numpy()[i, ...].argmax(axis=1)
