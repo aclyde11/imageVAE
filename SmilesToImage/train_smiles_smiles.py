@@ -113,9 +113,9 @@ class customLoss(nn.Module):
 
 
 model = None
-encoder = MolEncoder(i=embedding_width, o = 292, c=embedding_size).cuda()
-decoder = MolDecoder(i=292, o=embedding_width, c=embedding_size).cuda()
-model = GeneralVae(encoder, decoder, rep_size=500)
+encoder = MolEncoder(i=embedding_width, o = 292, c=embedding_size)
+decoder = MolDecoder(i=292, o=embedding_width, c=embedding_size)
+model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 # if model_load is None:
 #     encoder =
 #     decoder =
@@ -246,8 +246,8 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
-    torch.save(encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
-    torch.save(decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     # with torch.no_grad():
     #     sample = torch.randn(64, 2000).to(device)
     #     sample = model.module.decode(sample).cpu()
