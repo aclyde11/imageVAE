@@ -42,7 +42,7 @@ torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/smi_im/results/'
 save_files = '/homes/aclyde11/imageVAE/smi_im/model/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
