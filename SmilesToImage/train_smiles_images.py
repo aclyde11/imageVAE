@@ -135,25 +135,24 @@ def train(epoch):
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
-    with torch.no_grad():
-        for batch_idx, (data, embed) in enumerate(train_loader):
-            data = data[0].cuda()
-            embed = embed.cuda()
-            optimizer.zero_grad()
-            recon_batch= model(embed)
+    for batch_idx, (data, embed) in enumerate(train_loader):
+        data = data[0].cuda()
+        embed = embed.cuda()
+        optimizer.zero_grad()
+        recon_batch= model(embed)
 
-            helperz, helpery = encoder_helper(data)
+        helperz, helpery = encoder_helper(data)
 
-            loss = model.vae_loss(recon_batch, data, helperz, helpery)
-            loss.backward()
-            train_loss += loss.item()
-            optimizer.step()
+        loss = model.vae_loss(recon_batch, data, helperz, helpery)
+        loss.backward()
+        train_loss += loss.item()
+        optimizer.step()
 
-            if batch_idx % log_interval == 0:
-                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
-                    epoch, batch_idx * len(data), len(train_loader.dataset),
-                           100. * batch_idx / len(train_loader),
-                           loss.item() / len(data), datetime.datetime.now()))
+        if batch_idx % log_interval == 0:
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
+                epoch, batch_idx * len(data), len(train_loader.dataset),
+                       100. * batch_idx / len(train_loader),
+                       loss.item() / len(data), datetime.datetime.now()))
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, train_loss / len(train_loader.dataset)))
