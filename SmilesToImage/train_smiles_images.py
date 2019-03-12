@@ -198,7 +198,7 @@ def test(epoch):
             z_h, logvar_h = encoder_good(data)
 
             std = logvar.mul(0.5).exp_()
-            eps = from torch.autograd.Variable(std.data.new(std.size()).normal_())
+            eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
             y = eps.mul(std).add_(z)
             recon_batch = decoder(y)
             recon_batch = decoder(y)
