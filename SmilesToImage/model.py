@@ -378,7 +378,7 @@ class MolEncoder(nn.Module):
 class DenseMolEncoder(nn.Module):
 
     def __init__(self, i=60, o=500, c=27):
-        super(MolEncoder, self).__init__()
+        super(DenseMolEncoder, self).__init__()
 
         self.i = i
 
