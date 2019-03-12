@@ -203,7 +203,7 @@ def test(epoch):
 
             if i == 0:
                 n = min(data.size(0), 8)
-                print(smiles[:8, ...])
+                print(smiles.numpy()[:8, ...])
                 comparison = torch.cat([data[:n],
                                         recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
                 save_image(comparison.cpu(),
