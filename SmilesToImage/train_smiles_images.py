@@ -105,11 +105,18 @@ class customLoss(nn.Module):
 
 
 encoder = DenseMolEncoder()
-encoder_good =  torch.load('/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_156.pt').cuda().eval()
-model = TestVAE(encoder, torch.load(model_load['decoder'])).cuda()
+encoder_good =  torch.load('/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_156.pt')
+model = TestVAE(encoder, torch.load(model_load['decoder']))
 
 for param in encoder_good.parameters():
     param.requires_grad = False
+for param in model.decoder.parameters():
+    param.requires_grad = False
+
+model = model.cuda()
+encoder = model.encoder()
+encoder_good = encoder_good.cuda().eval()
+
 #decoder = torch.load(model_load['decoder'])
 #model = TestVAE(encoder, decoder).cuda()
 
