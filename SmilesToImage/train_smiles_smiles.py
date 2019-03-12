@@ -8,7 +8,7 @@ import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-from model import GeneralVae, MolEncoder, MolDecoder, TestVAE
+from model import TestVAE, MolEncoder, MolDecoder, TestVAE
 import pickle
 from torch.nn import init
 torch.set_printoptions(profile="full")
@@ -29,7 +29,7 @@ def load_dataset(filename, split=True):
 from utils import MS_SSIM
 import numpy as np
 import pandas as pd
-starting_epoch=200
+starting_epoch=277
 epochs = 1000
 no_cuda = False
 seed = 42
@@ -45,7 +45,7 @@ embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 load_state = None
 model_load = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_199.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_199.pt'}
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_277.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_277.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
