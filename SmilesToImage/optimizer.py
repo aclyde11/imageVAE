@@ -29,12 +29,12 @@ vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_128.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_128.pt'}
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_170.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_170.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
-output_dir = '/homes/aclyde11/imageVAE/im_im_small/results/'
-save_files = '/homes/aclyde11/imageVAE/im_im_small/model/'
+output_dir = '/homes/aclyde11/imageVAE/im_opt/results/'
+save_files = '/homes/aclyde11/imageVAE/im_opt/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
@@ -63,9 +63,9 @@ class ImageFolderWithFile(datasets.ImageFolder):
             print(t)
             exit()
         embed = apply_one_hot([t])[0].astype(np.float32)
-        im = super(ImageFolderWithFile, self).__getitem__(index)
+        im = super(ImageFolderWithFile, self).__getitem__(index), t-1
 
-        return  im, embed, t-1
+        return  im, embed
 
 def generate_data_loader(root, batch_size, data_size):
     invert = transforms.Compose([
@@ -113,21 +113,24 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_mse = customLoss()
 
-val_losses = []
-train_losses = []
 
 def get_batch_size(epoch):
     return min(64  + 2 * epoch, 322 )
+train_loader_food = generate_data_loader(train_root, get_batch_size(200), int(5000))
+val_loader_food = generate_data_loader(val_root, get_batch_size(200), int(5000))
+
+val_losses = []
+train_losses = []
+
 
 def train(epoch):
-    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
-    for batch_idx, (data, ind) in enumerate(train_loader_food):
+    for batch_idx, (data, _, ind) in enumerate(train_loader_food):
         data = data[0].cuda()
-
+        print(ind)
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
         loss = loss_mse(recon_batch, data, mu, logvar, epoch)
@@ -157,7 +160,6 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
     model.eval()
     test_loss = 0
     with torch.no_grad():
