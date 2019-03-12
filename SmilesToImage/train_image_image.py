@@ -16,7 +16,7 @@ from invert import Invert
 
 import numpy as np
 import pandas as pd
-starting_epoch=107
+starting_epoch=127
 epochs = 200
 no_cuda = False
 seed = 42
@@ -29,8 +29,7 @@ vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_106.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_106.pt'}
-model_load = None
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_127.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_127.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
