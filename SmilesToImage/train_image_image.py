@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import TestVAE,  PictureDecoder, PictureEncoder
+from model import GeneralVae,  PictureDecoder, PictureEncoder
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
@@ -16,11 +16,11 @@ from invert import Invert
 
 import numpy as np
 import pandas as pd
-starting_epoch=127
-epochs = 300
+starting_epoch=107
+epochs = 200
 no_cuda = False
 seed = 42
-data_para = False
+data_para = True
 log_interval = 50
 LR = 0.0005          ##adam rate
 rampDataSize = 0.2 ## data set size to use
@@ -29,8 +29,8 @@ vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_127.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_127.pt'}
-#model_load = None
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_106.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_106.pt'}
+model_load = None
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
@@ -100,7 +100,7 @@ if model_load is None:
 else:
     encoder = torch.load(model_load['encoder'])
     decoder = torch.load(model_load['decoder'])
-model = TestVAE(encoder, decoder, rep_size=500)
+model = GeneralVae(encoder, decoder, rep_size=500)
 
 
 if data_para and torch.cuda.device_count() > 1:
