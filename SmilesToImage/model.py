@@ -389,7 +389,7 @@ class DenseMolEncoder(nn.Module):
         self.dense_0 = nn.Sequential(Flatten(),
                                      nn.Linear(60 * 27, 500),
                                      nn.ReLU(),
-                                     nn.Linear(500, 435),
+                                     nn.Linear(500, 500),
                                      nn.ReLU(),
                                      nn.Linear(500, 435),
                                      nn.ReLU())
