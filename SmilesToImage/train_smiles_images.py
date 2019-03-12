@@ -131,6 +131,10 @@ def get_batch_size(epoch):
 def train(epoch):
     for param in model.decoder.parameters():
         param.requires_grad = False
+
+    for param in model.parameters():
+        if param.requires_grad:
+            print("has grad")
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
