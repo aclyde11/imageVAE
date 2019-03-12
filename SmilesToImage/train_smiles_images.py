@@ -103,16 +103,10 @@ class customLoss(nn.Module):
 
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
-model = None
-encoder = None
-decoder = None
-if model_load is None:
-    encoder = PictureEncoder()
-    decoder = PictureDecoder()
-else:
-    encoder = torch.load(model_load['encoder'])
-    decoder = torch.load(model_load['decoder'])
-model = TestVAE(encoder, decoder).cuda()
+
+#encoder = torch.load(model_load['encoder'])
+#decoder = torch.load(model_load['decoder'])
+model = TestVAE(model_load['encoder'], model_load['decoder']).cuda()
 
 
 if data_para and torch.cuda.device_count() > 1:
@@ -124,7 +118,7 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 800, int(75000))
+train_loader = generate_data_loader(train_root, 800, int(10000))
 val_loader = generate_data_loader(val_root, 800, int(10000))
 
 
