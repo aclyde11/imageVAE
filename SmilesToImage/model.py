@@ -407,7 +407,6 @@ class TestVAE(nn.Module):
         std = self.log_v.mul(0.5).exp_()
         eps = Variable(std.data.new(std.size()).normal_())
         y =  eps.mul(std).add_(self.mu)
-        self.y = y
         return y
 
     def decode(self,x):
@@ -424,12 +423,12 @@ class TestVAE(nn.Module):
             return y, self.decoder(y)
         return self.decoder(y)
 
-    def vae_loss(self, x_decoded_mean, x, helper):
+    def vae_loss(self, x_decoded_mean, x, helpermu, helpervar):
         z_mean, z_log_var = self.mu, self.log_v
 
         #bce = nn.BCELoss(size_average=True)
         bce = nn.MSELoss(reduction="sum")
-        mse = nn.MSELoss(self.y, helper)
+        mse = nn.MSELoss()(z_mean, helpermu) + nn.MSELoss(z_log_var, helpervar)
 
         xent_loss =  bce(x_decoded_mean, x.detach())
         kl_loss = -0.5 * torch.mean(1. + z_log_var - z_mean ** 2. -

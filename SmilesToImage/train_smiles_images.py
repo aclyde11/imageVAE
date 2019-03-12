@@ -142,9 +142,9 @@ def train(epoch):
             optimizer.zero_grad()
             recon_batch= model(embed)
 
-            helper = encoder_helper.encode(data)
+            helperz, helpery = encoder_helper(data)
 
-            loss = model.vae_loss(recon_batch, data, helper)
+            loss = model.vae_loss(recon_batch, data, helperz, helpery)
             loss.backward()
             train_loss += loss.item()
             optimizer.step()
