@@ -214,7 +214,7 @@ for epoch in range(starting_epoch, epochs):
     f = open('tensorsToRun', 'w')
     for i in tensors:
         for t in i:
-            f.write(str(t))
+            f.write(str(t) + '\n')
     f.close()
     exit()
 
