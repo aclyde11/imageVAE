@@ -47,7 +47,7 @@ kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
 val_root =   '/homes/aclyde11/moldata/moses/test/'
-smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab")
+smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab", header=None)
 
 def from_one_hot_array(vec):
     oh = np.where(vec == 1)
@@ -77,7 +77,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
         t = self.imgs[index][0]
         t = int(t.split('/')[-1].split('.')[0])
-        t = list(smiles_lookup.iloc[t-1, 1])
+        t = list(smiles_lookup.iloc[t, 1])
         embed = apply_one_hot([t])[0].astype(np.float32)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed
 
