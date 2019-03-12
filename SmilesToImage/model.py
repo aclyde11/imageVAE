@@ -403,11 +403,8 @@ class DenseMolEncoder(nn.Module):
 
     def forward(self, x):
         out = self.conv_1(x)
-        out = self.conv_1_(out)
         out = self.conv_2(out)
-        out = self.conv_2_(out)
         out = self.conv_3(out)
-        out = self.conv_3_(out)
         out = Flatten()(out)
         out = self.dense_1(out) + self.dense_0(x)
 
