@@ -177,7 +177,6 @@ def test(epoch):
             data = data[0].cuda()
             embed = embed.cuda()
             recon_batch = model(embed)
-            helperz, helpery = encoder_helper(data)
 
             test_loss += model.vae_loss(recon_batch, data)
             if i == 0:
