@@ -59,14 +59,14 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t = int(t.split('/')[-1].split('.')[0])
         i = t
         try:
-            t = list(smiles_lookup.iloc[t-1, 1])
+            t = list(smiles_lookup.iloc[t, 1])
         except:
             print(t)
             exit()
         embed = apply_one_hot([t])[0].astype(np.float32)
         im = super(ImageFolderWithFile, self).__getitem__(index)
 
-        return  im, embed, i-1
+        return  im, embed, i
 
 def generate_data_loader(root, batch_size, data_size):
     invert = transforms.Compose([
