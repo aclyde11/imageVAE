@@ -398,8 +398,8 @@ class TestVAE(nn.Module):
 
     def __init__(self, encoder, decoder):
         super(TestVAE, self).__init__()
-        self.encoder = torch.load(encoder)
-        self.decoder = torch.load(decoder)
+        self.encoder = encoder
+        self.decoder = decoder
 
     def encode(self, x):
         self.mu, self.log_v = self.encoder(x)
