@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import GeneralVae,  PictureDecoder, PictureEncoder, TestVAE, DenseMolEncoder
+from model import GeneralVae,  PictureDecoder, PictureEncoder, TestVAE, DenseMolEncoder, ZSpaceTransform
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
@@ -117,7 +117,7 @@ for param in decoder.parameters():
 deocder = decoder.cuda().eval()
 encoder = encoder.cuda()
 encoder_good = encoder_good.cuda().eval()
-
+transformer = ZSpaceTransform().cuda()
 #decoder = torch.load(model_load['decoder'])
 #model = TestVAE(encoder, decoder).cuda()
 
@@ -146,12 +146,13 @@ def train(epoch):
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     encoder.train()
-
+    transformer.train()
     train_loss = 0
     for batch_idx, (data, embed) in enumerate(train_loader):
         data = data[0].cuda()
         embed = embed.cuda()
         z, logvar = encoder(embed)
+        z, logvar = transformer(z, logvar)
         z_h, logvar_h = encoder_good(data)
 
         std = logvar.mul(0.5).exp_()
@@ -189,12 +190,14 @@ def interpolate_points(x,y, sampling):
 
 def test(epoch):
     encoder.eval()
+    transformer.eval()
     test_loss = 0
     with torch.no_grad():
         for i, (data, embed) in enumerate(val_loader):
             data = data[0].cuda()
             embed = embed.cuda()
             z, logvar = encoder(embed)
+            z, logvar = transformer(z, logvar)
             z_h, logvar_h = encoder_good(data)
 
             std = logvar.mul(0.5).exp_()

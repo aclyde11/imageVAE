@@ -440,6 +440,27 @@ class MolDecoder(nn.Module):
         out, h = self.gru(out)
         return self.decoded_mean(out)
 
+class ZSpaceTransform(nn.Module):
+    def __init__(self, i=500, o=60, ):
+        super(ZSpaceTransform, self).__init__()
+
+        self.mu = nn.Sequential(nn.Linear(i, i),
+                                  SELU(inplace=True),
+                                nn.Linear(i, i), SELU(inplace=True),
+                                nn.Linear(i,i), SELU(inplace=True))
+
+        self.logvar = nn.Sequential(nn.Linear(i, i),
+                                  SELU(inplace=True),
+                                nn.Linear(i, i), SELU(inplace=True),
+                                nn.Linear(i,i), nn.ReLU())
+
+        def forward(self, mu, log):
+            mu = self.mu(mu)
+            log = self.logvar(log)
+            return mu, log
+
+
+
 class TestVAE(nn.Module):
 
     def __init__(self, encoder, decoder):
