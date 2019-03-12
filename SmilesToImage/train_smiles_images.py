@@ -97,7 +97,7 @@ class customLoss(nn.Module):
         self.mse_loss = nn.MSELoss(reduction="sum")
         self.crispyLoss = MS_SSIM()
 
-    def forward(self, x_recon, x, mu, logvar, epoch):
+    def forward(self, x_recon, x, mu, logvar):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss_cripsy = self.crispyLoss(x_recon, x)
@@ -135,7 +135,7 @@ optimizer = optim.Adam(chain(encoder.parameters(), transformer.parameters()), lr
 
 train_loader = generate_data_loader(train_root, 375, int(150000))
 val_loader = generate_data_loader(val_root, 375, int(2000))
-
+mse = customLoss()
 
 val_losses = []
 train_losses = []
@@ -159,8 +159,9 @@ def train(epoch):
         std = logvar.mul(0.5).exp_()
         eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
         y = eps.mul(std).add_(z)
+        recon_batch = decoder(y)
 
-        loss = 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h))
+        loss = 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)) + mse(recon_batch, data, z, logvar)
         optimizer.zero_grad()
         loss.backward()
         train_loss += loss.item()
@@ -198,14 +199,12 @@ def test(epoch):
             z, logvar = encoder(embed)
             z, logvar = transformer(z, logvar)
             z_h, logvar_h = encoder_good(data)
-
             std = logvar.mul(0.5).exp_()
             eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
             y = eps.mul(std).add_(z)
             recon_batch = decoder(y)
-            recon_batch = decoder(y)
 
-            test_loss += 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)).item()
+            test_loss += (500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)) + mse(recon_batch, data, z, logvar)).item()
 
             if i == 0:
                 n = min(data.size(0), 8)
