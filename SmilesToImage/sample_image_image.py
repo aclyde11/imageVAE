@@ -3,7 +3,6 @@ import sys
 import cv2
 import math
 import random, string
-
 import numpy as np
 from scipy.stats import norm
 from sklearn import manifold

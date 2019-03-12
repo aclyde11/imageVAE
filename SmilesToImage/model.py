@@ -391,14 +391,14 @@ class DenseMolEncoder(nn.Module):
                                      nn.ReLU(),
                                      nn.Linear(500, 500),
                                      nn.ReLU(),
-                                     nn.Linear(500, 435),
+                                     nn.Linear(500, 500),
                                      nn.ReLU())
-        self.dense_1 = nn.Sequential(nn.Linear((c - 29 + 3) * 10, 435),
+        self.dense_1 = nn.Sequential(nn.Linear((c - 29 + 3) * 10, 500),
                                      SELU(inplace=True))
 
         #self.lmbd = Lambda(435, o)
-        self.z_mean = nn.Linear(435, o)
-        self.z_log_var = nn.Linear(435, o)
+        self.z_mean = nn.Linear(500, o)
+        self.z_log_var = nn.Linear(500, o)
 
 
     def forward(self, x):

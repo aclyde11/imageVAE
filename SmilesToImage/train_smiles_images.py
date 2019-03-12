@@ -1,6 +1,7 @@
 import os
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '5,6'
+from itertools import chain
 
 import datetime
 import torch
@@ -128,19 +129,19 @@ transformer = ZSpaceTransform().cuda()
 #     model = nn.DataParallel(model)
 
 
-optimizer = optim.Adam(encoder.parameters(), lr=LR)
+optimizer = optim.Adam(chain(encoder.parameters(), transformer.parameters()), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 350, int(50000))
-val_loader = generate_data_loader(val_root, 350, int(10000))
+train_loader = generate_data_loader(train_root, 375, int(75000))
+val_loader = generate_data_loader(val_root, 375, int(2000))
 
 
 val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return 350
+    return 375
 
 def train(epoch):
 
@@ -158,14 +159,12 @@ def train(epoch):
         std = logvar.mul(0.5).exp_()
         eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
         y = eps.mul(std).add_(z)
-        recon_batch = decoder(y)
 
         loss = 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h))
         optimizer.zero_grad()
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
-
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
