@@ -114,7 +114,7 @@ if data_para and torch.cuda.device_count() > 1:
     model = nn.DataParallel(model)
 
 
-optimizer = optim.Adam(model.parameters(), lr=LR)
+optimizer = optim.Adam(model.encoder.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
@@ -129,8 +129,7 @@ def get_batch_size(epoch):
     return 700
 
 def train(epoch):
-    for param in model.encoder.parameters():
-        print(param)
+    for param in model.decoder.parameters():
         param.requires_grad = False
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
