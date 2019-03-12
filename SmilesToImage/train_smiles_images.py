@@ -146,7 +146,7 @@ def train(epoch):
         z_h, logvar_h = encoder_good(data)
 
 
-        loss = (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)).item()
+        loss = nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)
         optimizer.zero_grad()
         loss.backward()
         train_loss += loss.item()
