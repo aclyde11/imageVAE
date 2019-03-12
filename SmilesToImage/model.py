@@ -423,15 +423,14 @@ class TestVAE(nn.Module):
             return y, self.decoder(y)
         return self.decoder(y)
 
-    def vae_loss(self, x_decoded_mean, x, helpermu, helpervar):
+    def vae_loss(self, x_decoded_mean, x):
         z_mean, z_log_var = self.mu, self.log_v
 
         #bce = nn.BCELoss(size_average=True)
         bce = nn.MSELoss(reduction="sum")
-        mse = nn.MSELoss()(z_mean, helpermu) + nn.MSELoss()(z_log_var, helpervar)
 
         xent_loss =  bce(x_decoded_mean, x.detach())
         kl_loss = -0.5 * torch.mean(1. + z_log_var - z_mean ** 2. -
                                     torch.exp(z_log_var))
 
-        return kl_loss + xent_loss + 0.5 * mse
+        return kl_loss + xent_loss
