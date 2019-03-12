@@ -133,7 +133,7 @@ optimizer = optim.Adam(chain(encoder.parameters(), transformer.parameters()), lr
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 375, int(75000))
+train_loader = generate_data_loader(train_root, 375, int(150000))
 val_loader = generate_data_loader(val_root, 375, int(2000))
 
 
