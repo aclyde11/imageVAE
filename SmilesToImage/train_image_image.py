@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import TestVAE,  PictureDecoder, PictureEncoder
+from model import GeneralVae,  PictureDecoder, PictureEncoder
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
@@ -20,7 +20,7 @@ starting_epoch=107
 epochs = 200
 no_cuda = False
 seed = 42
-data_para = False
+data_para = True
 log_interval = 50
 LR = 0.0005          ##adam rate
 rampDataSize = 0.2 ## data set size to use
@@ -100,7 +100,7 @@ if model_load is None:
 else:
     encoder = torch.load(model_load['encoder'])
     decoder = torch.load(model_load['decoder'])
-model = TestVAE(encoder, decoder)
+model = GeneralVae(encoder, decoder)
 
 
 if data_para and torch.cuda.device_count() > 1:
