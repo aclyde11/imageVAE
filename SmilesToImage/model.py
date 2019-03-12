@@ -447,12 +447,12 @@ class ZSpaceTransform(nn.Module):
         self.mu = nn.Sequential(nn.Linear(i, i),
                                   SELU(inplace=True),
                                 nn.Linear(i, i), SELU(inplace=True),
-                                nn.Linear(i,i), SELU(inplace=True))
+                                nn.Linear(i,i), SELU(inplace=True), nn.Linear(i,i))
 
         self.logvar = nn.Sequential(nn.Linear(i, i),
                                   SELU(inplace=True),
                                 nn.Linear(i, i), SELU(inplace=True),
-                                nn.Linear(i,i), nn.ReLU())
+                                nn.Linear(i,i), nn.ReLU(), nn.Linear(i,i))
 
     def forward(self, mu, log):
         mu = self.mu(mu)
