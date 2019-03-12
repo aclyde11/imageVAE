@@ -404,6 +404,7 @@ class DenseMolEncoder(nn.Module):
         out = self.conv_3(out)
         out = self.conv_3_(out)
         out = Flatten()(out)
+        print(out.shape)
         out = self.dense_1(out)
 
         return self.z_mean(out), self.z_log_var(out)
