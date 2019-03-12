@@ -114,7 +114,7 @@ for param in model.decoder.parameters():
     param.requires_grad = False
 
 model = model.cuda()
-encoder = model.encoder()
+encoder = model.encoder
 encoder_good = encoder_good.cuda().eval()
 
 #decoder = torch.load(model_load['decoder'])
