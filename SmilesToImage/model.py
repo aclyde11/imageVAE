@@ -383,11 +383,11 @@ class DenseMolEncoder(nn.Module):
         self.i = i
 
         self.conv_1 = ConvSELU(i, 9, kernel_size=9)
-        self.conv_1_ = ConvSELU(9, 9, kernel_size=2, padding=1)
+        self.conv_1_ = ConvSELU(9, 9, kernel_size=2, padding=2)
         self.conv_2 = ConvSELU(9, 9, kernel_size=9)
-        self.conv_2_ = ConvSELU(9, 9, kernel_size=2, padding=1)
+        self.conv_2_ = ConvSELU(9, 9, kernel_size=2, padding=2)
         self.conv_3 = ConvSELU(9, 10, kernel_size=11)
-        self.conv_3_ = ConvSELU(10, 10, kernel_size=2, padding=1)
+        self.conv_3_ = ConvSELU(10, 10, kernel_size=2, padding=2)
         self.dense_1 = nn.Sequential(nn.Linear((c - 29 + 3) * 10, 435),
                                      SELU(inplace=True))
 
