@@ -104,7 +104,6 @@ class customLoss(nn.Module):
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
 
-encoder = torch.load(model_load['encoder'])
 encoder = DenseMolEncoder()
 decoder = torch.load(model_load['decoder'])
 model = TestVAE(encoder, decoder).cuda()
