@@ -36,7 +36,7 @@ KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
 model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_156.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_100.pt'}
 #model_load = None
-cuda = True
+cuda = False
 data_size = 1400000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/smi_im/results/'
