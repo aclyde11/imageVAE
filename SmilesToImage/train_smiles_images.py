@@ -132,15 +132,15 @@ optimizer = optim.Adam(encoder.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 256, int(50000))
-val_loader = generate_data_loader(val_root, 256, int(10000))
+train_loader = generate_data_loader(train_root, 846, int(50000))
+val_loader = generate_data_loader(val_root, 846, int(10000))
 
 
 val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return 256
+    return 846
 
 def train(epoch):
 
@@ -204,7 +204,13 @@ def test(epoch):
             recon_batch = decoder(y)
 
             test_loss += 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)).item()
-    #         if i == 0:
+
+            if i == 0:
+                n = min(data.size(0), 8)
+                comparison = torch.cat([data[:n],
+                                        recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
+                save_image(comparison.cpu(),
+                           output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
     #             n_image_gen = 8
     #             images = []
     #             n_samples_linspace = 16
@@ -231,11 +237,7 @@ def test(epoch):
     #             save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
     #
     # ##
-    # n = min(data.size(0), 8)
-    # comparison = torch.cat([data[:n],
-    #                         recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
-    # save_image(comparison.cpu(),
-    #            output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
+
 
     test_loss /= len(val_loader.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
