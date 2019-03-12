@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import GeneralVae,  PictureDecoder, PictureEncoder
+from model import TestVAE,  PictureDecoder, PictureEncoder
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
@@ -16,11 +16,11 @@ from invert import Invert
 
 import numpy as np
 import pandas as pd
-starting_epoch=107
-epochs = 200
+starting_epoch=127
+epochs = 300
 no_cuda = False
 seed = 42
-data_para = True
+data_para = False
 log_interval = 50
 LR = 0.0005          ##adam rate
 rampDataSize = 0.2 ## data set size to use
@@ -29,7 +29,7 @@ vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_106.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_106.pt'}
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_127.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_127.pt'}
 #model_load = None
 cuda = True
 data_size = 1400000
@@ -100,7 +100,7 @@ if model_load is None:
 else:
     encoder = torch.load(model_load['encoder'])
     decoder = torch.load(model_load['decoder'])
-model = GeneralVae(encoder, decoder)
+model = TestVAE(encoder, decoder, rep_size=500)
 
 
 if data_para and torch.cuda.device_count() > 1:
@@ -118,7 +118,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(64  + 2 * epoch, 200 )
+    return min(64  + 2 * epoch, 400 )
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
@@ -130,8 +130,8 @@ def train(epoch):
         data = data[0].cuda()
 
         optimizer.zero_grad()
-        recon_batch = model(data)
-        loss = model.vae_loss(recon_batch, data)
+        recon_batch, mu, logvar = model(data)
+        loss = loss_mse(recon_batch, data, mu, logvar, epoch)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -165,14 +165,14 @@ def test(epoch):
         for i, (data, _) in enumerate(val_loader_food):
             data = data[0].cuda()
 
-            recon_batch= model(data)
-            test_loss += model.vae_loss(recon_batch, data).item()
+            recon_batch, mu, logvar = model(data)
+            test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
             if i == 0:
                 n_image_gen = 8
                 images = []
                 n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    data_latent = model.module.encode(data)
+                    data_latent = model.module.encode_latent_(data)
                     pt_1 = data_latent[i * 2, ...].cpu().numpy()
                     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
@@ -184,7 +184,7 @@ def test(epoch):
                 images = []
                 n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    data_latent = model.module.encode(data)
+                    data_latent = model.module.encode_latent_(data)
                     pt_1 = data_latent[i, ...].cpu().numpy()
                     pt_2 = data_latent[i + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2,
