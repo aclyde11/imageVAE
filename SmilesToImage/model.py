@@ -454,10 +454,10 @@ class ZSpaceTransform(nn.Module):
                                 nn.Linear(i, i), SELU(inplace=True),
                                 nn.Linear(i,i), nn.ReLU())
 
-        def forward(self, mu, log):
-            mu = self.mu(mu)
-            log = self.logvar(log)
-            return mu, log
+    def forward(self, mu, log):
+        mu = self.mu(mu)
+        log = self.logvar(log)
+        return mu, log
 
 
 
