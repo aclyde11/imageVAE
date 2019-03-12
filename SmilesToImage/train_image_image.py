@@ -130,8 +130,8 @@ def train(epoch):
         data = data[0].cuda()
 
         optimizer.zero_grad()
-        recon_batch, mu, logvar = model(data)
-        loss = loss_mse(recon_batch, data, mu, logvar, epoch)
+        recon_batch = model(data)
+        loss = model.vae_loss(recon_batch, data)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -165,14 +165,14 @@ def test(epoch):
         for i, (data, _) in enumerate(val_loader_food):
             data = data[0].cuda()
 
-            recon_batch, mu, logvar = model(data)
-            test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
+            recon_batch= model(data)
+            test_loss += model.vae_loss(recon_batch, data).item()
             if i == 0:
                 n_image_gen = 8
                 images = []
                 n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data)
+                    data_latent = model.module.encode(data)
                     pt_1 = data_latent[i * 2, ...].cpu().numpy()
                     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
@@ -184,7 +184,7 @@ def test(epoch):
                 images = []
                 n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data)
+                    data_latent = model.module.encode(data)
                     pt_1 = data_latent[i, ...].cpu().numpy()
                     pt_2 = data_latent[i + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2,
