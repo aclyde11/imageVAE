@@ -108,7 +108,7 @@ encoder = torch.load(model_load['encoder'])
 decoder = torch.load(model_load['decoder'])
 model = TestVAE(encoder, decoder).cuda()
 
-encoder_helper = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_127.pt').cuda()
+encoder_helper = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_127.pt').cuda()
 
 
 if data_para and torch.cuda.device_count() > 1:
