@@ -375,6 +375,50 @@ class MolEncoder(nn.Module):
         return kl_loss + xent_loss
 
 
+class DenseMolEncoder(nn.Module):
+
+    def __init__(self, i=60, o=500, c=27):
+        super(MolEncoder, self).__init__()
+
+        self.i = i
+
+        self.conv_1 = ConvSELU(i, 9, kernel_size=9)
+        self.conv_1_ = ConvSELU(9, 9, kernel_size=2, padding=1)
+        self.conv_2 = ConvSELU(9, 9, kernel_size=9)
+        self.conv_2_ = ConvSELU(9, 9, kernel_size=2, padding=1)
+        self.conv_3 = ConvSELU(9, 10, kernel_size=11)
+        self.conv_3_ = ConvSELU(10, 10, kernel_size=2, padding=1)
+        self.dense_1 = nn.Sequential(nn.Linear((c - 29 + 3) * 10, 435),
+                                     SELU(inplace=True))
+
+        #self.lmbd = Lambda(435, o)
+        self.z_mean = nn.Linear(435, o)
+        self.z_log_var = nn.Linear(435, o)
+
+
+    def forward(self, x):
+        out = self.conv_1(x)
+        out = self.conv_1_(x)
+        out = self.conv_2(out)
+        out = self.conv_2_(x)
+        out = self.conv_3(out)
+        out = self.conv_3_(x)
+        out = Flatten()(out)
+        out = self.dense_1(out)
+
+        return self.z_mean(out), self.z_log_var(out)
+
+    def vae_loss(self, x_decoded_mean, x):
+        z_mean, z_log_var = self.lmbd.mu, self.lmbd.log_v
+
+        bce = nn.BCELoss(size_average=True)
+        xent_loss = self.i * bce(x_decoded_mean, x.detach())
+        kl_loss = -0.5 * torch.mean(1. + z_log_var - z_mean ** 2. -
+                                    torch.exp(z_log_var))
+
+        return kl_loss + xent_loss
+
+
 class MolDecoder(nn.Module):
 
     def __init__(self, i=500, o=60, c=27):

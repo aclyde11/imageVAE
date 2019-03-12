@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import GeneralVae,  PictureDecoder, PictureEncoder, TestVAE
+from model import GeneralVae,  PictureDecoder, PictureEncoder, TestVAE, DenseMolEncoder
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
@@ -22,7 +22,7 @@ no_cuda = False
 seed = 42
 data_para = False
 log_interval = 10
-LR = 0.001         ##adam rate
+LR = 0.01         ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -33,7 +33,7 @@ embedding_size = len(vocab)
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_127.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_219.pt'}
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_156.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_100.pt'}
 #model_load = None
 cuda = True
 data_size = 1400000
@@ -105,6 +105,7 @@ class customLoss(nn.Module):
 
 
 encoder = torch.load(model_load['encoder'])
+encoder = DenseMolEncoder()
 decoder = torch.load(model_load['decoder'])
 model = TestVAE(encoder, decoder).cuda()
 
@@ -130,11 +131,12 @@ def get_batch_size(epoch):
     return 512
 
 def train(epoch):
-    for param in model.decoder.parameters():
-        param.requires_grad=False
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
+
+    for param in model.decoder.parameters():
+        param.requires_grad=False
     train_loss = 0
     for batch_idx, (data, embed) in enumerate(train_loader):
         data = data[0].cuda()
