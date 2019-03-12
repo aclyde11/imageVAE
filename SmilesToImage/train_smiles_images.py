@@ -36,13 +36,13 @@ KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
 model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_156.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_100.pt'}
 #model_load = None
-cuda = False
+cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/smi_im/results/'
 save_files = '/homes/aclyde11/imageVAE/smi_im/model/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': 12, 'pin_memory': True} if cuda else {}
 
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
@@ -77,12 +77,8 @@ class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
         t = self.imgs[index][0]
         t = int(t.split('/')[-1].split('.')[0])
-        print(t)
         t = list(smiles_lookup.iloc[t, 1])
-        print(t)
         embed = apply_one_hot([t])[0].astype(np.float32)
-        print(embed)
-        exit()
         return  super(ImageFolderWithFile, self).__getitem__(index), embed, t
 
 def generate_data_loader(root, batch_size, data_size):
@@ -137,7 +133,7 @@ optimizer = optim.Adam(chain(encoder.parameters(), transformer.parameters()), lr
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 1, int(50000))
+train_loader = generate_data_loader(train_root, 400, int(50000))
 val_loader = generate_data_loader(val_root, 400, int(2000))
 mse = customLoss()
 
@@ -207,7 +203,6 @@ def test(epoch):
 
             if i == 0:
                 n = min(data.size(0), 8)
-                print(["".join(i) for i in smiles[:8]])
                 comparison = torch.cat([data[:n],
                                         recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
                 save_image(comparison.cpu(),
