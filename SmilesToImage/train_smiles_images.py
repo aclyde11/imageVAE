@@ -249,7 +249,7 @@ for epoch in range(starting_epoch, epochs):
 
     train(epoch)
     test(epoch)
-    #torch.save(model.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    torch.save(encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
     #torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
