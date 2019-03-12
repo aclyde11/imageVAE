@@ -214,10 +214,10 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-    train(epoch)
+    #train(epoch)
     test(epoch)
-    torch.save(model.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
-    torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
+    #torch.save(model.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    #torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
         sample = model.decode(sample).cpu()
