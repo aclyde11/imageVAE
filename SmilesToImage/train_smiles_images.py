@@ -133,15 +133,15 @@ optimizer = optim.Adam(chain(encoder.parameters(), transformer.parameters()), lr
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 375, int(150000))
-val_loader = generate_data_loader(val_root, 375, int(2000))
+train_loader = generate_data_loader(train_root, 400, int(50000))
+val_loader = generate_data_loader(val_root, 400, int(2000))
 mse = customLoss()
 
 val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return 375
+    return 400
 
 def train(epoch):
 
@@ -156,12 +156,7 @@ def train(epoch):
         z, logvar = transformer(z, logvar)
         z_h, logvar_h = encoder_good(data)
 
-        std = logvar.mul(0.5).exp_()
-        eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
-        y = eps.mul(std).add_(z)
-        recon_batch = decoder(y)
-
-        loss = 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)) + mse(recon_batch, data, z, logvar)
+        loss = 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h))
         optimizer.zero_grad()
         loss.backward()
         train_loss += loss.item()
@@ -204,7 +199,7 @@ def test(epoch):
             y = eps.mul(std).add_(z)
             recon_batch = decoder(y)
 
-            test_loss += (500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)) + mse(recon_batch, data, z, logvar)).item()
+            test_loss += (500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h))).item()
 
             if i == 0:
                 n = min(data.size(0), 8)
@@ -212,32 +207,32 @@ def test(epoch):
                                         recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
                 save_image(comparison.cpu(),
                            output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
-    #             n_image_gen = 8
-    #             images = []
-    #             n_samples_linspace = 16
-    #             for i in range(n_image_gen):
-    #                 data_latent = model.encode(embed)
-    #                 pt_1 = data_latent[i * 2, ...].cpu().numpy()
-    #                 pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
-    #                 sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-    #                 sample_vec = torch.from_numpy(sample_vec).to(device)
-    #                 images.append(model.decode(sample_vec).cpu())
-    #             save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
-    #
-    #             n_image_gen = 8
-    #             images = []
-    #             n_samples_linspace = 16
-    #             for i in range(n_image_gen):
-    #                 data_latent = model.encode(embed)
-    #                 pt_1 = data_latent[i, ...].cpu().numpy()
-    #                 pt_2 = data_latent[i + 1, ...].cpu().numpy()
-    #                 sample_vec = interpolate_points(pt_1, pt_2,
-    #                                                 np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-    #                 sample_vec = torch.from_numpy(sample_vec).to(device)
-    #                 images.append(model.decode(sample_vec).cpu())
-    #             save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
-    #
-    # ##
+                n_image_gen = 8
+                images = []
+                n_samples_linspace = 16
+                for i in range(n_image_gen):
+                    data_latent = model.encode(embed)
+                    pt_1 = data_latent[i * 2, ...].cpu().numpy()
+                    pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
+                    sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                    sample_vec = torch.from_numpy(sample_vec).to(device)
+                    images.append(model.decode(sample_vec).cpu())
+                save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
+
+                n_image_gen = 8
+                images = []
+                n_samples_linspace = 16
+                for i in range(n_image_gen):
+                    data_latent = model.encode(embed)
+                    pt_1 = data_latent[i, ...].cpu().numpy()
+                    pt_2 = data_latent[i + 1, ...].cpu().numpy()
+                    sample_vec = interpolate_points(pt_1, pt_2,
+                                                    np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                    sample_vec = torch.from_numpy(sample_vec).to(device)
+                    images.append(model.decode(sample_vec).cpu())
+                save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
+
+    ##
 
 
     test_loss /= len(val_loader.dataset)
