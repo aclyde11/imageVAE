@@ -146,7 +146,7 @@ def train(epoch):
         z_h, logvar_h = encoder_good(data)
 
 
-        loss = nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)
+        loss = 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h))
         optimizer.zero_grad()
         loss.backward()
         train_loss += loss.item()
@@ -183,7 +183,7 @@ def test(epoch):
             z, logvar = encoder(embed)
             z_h, logvar_h = encoder_good(data)
 
-            test_loss += (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)).item()
+            test_loss += 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)).item()
             # if i == 0:
             #     n_image_gen = 8
             #     images = []
