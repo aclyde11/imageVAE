@@ -413,12 +413,14 @@ class TestVAE(nn.Module):
         return self.decoder(x)
 
 
-    def forward(self, x):
+    def forward(self, x, return_y = False):
         self.mu, self.log_v = self.encoder(x)
 
         std = self.log_v.mul(0.5).exp_()
         eps = Variable(std.data.new(std.size()).normal_())
         y =  eps.mul(std).add_(self.mu)
+        if return_y:
+            return y, self.decoder(y)
         return self.decoder(y)
 
     def vae_loss(self, x_decoded_mean, x):
