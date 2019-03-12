@@ -123,7 +123,7 @@ val_loader_food = generate_data_loader(val_root, get_batch_size(200), int(5000))
 val_losses = []
 train_losses = []
 
-
+tensors = []
 def train(epoch):
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
@@ -131,7 +131,7 @@ def train(epoch):
     train_loss = 0
     for batch_idx, (data, _, ind) in enumerate(train_loader_food):
         data = data[0].cuda()
-        print(ind)
+        tensors.append(ind.numpy())
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
         loss = loss_mse(recon_batch, data, mu, logvar, epoch)
@@ -166,7 +166,7 @@ def test(epoch):
     with torch.no_grad():
         for i, (data, _, ind) in enumerate(val_loader_food):
             data = data[0].cuda()
-            print(ind)
+            tensors.append(ind.numpy())
             recon_batch, mu, logvar = model(data)
             test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
             if i == 0:
@@ -211,6 +211,13 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
+    f = open('tensorsToRun', 'w')
+    for i in tensors:
+        for t in i:
+            f.write(t)
+    f.close()
+    exit()
+
     torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
     torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
