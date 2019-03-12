@@ -105,16 +105,17 @@ class customLoss(nn.Module):
 
 
 encoder = DenseMolEncoder()
+decoder = torch.load(model_load['decoder'])
 encoder_good =  torch.load('/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_156.pt')
-model = TestVAE(encoder, torch.load(model_load['decoder']))
+
 
 for param in encoder_good.parameters():
     param.requires_grad = False
-for param in model.decoder.parameters():
+for param in decoder.parameters():
     param.requires_grad = False
 
-model = model.cuda()
-encoder = model.encoder
+deocder = decoder.cuda().eval()
+encoder = encoder.cuda()
 encoder_good = encoder_good.cuda().eval()
 
 #decoder = torch.load(model_load['decoder'])
@@ -153,6 +154,10 @@ def train(epoch):
         z, logvar = encoder(embed)
         z_h, logvar_h = encoder_good(data)
 
+        std = logvar.mul(0.5).exp_()
+        eps = torch.Variable(std.data.new(std.size()).normal_())
+        y = eps.mul(std).add_(z)
+        recon_batch = decoder(y)
 
         loss = 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h))
         optimizer.zero_grad()
@@ -160,8 +165,6 @@ def train(epoch):
         train_loss += loss.item()
         optimizer.step()
 
-        recon_batch = model(embed)
-        print("loss im: ", model.vae_loss(recon_batch, data).item())
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
@@ -194,41 +197,45 @@ def test(epoch):
             z, logvar = encoder(embed)
             z_h, logvar_h = encoder_good(data)
 
-            recon_batch = model(embed)
+            std = logvar.mul(0.5).exp_()
+            eps = torch.Variable(std.data.new(std.size()).normal_())
+            y = eps.mul(std).add_(z)
+            recon_batch = decoder(y)
+            recon_batch = decoder(y)
 
             test_loss += 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h)).item()
-            if i == 0:
-                n_image_gen = 8
-                images = []
-                n_samples_linspace = 16
-                for i in range(n_image_gen):
-                    data_latent = model.encode(embed)
-                    pt_1 = data_latent[i * 2, ...].cpu().numpy()
-                    pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
-                    sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                    sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.decode(sample_vec).cpu())
-                save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
-
-                n_image_gen = 8
-                images = []
-                n_samples_linspace = 16
-                for i in range(n_image_gen):
-                    data_latent = model.encode(embed)
-                    pt_1 = data_latent[i, ...].cpu().numpy()
-                    pt_2 = data_latent[i + 1, ...].cpu().numpy()
-                    sample_vec = interpolate_points(pt_1, pt_2,
-                                                    np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                    sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.decode(sample_vec).cpu())
-                save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
-
-                ##
-                n = min(data.size(0), 8)
-                comparison = torch.cat([data[:n],
-                                        recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
-                save_image(comparison.cpu(),
-                           output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
+    #         if i == 0:
+    #             n_image_gen = 8
+    #             images = []
+    #             n_samples_linspace = 16
+    #             for i in range(n_image_gen):
+    #                 data_latent = model.encode(embed)
+    #                 pt_1 = data_latent[i * 2, ...].cpu().numpy()
+    #                 pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
+    #                 sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+    #                 sample_vec = torch.from_numpy(sample_vec).to(device)
+    #                 images.append(model.decode(sample_vec).cpu())
+    #             save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
+    #
+    #             n_image_gen = 8
+    #             images = []
+    #             n_samples_linspace = 16
+    #             for i in range(n_image_gen):
+    #                 data_latent = model.encode(embed)
+    #                 pt_1 = data_latent[i, ...].cpu().numpy()
+    #                 pt_2 = data_latent[i + 1, ...].cpu().numpy()
+    #                 sample_vec = interpolate_points(pt_1, pt_2,
+    #                                                 np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+    #                 sample_vec = torch.from_numpy(sample_vec).to(device)
+    #                 images.append(model.decode(sample_vec).cpu())
+    #             save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
+    #
+    # ##
+    # n = min(data.size(0), 8)
+    # comparison = torch.cat([data[:n],
+    #                         recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
+    # save_image(comparison.cpu(),
+    #            output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
 
     test_loss /= len(val_loader.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
@@ -240,11 +247,11 @@ for epoch in range(starting_epoch, epochs):
 
     train(epoch)
     test(epoch)
-    torch.save(model.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
-    torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
+    #torch.save(model.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    #torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
-        sample = model.decode(sample).cpu()
+        sample = decoder(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    output_dir + 'sample_' + str(epoch-1) + '.png')
 
