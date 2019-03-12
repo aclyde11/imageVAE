@@ -64,9 +64,9 @@ class ImageFolderWithFile(datasets.ImageFolder):
             print(t)
             exit()
         embed = apply_one_hot([t])[0].astype(np.float32)
-        im = super(ImageFolderWithFile, self).__getitem__(index), i-1
+        im = super(ImageFolderWithFile, self).__getitem__(index)
 
-        return  im, embed
+        return  im, embed, i-1
 
 def generate_data_loader(root, batch_size, data_size):
     invert = transforms.Compose([
