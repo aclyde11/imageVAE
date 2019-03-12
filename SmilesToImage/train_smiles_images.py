@@ -80,6 +80,8 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t = list(smiles_lookup.iloc[t, 1])
         print(t)
         embed = apply_one_hot([t])[0].astype(np.float32)
+        print(embed)
+        exit()
         return  super(ImageFolderWithFile, self).__getitem__(index), embed, t
 
 def generate_data_loader(root, batch_size, data_size):
