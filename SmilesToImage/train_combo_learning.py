@@ -125,11 +125,11 @@ decoder2 = torch.load(model_load2['decoder'])
 encoder2 = DenseMolEncoder()
 model = ComboVAE(encoder1, encoder2, decoder1, decoder2, rep_size=500).cuda()
 
-#
-#
-# if data_para and torch.cuda.device_count() > 1:
-#     print("Let's use", torch.cuda.device_count(), "GPUs!")
-#     model = nn.DataParallel(model)
+
+
+if data_para and torch.cuda.device_count() > 1:
+    print("Let's use", torch.cuda.device_count(), "GPUs!")
+    model = nn.DataParallel(model)
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
