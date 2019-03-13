@@ -122,7 +122,7 @@ model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch
 encoder1 = torch.load(model_load1['encoder'])
 decoder1 = torch.load(model_load1['decoder'])
 decoder2 = torch.load(model_load2['decoder'])
-encoder2 = torch.load(model_load2['encoder'])
+encoder2 = DenseMolEncoder()
 model = ComboVAE(encoder1, encoder2, decoder1, decoder2, rep_size=500).cuda()
 
 #
