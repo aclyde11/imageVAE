@@ -232,6 +232,7 @@ class ComboVAE(nn.Module):
         super(ComboVAE, self).__init__()
         self.rep_size = rep_size
 
+        self.scale = 1E-2
         self.encoder1 = encoder_model_1
         self.encoder2 = encoder_model_2
         self.decoder1 = decoder_model_1
