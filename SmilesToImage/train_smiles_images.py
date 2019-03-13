@@ -156,7 +156,7 @@ def train(epoch):
         z, logvar = transformer(z, logvar)
         z_h, logvar_h = encoder_good(data)
 
-        loss = 500 * (nn.MSELoss()(z, z_h) + nn.L1Loss(logvar, logvar_h))
+        loss = 500 * (nn.MSELoss()(z, z_h) + nn.L1Loss()(logvar, logvar_h))
         optimizer.zero_grad()
         loss.backward()
         train_loss += loss.item()
@@ -196,7 +196,7 @@ def test(epoch):
             z, logvar = transformer(z, logvar)
             z_h, logvar_h = encoder_good(data)
 
-            test_loss += (500 * (nn.MSELoss()(z, z_h) + nn.L1Loss(logvar, logvar_h))).item()
+            test_loss += (500 * (nn.MSELoss()(z, z_h) + nn.L1Loss()(logvar, logvar_h))).item()
 
             std = logvar.mul(0.5).exp_()
             eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
