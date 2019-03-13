@@ -272,7 +272,8 @@ class ComboVAE(nn.Module):
     def forward(self, x1, x2):
         z, mu, logvar= self.encode_latent_(x1, x2)
 
-        return self.decode(z), mu, logvar
+        y_1, y_2 = self.decode(z)
+        return y_1, y_2, mu, logvar
 
 
 import torch
