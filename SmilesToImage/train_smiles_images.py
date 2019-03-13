@@ -17,7 +17,7 @@ from invert import Invert
 
 import numpy as np
 import pandas as pd
-starting_epoch=1
+starting_epoch=70
 epochs = 200
 no_cuda = False
 seed = 42
@@ -105,20 +105,14 @@ class customLoss(nn.Module):
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
 
-encoder = DenseMolEncoder()
+encoder = torch.load(save_files + 'encoder_epoch_' + str(65) + '.pt')
 decoder = torch.load(model_load['decoder'])
-encoder_good =  torch.load('/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_156.pt')
+#encoder_good =  torch.load('/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_156.pt')
+transformer = torch.load(save_files + 'transformer_epoch_' + str(65) + '.pt')
 
+model = TestVAE(encoder, transformer, decoder).cuda()
+#encoder_good = encoder_good.cuda().eval()
 
-for param in encoder_good.parameters():
-    param.requires_grad = False
-for param in decoder.parameters():
-    param.requires_grad = False
-
-deocder = decoder.cuda().eval()
-encoder = encoder.cuda()
-encoder_good = encoder_good.cuda().eval()
-transformer = ZSpaceTransform().cuda()
 #decoder = torch.load(model_load['decoder'])
 #model = TestVAE(encoder, decoder).cuda()
 
@@ -133,32 +127,29 @@ optimizer = optim.SGD(chain(encoder.parameters(), transformer.parameters()), lr=
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 800, int(50000))
-val_loader = generate_data_loader(val_root, 800, int(2000))
+train_loader = generate_data_loader(train_root, 400, int(50000))
+val_loader = generate_data_loader(val_root, 400, int(2000))
 mse = customLoss()
 
 val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return 800
+    return 400
 
 def train(epoch):
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
-    encoder.train()
-    transformer.train()
+    model.train()
     train_loss = 0
     for batch_idx, (data, embed, _) in enumerate(train_loader):
         optimizer.zero_grad()
 
         data = data[0].cuda()
         embed = embed.cuda()
-        z, logvar = encoder(embed)
-        z, logvar = transformer(z, logvar)
-        z_h, logvar_h = encoder_good(data)
+        recon_batch = model(embed)
 
-        loss = 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h))
+        loss = model.vae_loss(recon_batch, data)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -185,23 +176,15 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    sched.step()
-    encoder.eval()
-    transformer.eval()
+    model.eval()
     test_loss = 0
     with torch.no_grad():
         for i, (data, embed, smiles) in enumerate(val_loader):
             data = data[0].cuda()
             embed = embed.cuda()
-            z, logvar = encoder(embed)
-            z, logvar = transformer(z, logvar)
-            z_h, logvar_h = encoder_good(data)
-            std = logvar.mul(0.5).exp_()
-            eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
-            y = eps.mul(std).add_(z)
-            recon_batch = decoder(y)
+            recon_batch = model(embed)
 
-            test_loss += (500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h))).item()
+            test_loss += model.vae_loss(recon_batch, data).item()
 
             if i == 0:
                 n = min(data.size(0), 8)
@@ -209,30 +192,30 @@ def test(epoch):
                                         recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
                 save_image(comparison.cpu(),
                            output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
-                # n_image_gen = 8
-                # images = []
-                # n_samples_linspace = 16
-                # for i in range(n_image_gen):
-                #     data_latent = model.encode(embed)
-                #     pt_1 = data_latent[i * 2, ...].cpu().numpy()
-                #     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
-                #     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                #     sample_vec = torch.from_numpy(sample_vec).to(device)
-                #     images.append(model.decode(sample_vec).cpu())
-                # save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
-                #
-                # n_image_gen = 8
-                # images = []
-                # n_samples_linspace = 16
-                # for i in range(n_image_gen):
-                #     data_latent = model.encode(embed)
-                #     pt_1 = data_latent[i, ...].cpu().numpy()
-                #     pt_2 = data_latent[i + 1, ...].cpu().numpy()
-                #     sample_vec = interpolate_points(pt_1, pt_2,
-                #                                     np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                #     sample_vec = torch.from_numpy(sample_vec).to(device)
-                #     images.append(model.decode(sample_vec).cpu())
-                # save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
+                n_image_gen = 8
+                images = []
+                n_samples_linspace = 16
+                for i in range(n_image_gen):
+                    data_latent = model.encode(embed)
+                    pt_1 = data_latent[i * 2, ...].cpu().numpy()
+                    pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
+                    sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                    sample_vec = torch.from_numpy(sample_vec).to(device)
+                    images.append(model.decode(sample_vec).cpu())
+                save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
+
+                n_image_gen = 8
+                images = []
+                n_samples_linspace = 16
+                for i in range(n_image_gen):
+                    data_latent = model.encode(embed)
+                    pt_1 = data_latent[i, ...].cpu().numpy()
+                    pt_2 = data_latent[i + 1, ...].cpu().numpy()
+                    sample_vec = interpolate_points(pt_1, pt_2,
+                                                    np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                    sample_vec = torch.from_numpy(sample_vec).to(device)
+                    images.append(model.decode(sample_vec).cpu())
+                save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
     ##
 
@@ -244,11 +227,12 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-
+    sched.step()
     train(epoch)
     test(epoch)
-    torch.save(encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
-    torch.save(transformer, save_files + 'transformer_epoch_' + str(epoch) + '.pt')
+    torch.save(model.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.transformer, save_files + 'transformer_epoch_' + str(epoch) + '.pt')
 
     #torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     with torch.no_grad():

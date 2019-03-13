@@ -463,13 +463,15 @@ class ZSpaceTransform(nn.Module):
 
 class TestVAE(nn.Module):
 
-    def __init__(self, encoder, decoder):
+    def __init__(self, encoder, transformer, decoder):
         super(TestVAE, self).__init__()
         self.encoder = encoder
         self.decoder = decoder
+        self.transformer = transformer
 
     def encode(self, x):
         self.mu, self.log_v = self.encoder(x)
+        self.mu, self.log_v = self.transformer(self.mu, self.log_v)
 
         std = self.log_v.mul(0.5).exp_()
         eps = Variable(std.data.new(std.size()).normal_())
@@ -482,7 +484,7 @@ class TestVAE(nn.Module):
 
     def forward(self, x, return_y = False):
         self.mu, self.log_v = self.encoder(x)
-
+        self.mu, self.log_v = self.transformer(self.mu, self.log_v)
         std = self.log_v.mul(0.5).exp_()
         eps = Variable(std.data.new(std.size()).normal_())
         y =  eps.mul(std).add_(self.mu)
