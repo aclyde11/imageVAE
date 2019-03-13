@@ -120,7 +120,6 @@ model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_e
 model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_277.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_277.pt'}
 
 encoder1 = PictureEncoder()
-encoder1.load_state_dict(torch.load(model_load1['encoder']))
 decoder1 = torch.load(model_load1['decoder'])
 decoder2 = torch.load(model_load2['decoder'])
 encoder2 = DenseMolEncoder()
