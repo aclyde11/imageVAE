@@ -257,7 +257,9 @@ class ComboVAE(nn.Module):
 
     def encode_latent_(self, x1, x2):
         x1, x2 = self.encode(x1, x2)
+        print(x1.shape, x2.shape)
         x = torch.cat([x1,x2], dim=1)
+        print(x.shape)
         mu, logvar = (self.z_mean(x), self.z_log_var(x))
         z = self.reparam(logvar, mu)
 
