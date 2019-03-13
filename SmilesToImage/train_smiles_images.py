@@ -23,7 +23,7 @@ no_cuda = False
 seed = 42
 data_para = False
 log_interval = 10
-LR = 0.0001        ##adam rate
+LR = 0.00005        ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -123,9 +123,9 @@ model = TestVAE(encoder, transformer, decoder).cuda()
 #     model = nn.DataParallel(model)
 
 
-optimizer = optim.SGD(chain(encoder.parameters(), transformer.parameters()), lr=LR, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=LR, momentum=0.9)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.0000001, last_epoch=-1)
 
 train_loader = generate_data_loader(train_root, 400, int(50000))
 val_loader = generate_data_loader(val_root, 400, int(2000))
