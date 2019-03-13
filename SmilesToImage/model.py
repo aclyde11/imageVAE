@@ -388,15 +388,14 @@ class DenseMolEncoder(nn.Module):
 
         self.dense_0 = nn.Sequential(Flatten(),
                                      nn.Linear(60 * 27, 500),
-                                     nn.ReLU(),
+                                     SELU(inplace=True),
                                      nn.Linear(500, 500),
-                                     nn.ReLU(),
+                                     SELU(inplace=True),
                                      nn.Linear(500, 500),
-                                     nn.ReLU())
+                                     SELU(inplace=True))
         self.dense_1 = nn.Sequential(nn.Linear((c - 29 + 3) * 10, 500),
                                      SELU(inplace=True))
 
-        #self.lmbd = Lambda(435, o)
         self.z_mean = nn.Linear(500, o)
         self.z_log_var = nn.Linear(500, o)
 
@@ -452,7 +451,7 @@ class ZSpaceTransform(nn.Module):
         self.logvar = nn.Sequential(nn.Linear(i, i),
                                   SELU(inplace=True),
                                 nn.Linear(i, i), SELU(inplace=True),
-                                nn.Linear(i,i), nn.ReLU(), nn.Linear(i,i))
+                                nn.Linear(i,i), SELU(inplace=True), nn.Linear(i,i))
 
     def forward(self, mu, log):
         mu = self.mu(mu)
