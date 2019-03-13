@@ -129,9 +129,9 @@ transformer = ZSpaceTransform().cuda()
 #     model = nn.DataParallel(model)
 
 
-optimizer = optim.Adam(chain(encoder.parameters(), transformer.parameters()), lr=LR)
+optimizer = optim.SGD(chain(encoder.parameters(), transformer.parameters()), lr=LR, momentum=0.9)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
-#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
 train_loader = generate_data_loader(train_root, 800, int(50000))
 val_loader = generate_data_loader(val_root, 800, int(2000))
@@ -150,6 +150,8 @@ def train(epoch):
     transformer.train()
     train_loss = 0
     for batch_idx, (data, embed, _) in enumerate(train_loader):
+        optimizer.zero_grad()
+
         data = data[0].cuda()
         embed = embed.cuda()
         z, logvar = encoder(embed)
@@ -157,7 +159,6 @@ def train(epoch):
         z_h, logvar_h = encoder_good(data)
 
         loss = 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h))
-        optimizer.zero_grad()
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -184,6 +185,7 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
+    sched.step()
     encoder.eval()
     transformer.eval()
     test_loss = 0
