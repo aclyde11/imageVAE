@@ -467,7 +467,7 @@ class DenseMolEncoder(nn.Module):
         out = Flatten()(out)
         out = self.dense_1(out) + self.dense_0(x)
 
-        return self.z_mean(out), self.z_log_var(out)
+        return out
 
     def vae_loss(self, x_decoded_mean, x):
         z_mean, z_log_var = self.lmbd.mu, self.lmbd.log_v
