@@ -149,7 +149,7 @@ def train(epoch):
         loss1 = nn.MSELoss(reduction="sum")(recon_batch, data)
         loss2 = embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
         kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-        loss = loss1 + loss2 + kldloss
+        loss = loss1 + 10 * loss2 + kldloss
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -196,7 +196,7 @@ def test(epoch):
             loss1 = nn.MSELoss(reduction="sum")(recon_batch, data)
             loss2 = embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
             kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-            loss = loss1 + loss2 + kldloss
+            loss = loss1 + 10 * loss2 + kldloss
             test_loss += loss.item()
 
             if i == 0:
@@ -210,7 +210,7 @@ def test(epoch):
                 images = []
                 n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data, embed)
+                    data_latent = model.module.encode_latent_(data, embed)[0]
                     pt_1 = data_latent[i * 2, ...].cpu().numpy()
                     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
@@ -222,7 +222,7 @@ def test(epoch):
                 images = []
                 n_samples_linspace = 16
                 for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data, embed)
+                    data_latent = model.module.encode_latent_(data, embed)[0]
                     pt_1 = data_latent[i, ...].cpu().numpy()
                     pt_2 = data_latent[i + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2,

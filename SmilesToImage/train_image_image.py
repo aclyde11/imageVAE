@@ -165,7 +165,7 @@ def test(epoch):
             data = data[0].cuda()
             print(ind)
             recon_batch, mu, logvar = model(data)
-            test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
+            loss = loss_mse(recon_batch, data, mu, logvar, epoch)
             if i == 0:
                 n_image_gen = 8
                 images = []
