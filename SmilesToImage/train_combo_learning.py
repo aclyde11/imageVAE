@@ -158,7 +158,7 @@ def train(epoch):
         if batch_idx % log_interval == 0:
 
             for i in range(3):
-                sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
+                sampled = z_2.cpu().detach().numpy()[i, ...].argmax(axis=1)
                 mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
                 mol = decode_smiles_from_indexes(mol, vocab)
                 sampled = decode_smiles_from_indexes(sampled, vocab)
