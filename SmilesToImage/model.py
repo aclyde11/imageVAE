@@ -247,10 +247,13 @@ class ComboVAE(nn.Module):
         return self.encoder1(x1), self.encoder2(x2)
 
 
-    def reparam(self, logv, mu):
-        eps = self.scale * Variable(torch.randn(*logv.size())
-                                    ).type_as(self.log_v)
-        return mu + torch.exp(logv / 2.) * eps
+    def reparam(self, logvar, mu):
+        if self.training:
+            std = logvar.mul(0.5).exp_()
+            eps = Variable(std.data.new(std.size()).normal_())
+            return eps.mul(std).add_(mu)
+        else:
+            return mu
 
 
     def decode(self, z):
