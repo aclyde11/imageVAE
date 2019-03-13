@@ -23,7 +23,7 @@ no_cuda = False
 seed = 42
 data_para = False
 log_interval = 10
-LR = 0.001        ##adam rate
+LR = 0.005        ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -133,15 +133,15 @@ optimizer = optim.Adam(chain(encoder.parameters(), transformer.parameters()), lr
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 400, int(50000))
-val_loader = generate_data_loader(val_root, 400, int(2000))
+train_loader = generate_data_loader(train_root, 800, int(50000))
+val_loader = generate_data_loader(val_root, 800, int(2000))
 mse = customLoss()
 
 val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return 400
+    return 800
 
 def train(epoch):
 
@@ -246,6 +246,8 @@ for epoch in range(starting_epoch, epochs):
     train(epoch)
     test(epoch)
     torch.save(encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    torch.save(transformer, save_files + 'transformer_epoch_' + str(epoch) + '.pt')
+
     #torch.save(model.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
