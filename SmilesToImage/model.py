@@ -211,6 +211,64 @@ class GeneralVae(nn.Module):
         z = self.reparameterize(mu, logvar)
         return self.decode(z), mu, logvar
 
+class Lambda(nn.Module):
+
+    def __init__(self, i=1000, o=500, scale=1E-2):
+        super(Lambda, self).__init__()
+
+        self.scale = scale
+
+
+    def forward(self, x):
+        self.mu = self.z_mean(x)
+        self.log_v = self.z_log_var(x)
+        eps = self.scale * Variable(torch.randn(*self.log_v.size())
+                                    ).type_as(self.log_v)
+        return self.mu + torch.exp(self.log_v / 2.) * eps
+
+
+class ComboVAE(nn.Module):
+    def __init__(self, encoder_model_1, encoder_model_2, decoder_model_1, decoder_model_2, rep_size=500):
+        super(ComboVAE, self).__init__()
+        self.rep_size = rep_size
+
+        self.encoder1 = encoder_model_1
+        self.encoder2 = encoder_model_2
+        self.decoder1 = decoder_model_1
+        self.decoder2 = decoder_model_2
+
+
+        self.z_mean = nn.Linear(rep_size * 2, rep_size)
+        self.z_log_var = nn.Linear(rep_size * 2, rep_size)
+
+
+    def encode(self, x1, x2):  ##returns single values encoded
+        return self.encoder1(x1), self.encoder2(x2)
+
+
+    def reparam(self, logv, mu):
+        eps = self.scale * Variable(torch.randn(*logv.size())
+                                    ).type_as(self.log_v)
+        return mu + torch.exp(logv / 2.) * eps
+
+
+    def decode(self, z):
+        return self.decoder1(z), self.decoder2(z)
+
+    def encode_latent_(self, x1, x2):
+        x1, x2 = self.encode(x1, x2)
+        x = torch.cat([x1,x2], dim=1)
+        mu, logvar = (self.z_mean(x), self.z_log_var(x))
+        z = self.reparam(logvar, mu)
+
+        return z, mu, logvar
+
+    def forward(self, x1, x2):
+        z, mu, logvar= self.encode_latent_(x1, x2)
+
+        return self.decode(z), mu, logvar
+
+
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -502,3 +560,4 @@ class TestVAE(nn.Module):
                                     torch.exp(z_log_var))
 
         return kl_loss + xent_loss
+
