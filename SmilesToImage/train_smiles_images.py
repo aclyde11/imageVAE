@@ -156,7 +156,16 @@ def train(epoch):
         z, logvar = transformer(z, logvar)
         z_h, logvar_h = encoder_good(data)
 
-        loss = 500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h))
+        std = logvar.mul(0.5).exp_()
+        eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
+        y =  eps.mul(std).add_(z)
+
+        std = logvar_h.mul(0.5).exp_()
+        eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
+        y_h =  eps.mul(std).add_(z_h)
+
+
+        loss = 500 * (nn.L1Loss()(y, y_h))
         optimizer.zero_grad()
         loss.backward()
         train_loss += loss.item()
@@ -199,7 +208,15 @@ def test(epoch):
             y = eps.mul(std).add_(z)
             recon_batch = decoder(y)
 
-            test_loss += (500 * (nn.L1Loss()(logvar, logvar_h) + nn.L1Loss()(z, z_h))).item()
+            std = logvar.mul(0.5).exp_()
+            eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
+            y = eps.mul(std).add_(z)
+
+            std = logvar_h.mul(0.5).exp_()
+            eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
+            y_h = eps.mul(std).add_(z_h)
+
+            test_loss += (500 * (nn.L1Loss()(y, y_h))).item()
 
             if i == 0:
                 n = min(data.size(0), 8)
