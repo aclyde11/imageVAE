@@ -122,6 +122,7 @@ train_losses = []
 
 tensors = []
 def train(epoch):
+    from sklearn.metrics import r2_score
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
@@ -132,10 +133,11 @@ def train(epoch):
         optimizer.zero_grad()
         x = model(data)[0]
         #print(ind.shape, x.shape)
-        loss = 10 * nn.MSELoss()(x, ind)
+        loss = 10 * nn.L1Loss()(x, ind)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
+        print("R2 = ", r2_score(ind.cpu().numpy(), x.cpu().numpy()))
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
@@ -170,7 +172,7 @@ def test(epoch):
             optimizer.zero_grad()
             x = model(data)[0]
             # print(ind.shape, x.shape)
-            test_loss  += nn.MSELoss()(x, ind).item()
+            test_loss  += 10 * nn.L1Loss()(x, ind).item()
             print("R2 = ", r2_score(ind.cpu().numpy(), x.cpu().numpy()))
 
 
