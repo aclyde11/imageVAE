@@ -109,9 +109,9 @@ class customLoss(nn.Module):
 model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_128.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_128.pt'}
 model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_277.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_277.pt'}
 
-encoder1 =  PictureEncoder()
-decoder1 = torch.load(save_files + 'decoder2_epoch_100.pt')
-decoder2 = torch.load(save_files + 'decoder2_epoch_100.pt')
+encoder1 = PictureEncoder()
+decoder1 = torch.load(model_load1['decoder'])
+decoder2 = torch.load(model_load2['decoder'])
 encoder2 = DenseMolEncoder()
 model = ComboVAE(encoder1, encoder2, decoder1, decoder2, rep_size=500).cuda()
 
@@ -146,11 +146,10 @@ def train(epoch):
         embed = embed.cuda()
         recon_batch, z_2, mu, logvar = model(data, embed)
 
-
         loss1 = nn.MSELoss(reduction="sum")(recon_batch, data)
         loss2 = embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
         kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-        loss = loss1 + 400 * loss2 + kldloss
+        loss = loss1 + 10 * loss2 + kldloss
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -197,7 +196,7 @@ def test(epoch):
             loss1 = nn.MSELoss(reduction="sum")(recon_batch, data)
             loss2 = embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
             kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-            loss = loss1 + 400 * loss2 + kldloss
+            loss = loss1 + 10 * loss2 + kldloss
             test_loss += loss.item()
 
             if i == 0:
@@ -216,7 +215,7 @@ def test(epoch):
                     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec).cpu())
+                    images.append(model.module.decode(sample_vec)[0].cpu())
                 save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
                 n_image_gen = 8
@@ -229,7 +228,7 @@ def test(epoch):
                     sample_vec = interpolate_points(pt_1, pt_2,
                                                     np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec).cpu())
+                    images.append(model.module.decode(sample_vec)[0].cpu())
                 save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
 
@@ -251,7 +250,7 @@ for epoch in range(starting_epoch, epochs):
     torch.save(model.module.decoder2, save_files + "decoder2_epoch_" + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
-        sample = model.module.decode(sample).cpu()
+        sample = model.module.decode(sample)[0].cpu()
         save_image(sample.view(64, 3, 256, 256),
                    output_dir + 'sample_' + str(epoch-1) + '.png')
 

@@ -6,7 +6,6 @@ from torch.nn import functional as F
 from ResNet import ResNet, BasicBlock
 
 
-
 class TimeDistributed(nn.Module):
     def __init__(self, module, batch_first=True):
         super(TimeDistributed, self).__init__()
@@ -116,18 +115,6 @@ class PictureEncoder(nn.Module):
     def forward(self, x):
         x = self.encoder(x)
 
-        return x
-
-class BindingAff(nn.Module):
-    def __init__(self, rep_size=500):
-        super(PictureEncoder, self).__init__()
-        self.rep_size = rep_size
-        self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=5)
-        self.model = nn.Sequential(nn.Linear(20, 5), nn.ReLU(), nn.Linear(5,1), nn.ReLU())
-
-    def forward(self, x):
-        x = self.encoder(x)
-        x = self.model(x)
         return x
 
 
