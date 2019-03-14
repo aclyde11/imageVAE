@@ -174,6 +174,7 @@ def test(epoch):
             # print(ind.shape, x.shape)
             test_loss  += 10 * nn.L1Loss()(x, ind).item()
             print("R2 = ", r2_score(ind.cpu().numpy(), x.cpu().numpy()))
+            print('l1 = ', (ind.cpu().numpy()-  x.cpu().numpy()))
 
 
     test_loss /= len(val_loader_food.dataset)
