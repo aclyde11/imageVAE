@@ -225,7 +225,7 @@ class BindingAffPredictor(nn.Module):
         self.i = i
         self.o = o
 
-        self.model = nn.Sequential(nn.Linear(i, 500), nn.ReLU(), nn.Dropout(0.15), nn.Linear(500, 100), nn.ReLU(), nn.Linear(100, 25), nn.ReLU(), nn.Linear(25, 1), nn.ReLU())
+        self.model = nn.Sequential(nn.Linear(i, 100), nn.ReLU(), nn.Linear(100, 25), nn.ReLU(), nn.Linear(25, 1), nn.ReLU())
 
     def forward(self, x):
         return self.model(x)
