@@ -146,6 +146,7 @@ def train(epoch):
         embed = embed.cuda()
         recon_batch, z_2, mu, logvar = model(data, embed)
 
+
         loss1 = nn.MSELoss(reduction="sum")(recon_batch, data)
         loss2 = embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
         kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
