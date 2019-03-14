@@ -29,7 +29,7 @@ vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_170.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_5.pt'}
+model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_170.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_159.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
@@ -174,7 +174,7 @@ def test(epoch):
             # print(ind.shape, x.shape)
             test_loss  += 10 * nn.L1Loss()(x, ind).item()
             print("R2 = ", r2_score(ind.cpu().numpy(), x.cpu().numpy()))
-            print('l1 = ', (ind.cpu().numpy()-  x.cpu().numpy()))
+            print('l1 = ', (np.mean(ind.cpu().numpy()-  x.cpu().numpy())))
 
 
     test_loss /= len(val_loader_food.dataset)
