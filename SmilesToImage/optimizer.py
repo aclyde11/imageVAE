@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import GeneralVae,  PictureDecoder, PictureEncoder
+from model import GeneralVae,  PictureDecoder, PictureEncoder, BindingAffPredictor
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
@@ -20,7 +20,7 @@ starting_epoch=129
 epochs = 200
 no_cuda = False
 seed = 42
-data_para = True
+data_para = False
 log_interval = 50
 LR = 0.0005          ##adam rate
 rampDataSize = 0.2 ## data set size to use
@@ -37,7 +37,7 @@ output_dir = '/homes/aclyde11/imageVAE/im_opt/results/'
 save_files = '/homes/aclyde11/imageVAE/im_opt/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
-
+binding_affinity = pd.read_table("vina_results_norm.tab")
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
 val_root =   '/homes/aclyde11/moldata/moses/test/'
@@ -60,13 +60,14 @@ class ImageFolderWithFile(datasets.ImageFolder):
         i = t
         try:
             t = list(smiles_lookup.iloc[t, 1])
+            bidningaff = list(binding_affinity[binding_affinity['id'] == i]['bindingaffinity'])
         except:
             print(t)
             exit()
         embed = apply_one_hot([t])[0].astype(np.float32)
         im = super(ImageFolderWithFile, self).__getitem__(index)
 
-        return  im, embed, i
+        return  im, embed, bidningaff
 
 def generate_data_loader(root, batch_size, data_size):
     invert = transforms.Compose([
@@ -96,7 +97,7 @@ encoder = None
 decoder = None
 if model_load is None:
     encoder = PictureEncoder()
-    decoder = PictureDecoder()
+    decoder = BindingAffPredictor()
 else:
     encoder = torch.load(model_load['encoder'])
     decoder = torch.load(model_load['decoder'])
@@ -133,8 +134,8 @@ def train(epoch):
         data = data[0].cuda()
         tensors.append(ind.numpy())
         optimizer.zero_grad()
-        recon_batch, mu, logvar = model(data)
-        loss = loss_mse(recon_batch, data, mu, logvar, epoch)
+        x = model(data)
+        loss = nn.MSELoss()(x, ind)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -166,41 +167,9 @@ def test(epoch):
     with torch.no_grad():
         for i, (data, _, ind) in enumerate(val_loader_food):
             data = data[0].cuda()
-            tensors.append(ind.numpy())
-            recon_batch, mu, logvar = model(data)
-            test_loss += loss_mse(recon_batch, data, mu, logvar, epoch).item()
-            if i == 0:
-                n_image_gen = 8
-                images = []
-                n_samples_linspace = 16
-                for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data)
-                    pt_1 = data_latent[i * 2, ...].cpu().numpy()
-                    pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
-                    sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                    sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec).cpu())
-                save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
+            x = model(data)
+            test_loss += nn.MSELoss()(x, ind).item()
 
-                n_image_gen = 8
-                images = []
-                n_samples_linspace = 16
-                for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data)
-                    pt_1 = data_latent[i, ...].cpu().numpy()
-                    pt_2 = data_latent[i + 1, ...].cpu().numpy()
-                    sample_vec = interpolate_points(pt_1, pt_2,
-                                                    np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                    sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec).cpu())
-                save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
-
-                ##
-                n = min(data.size(0), 8)
-                comparison = torch.cat([data[:n],
-                                        recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
-                save_image(comparison.cpu(),
-                           output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
 
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
@@ -211,17 +180,11 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
-    f = open('tensorsToRun', 'w')
-    for i in tensors:
-        for t in i:
-            f.write(str(t) + '\n')
-    f.close()
-    exit()
 
     torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
     torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
-    with torch.no_grad():
-        sample = torch.randn(64, 500).to(device)
-        sample = model.module.decode(sample).cpu()
-        save_image(sample.view(64, 3, 256, 256),
-                   output_dir + 'sample_' + str(epoch) + '.png')
+    # with torch.no_grad():
+    #     sample = torch.randn(64, 500).to(device)
+    #     sample = model.module.decode(sample).cpu()
+    #     save_image(sample.view(64, 3, 256, 256),
+    #                output_dir + 'sample_' + str(epoch) + '.png')

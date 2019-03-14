@@ -211,6 +211,17 @@ class GeneralVae(nn.Module):
         z = self.reparameterize(mu, logvar)
         return self.decode(z), mu, logvar
 
+class BindingAffPredictor(nn.Module):
+    def __init__(self, i=500, o=1):
+        super(BindingAffPredictor, self).__init__()
+        self.i = i
+        self.o = o
+
+        self.model = nn.Sequential(nn.Linear(i, 500), nn.ReLU(), nn.Dropout(0.15), nn.Linear(500, 100), nn.ReLU(), nn.Linear(100, 25), nn.ReLU(), nn.Linear(25, 1), nn.ReLU())
+
+    def forward(self, x):
+        return self.model(x)
+
 class Lambda(nn.Module):
 
     def __init__(self, i=1000, o=500, scale=1E-2):
