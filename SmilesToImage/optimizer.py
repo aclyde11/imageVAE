@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import GeneralVae,  PictureDecoder, PictureEncoder, BindingAffPredictor
+from model import GeneralVae,  PictureDecoder, PictureEncoder, BindingAff
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
@@ -22,7 +22,7 @@ no_cuda = False
 seed = 42
 data_para = False
 log_interval = 50
-LR = 0.005         ##adam rate
+LR = 0.01         ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -92,12 +92,7 @@ class customLoss(nn.Module):
 
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
-model = None
-encoder = None
-decoder = None
-encoder = torch.load(model_load['encoder'])
-decoder = BindingAffPredictor()
-model = GeneralVae(encoder, decoder, rep_size=500)
+model = BindingAff()
 
 
 if data_para and torch.cuda.device_count() > 1:
@@ -131,7 +126,7 @@ def train(epoch):
         data = data[0].cuda()
         ind = ind.cuda().float()
         optimizer.zero_grad()
-        x = model(data)[0]
+        x = model(data)
         #print(ind.shape, x.shape)
         loss = 10 * nn.L1Loss()(x, ind)
         loss.backward()
@@ -170,7 +165,7 @@ def test(epoch):
             data = data[0].cuda()
             ind = ind.cuda().float()
             optimizer.zero_grad()
-            x = model(data)[0]
+            x = model(data)
             # print(ind.shape, x.shape)
             test_loss  += 10 * nn.L1Loss()(x, ind).item()
             print("R2 = ", r2_score(ind.cpu().numpy(), x.cpu().numpy()))
