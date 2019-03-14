@@ -63,8 +63,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
             print(float(binding_affinity[binding_affinity['id'] == i]['bindingaffinity']))
             bidningaff = float(binding_affinity[binding_affinity['id'] == i]['bindingaffinity'])
         except:
-            print(t)
-            exit()
+            bidningaff = -0.5
         embed = apply_one_hot([t])[0].astype(np.float32)
         im = super(ImageFolderWithFile, self).__getitem__(index)
 
