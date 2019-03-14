@@ -60,8 +60,8 @@ class ImageFolderWithFile(datasets.ImageFolder):
         i = t
         try:
             t = list(smiles_lookup.iloc[t, 1])
-            print(binding_affinity[binding_affinity['id'] == i]['bindingaffinity'])
-            bidningaff = list(binding_affinity[binding_affinity['id'] == i]['bindingaffinity'])
+            print(float(binding_affinity[binding_affinity['id'] == i]['bindingaffinity']))
+            bidningaff = float(binding_affinity[binding_affinity['id'] == i]['bindingaffinity'])
         except:
             print(t)
             exit()
