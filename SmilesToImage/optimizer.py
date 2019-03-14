@@ -137,7 +137,7 @@ def train(epoch):
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
-        print("R2 = ", r2_score(ind.cpu().numpy(), x.cpu().numpy()))
+        print("R2 = ", r2_score(ind.cpu().numpy(), x.cpu().detach().numpy()))
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
