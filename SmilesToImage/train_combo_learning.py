@@ -23,7 +23,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 10
-LR = 0.001        ##adam rate
+LR = 0.01        ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -124,7 +124,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
-#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 
 train_loader = generate_data_loader(train_root, 800, int(80000))
 val_loader = generate_data_loader(val_root, 225, int(10000))
@@ -241,7 +241,7 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-
+    sched.step()
     train(epoch)
     test(epoch)
     torch.save(model.module.encoder1, save_files + 'encoder1_epoch_' + str(epoch) + '.pt')
