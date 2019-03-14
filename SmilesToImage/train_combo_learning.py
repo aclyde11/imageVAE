@@ -215,7 +215,7 @@ def test(epoch):
                     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec).cpu())
+                    images.append(model.module.decode(sample_vec)[0].cpu())
                 save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
                 n_image_gen = 8
@@ -228,7 +228,7 @@ def test(epoch):
                     sample_vec = interpolate_points(pt_1, pt_2,
                                                     np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec).cpu())
+                    images.append(model.module.decode(sample_vec)[0].cpu())
                 save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
 
@@ -250,7 +250,7 @@ for epoch in range(starting_epoch, epochs):
     torch.save(model.module.decoder2, save_files + "decoder2_epoch_" + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
-        sample = model.module.decode(sample).cpu()
+        sample = model.module.decode(sample)[0].cpu()
         save_image(sample.view(64, 3, 256, 256),
                    output_dir + 'sample_' + str(epoch-1) + '.png')
 
