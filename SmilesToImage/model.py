@@ -104,19 +104,6 @@ class Flatten(nn.Module):
 #
 #         return self.fc21(x), self.fc22(x)
 
-# class PictureEncoder(nn.Module):
-#     def __init__(self, rep_size=500):
-#         super(PictureEncoder, self).__init__()
-#         self.rep_size = rep_size
-#         self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size)
-#         self.mu = nn.Linear(rep_size, rep_size)
-#         self.logvar = nn.Linear(rep_size, rep_size)
-#
-#     def forward(self, x):
-#         x = self.encoder(x)
-#
-#         return x
-
 class PictureEncoder(nn.Module):
     def __init__(self, rep_size=500):
         super(PictureEncoder, self).__init__()
@@ -128,7 +115,7 @@ class PictureEncoder(nn.Module):
     def forward(self, x):
         x = self.encoder(x)
 
-        return self.mu(x), self.logvar(x)
+        return x
 
 
 class PictureDecoder(nn.Module):
@@ -204,7 +191,12 @@ class GeneralVae(nn.Module):
         return self.encoder(x)
 
     def reparameterize(self, mu, logvar):
-        return mu
+        if self.training:
+            std = logvar.mul(0.5).exp_()
+            eps = Variable(std.data.new(std.size()).normal_())
+            return eps.mul(std).add_(mu)
+        else:
+            return mu
 
     def decode(self, z):
         return self.decoder(z)
@@ -218,17 +210,6 @@ class GeneralVae(nn.Module):
         mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar)
         return self.decode(z), mu, logvar
-
-class BindingAffPredictor(nn.Module):
-    def __init__(self, i=500, o=1):
-        super(BindingAffPredictor, self).__init__()
-        self.i = i
-        self.o = o
-
-        self.model = nn.Sequential(nn.Linear(i, 100), nn.ReLU(), nn.Linear(100, 25), nn.ReLU(), nn.Linear(25, 1), nn.ReLU())
-
-    def forward(self, x):
-        return self.model(x)
 
 class Lambda(nn.Module):
 
