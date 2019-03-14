@@ -159,6 +159,8 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
+    from sklearn.metrics import r2_score
+
     model.eval()
     test_loss = 0
     with torch.no_grad():
@@ -169,6 +171,7 @@ def test(epoch):
             x = model(data)[0]
             # print(ind.shape, x.shape)
             test_loss  += nn.MSELoss()(x, ind).item()
+            print("R2 = ", r2_score(ind.cpu().numpy(), x.cpu().numpy()))
 
 
     test_loss /= len(val_loader_food.dataset)
