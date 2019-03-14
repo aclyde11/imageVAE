@@ -131,8 +131,8 @@ def train(epoch):
         ind = ind.cuda().float()
         optimizer.zero_grad()
         x = model(data)[0]
-        print(ind.shape, x.shape)
-        loss = nn.MSELoss()(x, ind)
+        #print(ind.shape, x.shape)
+        loss = 10 * nn.MSELoss()(x, ind)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -164,8 +164,11 @@ def test(epoch):
     with torch.no_grad():
         for i, (data, _, ind) in enumerate(val_loader_food):
             data = data[0].cuda()
-            x = model(data)
-            test_loss += nn.MSELoss()(x, ind).item()
+            ind = ind.cuda().float()
+            optimizer.zero_grad()
+            x = model(data)[0]
+            # print(ind.shape, x.shape)
+            test_loss  += nn.MSELoss()(x, ind).item()
 
 
     test_loss /= len(val_loader_food.dataset)
