@@ -132,7 +132,6 @@ def train(epoch):
     train_loss = 0
     for batch_idx, (data, _, ind) in enumerate(train_loader_food):
         data = data[0].cuda()
-        tensors.append(ind.numpy())
         optimizer.zero_grad()
         x = model(data)
         loss = nn.MSELoss()(x, ind)
