@@ -22,7 +22,7 @@ no_cuda = False
 seed = 42
 data_para = False
 log_interval = 50
-LR = 0.0005        ##adam rate
+LR = 0.0001        ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -133,7 +133,7 @@ def train(epoch):
         optimizer.zero_grad()
         x = model(data)[0]
         #print(ind.shape, x.shape)
-        loss = 10 * nn.L1Loss()(x, ind)
+        loss = 100 * nn.L1Loss()(x, ind)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -172,7 +172,7 @@ def test(epoch):
             optimizer.zero_grad()
             x = model(data)[0]
             # print(ind.shape, x.shape)
-            test_loss  += 10 * nn.L1Loss()(x, ind).item()
+            test_loss  += 100 * nn.L1Loss()(x, ind).item()
             print("R2 = ", r2_score(ind.cpu().numpy(), x.cpu().numpy()))
             print('l1 = ', (np.mean(ind.cpu().numpy()-  x.cpu().numpy())))
 
