@@ -60,7 +60,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         i = t
         try:
             t = list(smiles_lookup.iloc[t, 1])
-            print(float(binding_affinity[binding_affinity['id'] == i]['bindingaffinity']))
+            #print(float(binding_affinity[binding_affinity['id'] == i]['bindingaffinity']))
             bidningaff = float(binding_affinity[binding_affinity['id'] == i]['bindingaffinity'])
         except:
             bidningaff = -0.5
@@ -129,7 +129,7 @@ def train(epoch):
     for batch_idx, (data, _, ind) in enumerate(train_loader_food):
         data = data[0].cuda()
         optimizer.zero_grad()
-        print(ind)
+        print(ind[0])
         x = model(data)
         loss = nn.MSELoss()(x, ind)
         loss.backward()
