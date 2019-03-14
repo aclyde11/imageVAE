@@ -104,6 +104,19 @@ class Flatten(nn.Module):
 #
 #         return self.fc21(x), self.fc22(x)
 
+# class PictureEncoder(nn.Module):
+#     def __init__(self, rep_size=500):
+#         super(PictureEncoder, self).__init__()
+#         self.rep_size = rep_size
+#         self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size)
+#         self.mu = nn.Linear(rep_size, rep_size)
+#         self.logvar = nn.Linear(rep_size, rep_size)
+#
+#     def forward(self, x):
+#         x = self.encoder(x)
+#
+#         return x
+
 class PictureEncoder(nn.Module):
     def __init__(self, rep_size=500):
         super(PictureEncoder, self).__init__()
@@ -115,7 +128,7 @@ class PictureEncoder(nn.Module):
     def forward(self, x):
         x = self.encoder(x)
 
-        return x
+        return self.mu(x), self.logvar(x)
 
 
 class PictureDecoder(nn.Module):
