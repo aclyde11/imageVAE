@@ -153,7 +153,7 @@ def train(epoch):
         recon_batch, z_2, mu, logvar = model(data, embed)
 
         loss1 = 0.001 * nn.MSELoss(reduction="sum")(recon_batch, data)
-        loss2 = embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
+        loss2 = 500 * embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
         kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
         loss =  picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
         optimizer.zero_grad()
@@ -200,7 +200,7 @@ def test(epoch):
             recon_batch, z_2, mu, logvar = model(data, embed)
 
             loss1 = 0.001 * nn.MSELoss(reduction="sum")(recon_batch, data)
-            loss2 = embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
+            loss2 = 500 * embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
             kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
             loss = picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
             test_loss += loss.item()
