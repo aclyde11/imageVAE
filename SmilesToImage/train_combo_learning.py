@@ -136,6 +136,12 @@ train_losses = []
 def get_batch_size(epoch):
     return 225
 
+def picture_loss_weight(epoch):
+    if epoch < 20:
+        return 0.0
+    else:
+        return min(0.01 * (epoch - 20), 1/0)
+
 def train(epoch):
 
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
@@ -146,10 +152,10 @@ def train(epoch):
         embed = embed.cuda()
         recon_batch, z_2, mu, logvar = model(data, embed)
 
-        #loss1 = 0.001 * nn.MSELoss(reduction="sum")(recon_batch, data)
+        loss1 = 0.001 * nn.MSELoss(reduction="sum")(recon_batch, data)
         loss2 = embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
         kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-        loss =  1000 * loss2 + kldloss
+        loss =  picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -193,10 +199,10 @@ def test(epoch):
             embed = embed.cuda()
             recon_batch, z_2, mu, logvar = model(data, embed)
 
-            #loss1 = 0.001 * nn.MSELoss(reduction="sum")(recon_batch, data)
+            loss1 = 0.001 * nn.MSELoss(reduction="sum")(recon_batch, data)
             loss2 = embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
             kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-            loss =  1000 * loss2 + kldloss
+            loss = picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
             test_loss += loss.item()
 
             if i == 0:
