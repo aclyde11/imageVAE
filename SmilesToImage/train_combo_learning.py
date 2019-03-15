@@ -23,7 +23,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 10
-LR = 0.0005        ##adam rate
+LR = 0.001        ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -106,13 +106,18 @@ class customLoss(nn.Module):
 
 
 
-model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_128.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_128.pt'}
-model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_277.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_277.pt'}
+model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_18.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder1_epoch_18.pt'}
+model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder2_epoch_18.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder2_epoch_18.pt'}
 
-encoder1 = PictureEncoder()
-decoder1 = PictureDecoder()
-decoder2 = MolDecoder()
-encoder2 = DenseMolEncoder()
+# encoder1 = PictureEncoder()
+# decoder1 = PictureDecoder()
+# decoder2 = MolDecoder()
+# encoder2 = DenseMolEncoder()
+encoder1 = torch.load(model_load1['encoder'])
+encoder2 = torch.load(model_load2['encoder'])
+decoder1 = torch.load(model_load1['decoder'])
+decoder2 = torch.load(model_load2['decoder'])
+
 model = ComboVAE(encoder1, encoder2, decoder1, decoder2, rep_size=500).cuda()
 
 
@@ -124,7 +129,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
-#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 8, eta_min=0.000001, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 8, eta_min=0.000001, last_epoch=-1)
 
 train_loader = generate_data_loader(train_root, 600, int(100000))
 val_loader = generate_data_loader(val_root, 225, int(1000))
@@ -140,7 +145,7 @@ def picture_loss_weight(epoch):
     if epoch < 20:
         return 0.0
     else:
-        return min(0.01 * (epoch - 20), 1/0)
+        return min(0.01 * (epoch - 20), 1.0)
 
 def train(epoch):
 
@@ -247,7 +252,7 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-    #sched.step()
+    sched.step()
     train(epoch)
     test(epoch)
     torch.save(model.module.encoder1, save_files + 'encoder1_epoch_' + str(epoch) + '.pt')
