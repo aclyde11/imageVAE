@@ -34,7 +34,7 @@ embedding_size = len(vocab)
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
-model_load = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_156.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_100.pt'}
+model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_111.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_100.pt'}
 #model_load = None
 cuda = True
 data_size = 1400000
@@ -109,10 +109,10 @@ class customLoss(nn.Module):
 model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/decoder_epoch_128.pt', 'encoder':'/homes/aclyde11/imageVAE/im_im_small/model/encoder_epoch_128.pt'}
 model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/smi_smi/model/decoder_epoch_277.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_277.pt'}
 
-encoder1 = PictureEncoder()
-decoder1 = torch.load(model_load1['decoder'])
-decoder2 = torch.load(model_load2['decoder'])
-encoder2 = DenseMolEncoder()
+encoder1 = torch.load('/homes/aclyde11/imageVAE/combo/model/encoder1_epoch_111.pt')
+decoder1 = torch.load('/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_111.pt')
+decoder2 = torch.load('/homes/aclyde11/imageVAE/combo/model/decoder2_epoch_111.pt')
+encoder2 = torch.load('/homes/aclyde11/imageVAE/combo/model/encoder2_epoch_111.pt')
 model = ComboVAE(encoder1, encoder2, decoder1, decoder2, rep_size=500).cuda()
 
 
@@ -146,10 +146,10 @@ def train(epoch):
         embed = embed.cuda()
         recon_batch, z_2, mu, logvar = model(data, embed)
 
-        loss1 = nn.MSELoss(reduction="sum")(recon_batch, data)
+        #loss1 = nn.MSELoss(reduction="sum")(recon_batch, data)
         loss2 = embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
         kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-        loss = loss1 + 1000 * loss2 + kldloss
+        loss =  1000 * loss2 + kldloss
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -193,10 +193,10 @@ def test(epoch):
             embed = embed.cuda()
             recon_batch, z_2, mu, logvar = model(data, embed)
 
-            loss1 = nn.MSELoss(reduction="sum")(recon_batch, data)
+            #loss1 = nn.MSELoss(reduction="sum")(recon_batch, data)
             loss2 = embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
             kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-            loss = loss1 + 1000 * loss2 + kldloss
+            loss =  1000 * loss2 + kldloss
             test_loss += loss.item()
 
             if i == 0:
