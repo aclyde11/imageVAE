@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2, 3, 4,5,6,7'
 from itertools import chain
 
 import datetime
@@ -131,15 +131,15 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 8, eta_min=0.000001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 600, int(100000))
-val_loader = generate_data_loader(val_root, 225, int(1000))
+train_loader = generate_data_loader(train_root, 700, int(100000))
+val_loader = generate_data_loader(val_root, 700, int(10000))
 mse = customLoss()
 
 val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return 225
+    return 700
 
 def picture_loss_weight(epoch):
     if epoch < 20:
