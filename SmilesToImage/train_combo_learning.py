@@ -132,14 +132,14 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 8, eta_min=0.000001, last_epoch=-1)
 
 train_loader = generate_data_loader(train_root, 1200, int(100000))
-val_loader = generate_data_loader(val_root, 1200, int(10000))
+val_loader = generate_data_loader(val_root, 100, int(3000))
 mse = customLoss()
 
 val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return 1200
+    return 100
 
 def picture_loss_weight(epoch):
     if epoch < 20:
