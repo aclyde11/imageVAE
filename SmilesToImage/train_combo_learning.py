@@ -129,7 +129,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 8, eta_min=0.000001, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.00001, last_epoch=-1)
 
 train_loader = generate_data_loader(train_root, 1400, int(100000))
 val_loader = generate_data_loader(val_root, 100, int(3000))
@@ -158,7 +158,7 @@ def train(epoch):
         recon_batch, z_2, mu, logvar = model(data, embed)
 
         loss1 = 0.001 * nn.MSELoss(reduction="sum")(recon_batch, data)
-        loss2 = 500 * embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
+        loss2 = 500 * embed.shape[1] * nn.BCEWithLogitsLoss()(size_average=True)(z_2, embed)
         kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
         loss =  picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
         optimizer.zero_grad()
@@ -205,7 +205,7 @@ def test(epoch):
             recon_batch, z_2, mu, logvar = model(data, embed)
 
             loss1 = 0.001 * nn.MSELoss(reduction="sum")(recon_batch, data)
-            loss2 = 500 * embed.shape[1] * nn.BCELoss(size_average=True)(z_2, embed)
+            loss2 = 500 * embed.shape[1] * nn.BCEWithLogitsLoss()(size_average=True)(z_2, embed)
             kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
             loss = picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
             test_loss += loss.item()
