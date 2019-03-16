@@ -23,7 +23,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 10
-LR = 0.001        ##adam rate
+LR = 0.005        ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -106,8 +106,8 @@ class customLoss(nn.Module):
 
 
 
-model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_18.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder1_epoch_18.pt'}
-model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder2_epoch_18.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder2_epoch_18.pt'}
+model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_15.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder1_epoch_15.pt'}
+model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder2_epoch_15.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder2_epoch_15.pt'}
 
 encoder1 = PictureEncoder()
 decoder1 = PictureDecoder()
@@ -252,7 +252,8 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-    sched.step()
+    if epoch > 20:
+        sched.step()
     train(epoch)
     test(epoch)
     torch.save(model.module.encoder1, save_files + 'encoder1_epoch_' + str(epoch) + '.pt')
