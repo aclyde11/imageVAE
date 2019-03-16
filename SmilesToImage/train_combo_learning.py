@@ -109,14 +109,14 @@ class customLoss(nn.Module):
 model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_15.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder1_epoch_15.pt'}
 model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder2_epoch_15.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder2_epoch_15.pt'}
 
-encoder1 = PictureEncoder()
-decoder1 = PictureDecoder()
-decoder2 = MolDecoder()
-encoder2 = DenseMolEncoder()
-#encoder1 = torch.load(model_load1['encoder'])
-#encoder2 = torch.load(model_load2['encoder'])
-#decoder1 = torch.load(model_load1['decoder'])
-#decoder2 = torch.load(model_load2['decoder'])
+# encoder1 = PictureEncoder()
+# decoder1 = PictureDecoder()
+# decoder2 = MolDecoder()
+# encoder2 = DenseMolEncoder()
+encoder1 = torch.load(model_load1['encoder'])
+encoder2 = torch.load(model_load2['encoder'])
+decoder1 = torch.load(model_load1['decoder'])
+decoder2 = torch.load(model_load2['decoder'])
 
 model = ComboVAE(encoder1, encoder2, decoder1, decoder2, rep_size=500).cuda()
 
