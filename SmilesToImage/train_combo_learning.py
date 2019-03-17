@@ -142,10 +142,10 @@ def get_batch_size(epoch):
     return 100
 
 def picture_loss_weight(epoch):
-    if epoch < 20:
+    if epoch < 50:
         return 0.0
     else:
-        return min(0.01 * (epoch - 20), 1.0)
+        return min(0.01 * (epoch - 50), 1.0)
 
 def train(epoch):
 
@@ -252,7 +252,7 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-    if epoch > 20 and epoch < 100:
+    if epoch > 50 and epoch < 100:
         sched.step()
     if epoch > 100:
         for param_group in optimizer.param_groups:
