@@ -23,7 +23,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 10
-LR = 0.001        ##adam rate
+LR = 0.0008        ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -252,8 +252,11 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-    if epoch > 20:
+    if epoch > 20 and epoch < 100:
         sched.step()
+    if epoch > 100:
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = 0.00005
     train(epoch)
     test(epoch)
     torch.save(model.module.encoder1, save_files + 'encoder1_epoch_' + str(epoch) + '.pt')
