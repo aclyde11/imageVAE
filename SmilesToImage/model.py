@@ -587,7 +587,7 @@ class AutoModel(nn.Module):
 
     def __init__(self, encoder, decoder):
         super(AutoModel, self).__init__()
-        self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=292)
+        self.encoder = resnet101(pretrained=True)
         self.decoder = decoder
 
 
