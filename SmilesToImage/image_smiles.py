@@ -132,7 +132,7 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 
 train_loader = generate_data_loader(train_root, 1200, int(50000))
 val_loader = generate_data_loader(val_root, 100, int(800))
-
+lossf = nn.NLLLoss().cuda()
 val_losses = []
 train_losses = []
 
@@ -151,7 +151,7 @@ def train(epoch):
             embed = embed.cuda()
             recon_batch = model(data)
 
-            loss = 100 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(recon_batch, embed)
+            loss = lossf(recon_batch.view(), embed)
 
             experiment.log_metric("loss", loss.item())
             optimizer.zero_grad()
@@ -191,7 +191,7 @@ def test(epoch):
                 embed = embed.cuda()
                 recon_batch = model(data)
 
-                loss = 100 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(recon_batch, embed)
+                loss = lossf(recon_batch, embed)
 
                 test_loss += loss.item()
 
