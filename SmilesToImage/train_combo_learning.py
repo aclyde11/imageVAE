@@ -161,9 +161,9 @@ def train(epoch):
             recon_batch, z_2, mu, logvar = model(data, embed)
 
             loss1 =  (nn.MSELoss(reduction="sum")(recon_batch, data))
-            loss2 = 500 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(z_2, embed)
+            loss2 = 100 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(z_2, embed)
             kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-            loss =  picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
+            loss =  picture_loss_weight(epoch) * loss1 + loss2 + kldloss
             experiment.log_metric("pictureloss", loss1.item())
             experiment.log_metric("smileloss", loss2.item())
             experiment.log_metric("kldloss", kldloss.item())
@@ -214,9 +214,9 @@ def test(epoch):
                 recon_batch, z_2, mu, logvar = model(data, embed)
 
                 loss1 = (nn.MSELoss(reduction="sum")(recon_batch, data) + MS_SSIM()(recon_batch, data))
-                loss2 = 500 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(z_2, embed)
+                loss2 = 100 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(z_2, embed)
                 kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-                loss = picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
+                loss = picture_loss_weight(epoch) * loss1 +  loss2 + kldloss
                 test_loss += loss.item()
 
                 if i == 0:
