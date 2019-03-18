@@ -130,7 +130,7 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=0.0001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 1200, int(50000))
+train_loader = generate_data_loader(train_root, 1000, int(50000))
 val_loader = generate_data_loader(val_root, 100, int(800))
 lossf = nn.NLLLoss().cuda()
 val_losses = []
