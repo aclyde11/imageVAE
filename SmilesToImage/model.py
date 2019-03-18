@@ -5,6 +5,7 @@ from torch import nn, optim
 from torch.nn import functional as F
 from ResNet import ResNet, BasicBlock, Bottleneck
 import torch.utils.model_zoo as model_zoo
+from torchvision import models, transforms
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -573,21 +574,11 @@ class TestVAE(nn.Module):
 
         return kl_loss + xent_loss
 
-def resnet101(pretrained=False, **kwargs):
-    """Constructs a ResNet-101 model.
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    model = ResNet(Bottleneck, [3, 4, 23, 3])
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
-    return model
-
 class AutoModel(nn.Module):
 
     def __init__(self, encoder, decoder):
         super(AutoModel, self).__init__()
-        self.encoder = resnet101(pretrained=True)
+        self.encoder =  models.resnet18(pretrained=True, num_classes=1000)
         self.attention = nn.Linear(1000, 1000)
         self.reduce = nn.Linear(1000, 292)
         self.decoder = decoder
