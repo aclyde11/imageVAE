@@ -107,19 +107,6 @@ def generate_data_loader(root, batch_size, data_size):
         batch_size=batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
 
-class customLoss(nn.Module):
-    def __init__(self):
-        super(customLoss, self).__init__()
-        self.mse_loss = nn.MSELoss(reduction="sum")
-
-    def forward(self, x_recon, x, mu, logvar):
-        loss_MSE = self.mse_loss(x_recon, x)
-        loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        loss_cripsy = self.crispyLoss(x_recon, x)
-
-        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
-
-
 
 model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_15.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder1_epoch_15.pt'}
 model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder2_epoch_15.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder2_epoch_15.pt'}
@@ -144,11 +131,10 @@ if data_para and torch.cuda.device_count() > 1:
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=0.00001, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 4, eta_min=0.000001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 1200, int(25000))
-val_loader = generate_data_loader(val_root, 100, int(3000))
-mse = customLoss()
+train_loader = generate_data_loader(train_root, 1400, int(50000))
+val_loader = generate_data_loader(val_root, 500, int(4000))
 
 val_losses = []
 train_losses = []
@@ -271,13 +257,14 @@ def test(epoch):
     val_losses.append(test_loss)
 
 for epoch in range(starting_epoch, epochs):
-    for param_group in optimizer.param_groups:
-        print("Current learning rate is: {}".format(param_group['lr']))
-    if epoch > 50 and epoch < 100:
+
+    if epoch > 5 and epoch < 100:
         sched.step()
     if epoch > 100:
         for param_group in optimizer.param_groups:
             param_group['lr'] = 0.0005
+    for param_group in optimizer.param_groups:
+        print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
     torch.save(model.module.encoder1, save_files + 'encoder1_epoch_' + str(epoch) + '.pt')
