@@ -578,7 +578,7 @@ def resnet101(pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [3, 4, 23, 3], num_classes=292)
+    model = ResNet(Bottleneck, [3, 4, 23, 3])
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
     return model
@@ -588,11 +588,15 @@ class AutoModel(nn.Module):
     def __init__(self, encoder, decoder):
         super(AutoModel, self).__init__()
         self.encoder = resnet101(pretrained=True)
+        self.attention = nn.Linear(1000, 1000)
+        self.reduce = nn.Linear(1000, 292)
         self.decoder = decoder
 
 
     def forward(self, x):
         x = self.encoder(x)
+        atten = nn.Softmax()(self.attention(x))
+        x = nn.ReLU()(self.reduce(atten * x))
         x = self.decoder(x)
         return x
 
