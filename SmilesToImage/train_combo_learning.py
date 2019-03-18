@@ -1,3 +1,5 @@
+from comet_ml import Experiment
+
 import os
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2, 3, 4,5,6,7'
@@ -17,13 +19,27 @@ from invert import Invert
 
 import numpy as np
 import pandas as pd
+
+
+hyper_params = {
+    "num_epochs": 28,
+    "train_batch_size": 28,
+    "val_batch_size": 128,
+    'seed' : 42,
+    "learning_rate": 0.001
+}
+
+
+experiment = Experiment(project_name="pytorch")
+experiment.log_parameters(hyper_params)
+
 starting_epoch=1
-epochs = 200
+epochs = hyper_params['num_epochs']
 no_cuda = False
-seed = 42
+seed = hyper_params['seed']
 data_para = True
 log_interval = 10
-LR = 0.001        ##adam rate
+LR = hyper_params['learning_rate']       ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -42,7 +58,7 @@ torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/combo/results/'
 save_files = '/homes/aclyde11/imageVAE/combo/model/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 12, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
@@ -95,7 +111,6 @@ class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         self.mse_loss = nn.MSELoss(reduction="sum")
-        self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar):
         loss_MSE = self.mse_loss(x_recon, x)
@@ -129,7 +144,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.00001, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=0.00001, last_epoch=-1)
 
 train_loader = generate_data_loader(train_root, 1400, int(100000))
 val_loader = generate_data_loader(val_root, 100, int(3000))
@@ -148,41 +163,47 @@ def picture_loss_weight(epoch):
         return min(0.01 * (epoch - 50), 1.0)
 
 def train(epoch):
+    with experiment.train():
+        experiment.log_current_epoch(epoch)
 
-    print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
-    model.train()
-    train_loss = 0
-    for batch_idx, (data, embed, _) in enumerate(train_loader):
-        data = data[0].cuda()
-        embed = embed.cuda()
-        recon_batch, z_2, mu, logvar = model(data, embed)
+        print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
+        model.train()
+        train_loss = 0
+        for batch_idx, (data, embed, _) in enumerate(train_loader):
+            data = data[0].cuda()
+            embed = embed.cuda()
+            recon_batch, z_2, mu, logvar = model(data, embed)
 
-        loss1 = 0.001 * nn.MSELoss(reduction="sum")(recon_batch, data)
-        loss2 = 500 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(z_2, embed)
-        kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-        loss =  picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            loss1 =  (nn.MSELoss(reduction="sum")(recon_batch, data) + MS_SSIM()(recon_batch, data))
+            loss2 = 500 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(z_2, embed)
+            kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
+            loss =  picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
+            experiment.log_metric("pictureloss", loss1.item())
+            experiment.log_metric("smileloss", loss2.item())
+            experiment.log_metric("kldloss", kldloss.item())
+            experiment.log_metric("loss", loss.item())
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-        train_loss += loss.item()
-        if batch_idx % log_interval == 0:
+            train_loss += loss.item()
+            if batch_idx % log_interval == 0:
 
-            for i in range(3):
-                sampled = z_2.cpu().detach().numpy()[i, ...].argmax(axis=1)
-                mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
-                mol = decode_smiles_from_indexes(mol, vocab)
-                sampled = decode_smiles_from_indexes(sampled, vocab)
-                print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
+                for i in range(3):
+                    sampled = z_2.cpu().detach().numpy()[i, ...].argmax(axis=1)
+                    mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
+                    mol = decode_smiles_from_indexes(mol, vocab)
+                    sampled = decode_smiles_from_indexes(sampled, vocab)
+                    print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
 
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
-                       100. * batch_idx / len(train_loader),
-                       loss.item() / len(data), datetime.datetime.now()))
+                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
+                    epoch, batch_idx * len(data), len(train_loader.dataset),
+                           100. * batch_idx / len(train_loader),
+                           loss.item() / len(data), datetime.datetime.now()))
 
-    print('====> Epoch: {} Average loss: {:.4f}'.format(
-        epoch, train_loss / len(train_loader.dataset)))
-    train_losses.append(train_loss / len(train_loader.dataset))
+        print('====> Epoch: {} Average loss: {:.4f}'.format(
+            epoch, train_loss / len(train_loader.dataset)))
+        train_losses.append(train_loss / len(train_loader.dataset))
 
 
 
@@ -196,55 +217,55 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    model.eval()
-    test_loss = 0
-    with torch.no_grad():
-        for i, (data, embed, smiles) in enumerate(val_loader):
-            data = data[0].cuda()
-            embed = embed.cuda()
-            recon_batch, z_2, mu, logvar = model(data, embed)
+    with experiment.test():
+        experiment.log_current_epoch(epoch)
+        model.eval()
+        test_loss = 0
+        with torch.no_grad():
+            for i, (data, embed, smiles) in enumerate(val_loader):
+                data = data[0].cuda()
+                embed = embed.cuda()
+                recon_batch, z_2, mu, logvar = model(data, embed)
 
-            loss1 = 0.001 * nn.MSELoss(reduction="sum")(recon_batch, data)
-            loss2 = 500 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(z_2, embed)
-            kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-            loss = picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
-            test_loss += loss.item()
+                loss1 = (nn.MSELoss(reduction="sum")(recon_batch, data) + MS_SSIM()(recon_batch, data))
+                loss2 = 500 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(z_2, embed)
+                kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
+                loss = picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
+                test_loss += loss.item()
 
-            if i == 0:
+                if i == 0:
 
-                n = min(data.size(0), 8)
-                comparison = torch.cat([data[:n],
-                                        recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
-                save_image(comparison.cpu(),
-                           output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
-                n_image_gen = 8
-                images = []
-                n_samples_linspace = 16
-                for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data, embed)[0]
-                    pt_1 = data_latent[i * 2, ...].cpu().numpy()
-                    pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
-                    sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                    sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec)[0].cpu())
-                save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
+                    n = min(data.size(0), 8)
+                    comparison = torch.cat([data[:n],
+                                            recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
+                    save_image(comparison.cpu(),
+                               output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
+                    n_image_gen = 8
+                    images = []
+                    n_samples_linspace = 16
+                    for i in range(n_image_gen):
+                        data_latent = model.module.encode_latent_(data, embed)[0]
+                        pt_1 = data_latent[i * 2, ...].cpu().numpy()
+                        pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
+                        sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                        sample_vec = torch.from_numpy(sample_vec).to(device)
+                        images.append(model.module.decode(sample_vec)[0].cpu())
+                    save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
-                n_image_gen = 8
-                images = []
-                n_samples_linspace = 16
-                for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data, embed)[0]
-                    pt_1 = data_latent[i, ...].cpu().numpy()
-                    pt_2 = data_latent[i + 1, ...].cpu().numpy()
-                    sample_vec = interpolate_points(pt_1, pt_2,
-                                                    np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                    sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec)[0].cpu())
-                save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
+                    n_image_gen = 8
+                    images = []
+                    n_samples_linspace = 16
+                    for i in range(n_image_gen):
+                        data_latent = model.module.encode_latent_(data, embed)[0]
+                        pt_1 = data_latent[i, ...].cpu().numpy()
+                        pt_2 = data_latent[i + 1, ...].cpu().numpy()
+                        sample_vec = interpolate_points(pt_1, pt_2,
+                                                        np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                        sample_vec = torch.from_numpy(sample_vec).to(device)
+                        images.append(model.module.decode(sample_vec)[0].cpu())
+                    save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
-
-
-
+    experiment.log_metric("loss", test_loss)
     test_loss /= len(val_loader.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
@@ -256,7 +277,7 @@ for epoch in range(starting_epoch, epochs):
         sched.step()
     if epoch > 100:
         for param_group in optimizer.param_groups:
-            param_group['lr'] = 0.00005
+            param_group['lr'] = 0.0005
     train(epoch)
     test(epoch)
     torch.save(model.module.encoder1, save_files + 'encoder1_epoch_' + str(epoch) + '.pt')
