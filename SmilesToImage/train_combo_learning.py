@@ -146,7 +146,7 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=0.00001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 800, int(25000))
+train_loader = generate_data_loader(train_root, 1200, int(25000))
 val_loader = generate_data_loader(val_root, 100, int(3000))
 mse = customLoss()
 
@@ -174,7 +174,7 @@ def train(epoch):
             embed = embed.cuda()
             recon_batch, z_2, mu, logvar = model(data, embed)
 
-            loss1 =  (nn.MSELoss(reduction="sum")(recon_batch, data) + MS_SSIM()(recon_batch, data))
+            loss1 =  (nn.MSELoss(reduction="sum")(recon_batch, data))
             loss2 = 500 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(z_2, embed)
             kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
             loss =  picture_loss_weight(epoch) * loss1 + 1000 * loss2 + kldloss
