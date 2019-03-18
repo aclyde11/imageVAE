@@ -26,7 +26,7 @@ hyper_params = {
     "train_batch_size": 28,
     "val_batch_size": 128,
     'seed' : 42,
-    "learning_rate": 0.001
+    "learning_rate": 0.01
 }
 
 
