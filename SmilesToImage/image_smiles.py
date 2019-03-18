@@ -132,7 +132,7 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 
 train_loader = generate_data_loader(train_root, 500, int(50000))
 val_loader = generate_data_loader(val_root, 100, int(800))
-lossf = nn.NLLLoss().cuda()
+lossf = nn.BCEWithLogitsLoss().cuda()
 val_losses = []
 train_losses = []
 
