@@ -151,7 +151,7 @@ def train(epoch):
             embed = embed.cuda()
             recon_batch = model(data)
 
-            loss = lossf(recon_batch.view(), embed)
+            loss = lossf(recon_batch, embed)
 
             experiment.log_metric("loss", loss.item())
             optimizer.zero_grad()
