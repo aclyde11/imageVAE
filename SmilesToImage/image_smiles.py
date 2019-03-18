@@ -26,7 +26,7 @@ hyper_params = {
     "train_batch_size": 28,
     "val_batch_size": 128,
     'seed' : 42,
-    "learning_rate": 0.01
+    "learning_rate": 0.001
 }
 
 
@@ -128,7 +128,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=0.0001, last_epoch=-1)
+#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=0.0001, last_epoch=-1)
 
 train_loader = generate_data_loader(train_root, 1200, int(50000))
 val_loader = generate_data_loader(val_root, 100, int(800))
@@ -210,8 +210,7 @@ def test(epoch):
 
 for epoch in range(starting_epoch, epochs):
 
-    if epoch > 5 and epoch < 100:
-        sched.step()
+
     if epoch > 100:
         for param_group in optimizer.param_groups:
             param_group['lr'] = 0.0001
