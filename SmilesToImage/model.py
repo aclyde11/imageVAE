@@ -573,23 +573,15 @@ class TestVAE(nn.Module):
 
         return kl_loss + xent_loss
 
-def resnet101(pretrained=False, **kwargs):
-    """Constructs a ResNet-101 model.
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    model = ResNet(Bottleneck, [3, 4, 23, 3])
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
-    return model
+
 
 class AutoModel(nn.Module):
 
     def __init__(self, encoder, decoder):
         super(AutoModel, self).__init__()
-        self.encoder = resnet101(pretrained=False)
-        self.attention = nn.Linear(1000, 1000)
-        self.reduce = nn.Linear(1000, 292)
+        self.encoder = ResNet(Bottleneck, [3, 4, 23, 3], num_class=500)
+        self.attention = nn.Linear(500, 500)
+        self.reduce = nn.Linear(500, 292)
         self.decoder = decoder
 
 
