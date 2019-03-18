@@ -586,6 +586,7 @@ class AutoModel(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
+        print(x.shape)
         atten = nn.Softmax()(self.attention(x))
         x = nn.ReLU()(self.reduce(atten * x))
         x = self.decoder(x)
