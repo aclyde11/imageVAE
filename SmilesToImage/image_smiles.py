@@ -11,7 +11,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import GeneralVae,  PictureDecoder, PictureEncoder, TestVAE, DenseMolEncoder, ZSpaceTransform, ComboVAE, MolDecoder
+from model import GeneralVae,  PictureDecoder, PictureEncoder, TestVAE, DenseMolEncoder, ZSpaceTransform, ComboVAE, MolDecoder, AutoModel
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
@@ -26,7 +26,7 @@ hyper_params = {
     "train_batch_size": 28,
     "val_batch_size": 128,
     'seed' : 42,
-    "learning_rate": 0.01
+    "learning_rate": 0.001
 }
 
 
@@ -120,7 +120,7 @@ encoder2 = DenseMolEncoder()
 # decoder1 = torch.load(model_load1['decoder'])
 # decoder2 = torch.load(model_load2['decoder'])
 
-model = ComboVAE(encoder1, encoder2, decoder1, decoder2, rep_size=500).cuda()
+model = AutoModel(encoder1, decoder2).cuda()
 
 
 
@@ -131,7 +131,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 4, eta_min=0.000001, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=0.00001, last_epoch=-1)
 
 train_loader = generate_data_loader(train_root, 1200, int(50000))
 val_loader = generate_data_loader(val_root, 100, int(800))
@@ -141,12 +141,6 @@ train_losses = []
 
 def get_batch_size(epoch):
     return 100
-
-def picture_loss_weight(epoch):
-    if epoch < 100:
-        return 0.0
-    else:
-        return min(0.01 * (epoch - 100), 1.0)
 
 def train(epoch):
     with experiment.train():
@@ -158,15 +152,10 @@ def train(epoch):
         for batch_idx, (data, embed, _) in enumerate(train_loader):
             data = data[0].cuda()
             embed = embed.cuda()
-            recon_batch, z_2, mu, logvar = model(data, embed)
+            recon_batch = model(data)
 
-            loss1 =  picture_loss_weight(epoch) * (nn.MSELoss(reduction="sum")(recon_batch, data))
-            loss2 = 10 *  embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(z_2, embed)
-            kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-            loss =   loss1 + loss2 + kldloss
-            experiment.log_metric("pictureloss", loss1.item())
-            experiment.log_metric("smileloss", loss2.item())
-            experiment.log_metric("kldloss", kldloss.item())
+            loss =   embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(recon_batch, embed)
+
             experiment.log_metric("loss", loss.item())
             optimizer.zero_grad()
             loss.backward()
@@ -175,8 +164,8 @@ def train(epoch):
             train_loss += loss.item()
             if batch_idx % log_interval == 0:
 
-                for i in range(3):
-                    sampled = z_2.cpu().detach().numpy()[i, ...].argmax(axis=1)
+                for i in range(4):
+                    sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
                     mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
                     mol = decode_smiles_from_indexes(mol, vocab)
                     sampled = decode_smiles_from_indexes(sampled, vocab)
@@ -193,14 +182,6 @@ def train(epoch):
 
 
 
-def interpolate_points(x,y, sampling):
-    from sklearn.linear_model import LinearRegression
-    ln = LinearRegression()
-    data = np.stack((x,y))
-    data_train = np.array([0, 1]).reshape(-1, 1)
-    ln.fit(data_train, data)
-
-    return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
     with experiment.test():
@@ -211,45 +192,19 @@ def test(epoch):
             for i, (data, embed, smiles) in enumerate(val_loader):
                 data = data[0].cuda()
                 embed = embed.cuda()
-                recon_batch, z_2, mu, logvar = model(data, embed)
+                recon_batch = model(data)
 
-                loss1 = picture_loss_weight(epoch) * (nn.MSELoss(reduction="sum")(recon_batch, data) + MS_SSIM()(recon_batch, data))
-                loss2 = 100 * embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(z_2, embed)
-                kldloss = -0.5 * torch.mean(1. + logvar - mu ** 2. - torch.exp(logvar))
-                loss =  loss1 +  loss2 + kldloss
+                loss = embed.shape[1] * nn.BCEWithLogitsLoss(size_average=True)(recon_batch, embed)
+
                 test_loss += loss.item()
 
                 if i == 0:
-
-                    n = min(data.size(0), 8)
-                    comparison = torch.cat([data[:n],
-                                            recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
-                    save_image(comparison.cpu(),
-                               output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
-                    n_image_gen = 8
-                    images = []
-                    n_samples_linspace = 16
-                    for i in range(n_image_gen):
-                        data_latent = model.module.encode_latent_(data, embed)[0]
-                        pt_1 = data_latent[i * 2, ...].cpu().numpy()
-                        pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
-                        sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                        sample_vec = torch.from_numpy(sample_vec).to(device)
-                        images.append(model.module.decode(sample_vec)[0].cpu())
-                    save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
-
-                    n_image_gen = 8
-                    images = []
-                    n_samples_linspace = 16
-                    for i in range(n_image_gen):
-                        data_latent = model.module.encode_latent_(data, embed)[0]
-                        pt_1 = data_latent[i, ...].cpu().numpy()
-                        pt_2 = data_latent[i + 1, ...].cpu().numpy()
-                        sample_vec = interpolate_points(pt_1, pt_2,
-                                                        np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                        sample_vec = torch.from_numpy(sample_vec).to(device)
-                        images.append(model.module.decode(sample_vec)[0].cpu())
-                    save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
+                    for i in range(4):
+                        sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
+                        mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
+                        mol = decode_smiles_from_indexes(mol, vocab)
+                        sampled = decode_smiles_from_indexes(sampled, vocab)
+                        print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
 
     experiment.log_metric("loss", test_loss)
     test_loss /= len(val_loader.dataset)
@@ -262,18 +217,9 @@ for epoch in range(starting_epoch, epochs):
         sched.step()
     if epoch > 100:
         for param_group in optimizer.param_groups:
-            param_group['lr'] = 0.0005
+            param_group['lr'] = 0.0001
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
-    torch.save(model.module.encoder1, save_files + 'encoder1_epoch_' + str(epoch) + '.pt')
-    torch.save(model.module.encoder2, save_files + 'encoder2_epoch_' + str(epoch) + '.pt')
-    torch.save(model.module.decoder1, save_files + 'decoder1_epoch_' + str(epoch) + '.pt')
-    torch.save(model.module.decoder2, save_files + "decoder2_epoch_" + str(epoch) + '.pt')
-    with torch.no_grad():
-        sample = torch.randn(64, 500).to(device)
-        sample = model.module.decode(sample)[0].cpu()
-        save_image(sample.view(64, 3, 256, 256),
-                   output_dir + 'sample_' + str(epoch-1) + '.png')
 

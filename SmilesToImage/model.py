@@ -109,8 +109,6 @@ class PictureEncoder(nn.Module):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
         self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size)
-        self.mu = nn.Linear(rep_size, rep_size)
-        self.logvar = nn.Linear(rep_size, rep_size)
 
     def forward(self, x):
         x = self.encoder(x)
@@ -565,4 +563,18 @@ class TestVAE(nn.Module):
                                     torch.exp(z_log_var))
 
         return kl_loss + xent_loss
+
+
+class AutoModel(nn.Module):
+
+    def __init__(self, encoder, decoder):
+        super(AutoModel, self).__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
 
