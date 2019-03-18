@@ -22,7 +22,7 @@ import pandas as pd
 
 
 hyper_params = {
-    "num_epochs": 28,
+    "num_epochs": 1000,
     "train_batch_size": 28,
     "val_batch_size": 128,
     'seed' : 42,
