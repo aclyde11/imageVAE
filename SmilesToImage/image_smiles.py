@@ -111,14 +111,13 @@ def generate_data_loader(root, batch_size, data_size):
 model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_15.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder1_epoch_15.pt'}
 model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder2_epoch_15.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder2_epoch_15.pt'}
 
-encoder1 = PictureEncoder()
-decoder2 = MolDecoder()
+decoder2 = MolDecoder(i=292)
 # encoder1 = torch.load(model_load1['encoder'])
 # encoder2 = torch.load(model_load2['encoder'])
 # decoder1 = torch.load(model_load1['decoder'])
 # decoder2 = torch.load(model_load2['decoder'])
 
-model = AutoModel(encoder1, decoder2).cuda()
+model = AutoModel(None, decoder2).cuda()
 
 
 

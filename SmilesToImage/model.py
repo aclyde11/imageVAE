@@ -3,7 +3,16 @@ from torch.autograd import Variable
 from skimage import io, transform
 from torch import nn, optim
 from torch.nn import functional as F
-from ResNet import ResNet, BasicBlock
+from ResNet import ResNet, BasicBlock, Bottleneck
+import torch.utils.model_zoo as model_zoo
+
+model_urls = {
+    'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
+    'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
+    'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
+    'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
+    'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
+}
 
 
 class TimeDistributed(nn.Module):
@@ -564,12 +573,21 @@ class TestVAE(nn.Module):
 
         return kl_loss + xent_loss
 
+def resnet101(pretrained=False, **kwargs):
+    """Constructs a ResNet-101 model.
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+    """
+    model = ResNet(Bottleneck, [3, 4, 23, 3], num_classes=292)
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
+    return model
 
 class AutoModel(nn.Module):
 
     def __init__(self, encoder, decoder):
         super(AutoModel, self).__init__()
-        self.encoder = encoder
+        self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=292)
         self.decoder = decoder
 
 
