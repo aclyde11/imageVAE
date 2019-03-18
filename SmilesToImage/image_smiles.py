@@ -147,11 +147,11 @@ def train(epoch):
         model.train()
         train_loss = 0
         for batch_idx, (data, embed, _) in enumerate(train_loader):
-            data = data[0].cuda()
-            embed = embed.cuda()
+            data = data[0].float().cuda()
+            embed = embed.float().cuda()
             recon_batch = model(data)
 
-            loss = lossf(recon_batch.view(-1, 27 * 60), embed.view(-1, 27 * 60))
+            loss = lossf(recon_batch.float().view(-1, 27 * 60), embed.view(-1, 27 * 60))
 
             experiment.log_metric("loss", loss.item())
             optimizer.zero_grad()
@@ -191,7 +191,7 @@ def test(epoch):
                 embed = embed.cuda()
                 recon_batch = model(data)
 
-                loss = lossf(recon_batch.view(-1, 27 * 60), embed.view(-1, 27 * 60))
+                loss = lossf(recon_batch.float().view(-1, 27 * 60), embed.view(-1, 27 * 60))
 
                 test_loss += loss.item()
 
