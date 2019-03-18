@@ -146,7 +146,7 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=0.00001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 1400, int(100000))
+train_loader = generate_data_loader(train_root, 1200, int(100000))
 val_loader = generate_data_loader(val_root, 100, int(3000))
 mse = customLoss()
 
