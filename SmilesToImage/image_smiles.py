@@ -132,7 +132,7 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 
 train_loader = generate_data_loader(train_root, 500, int(50000))
 val_loader = generate_data_loader(val_root, 100, int(800))
-lossf = nn.BCEWithLogitsLoss().cuda()
+lossf = nn.BCEWithLogitsLoss(reduction='sum').cuda()
 val_losses = []
 train_losses = []
 
@@ -151,7 +151,7 @@ def train(epoch):
             embed = embed.float().cuda()
             recon_batch = model(data)
 
-            loss = lossf(recon_batch.float().view(-1, 27 * 60), embed.view(-1, 27 * 60))
+            loss = lossf(recon_batch.float(), embed)
 
             experiment.log_metric("loss", loss.item())
             optimizer.zero_grad()
@@ -187,11 +187,11 @@ def test(epoch):
         test_loss = 0
         with torch.no_grad():
             for i, (data, embed, smiles) in enumerate(val_loader):
-                data = data[0].cuda()
-                embed = embed.cuda()
+                data = data[0].float().cuda()
+                embed = embed.float().cuda()
                 recon_batch = model(data)
 
-                loss = lossf(recon_batch.float().view(-1, 27 * 60), embed.view(-1, 27 * 60))
+                loss = lossf(recon_batch.float(), embed)
 
                 test_loss += loss.item()
 
