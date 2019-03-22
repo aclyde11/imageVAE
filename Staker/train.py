@@ -47,6 +47,7 @@ vocab.insert(0,' ')
 vocab.insert(0, '!')
 vocab.insert(0, '?')
 vocab = {k: v for v, k in enumerate(vocab)}
+charset = {k: v for v ,k in vocab}
 embedding_width = 60
 embedding_size = len(vocab)
 embedding_size = len(vocab)
@@ -73,7 +74,7 @@ def from_one_hot_array(vec):
         return None
     return int(oh[0][0])
 
-def decode_smiles_from_indexes(vec, charset):
+def decode_smiles_from_indexes(vec):
     return "".join(map(lambda x: charset[x], vec)).strip()
 
 def one_hot_array(i, n):
@@ -239,6 +240,12 @@ def train(epoch):
                     epoch, batch_idx * len(data), len(train_loader.dataset),
                            100. * batch_idx / len(train_loader),
                            loss.item() / len(data), datetime.datetime.now()))
+
+                sampled = scores.cpu().detach().numpy()
+                mol = targets.cpu().numpy()
+                mol = decode_smiles_from_indexes(mol, vocab)
+                sampled = decode_smiles_from_indexes(sampled, vocab)
+                print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
 
         print('====> Epoch: {} Average loss: {:.4f}'.format(
             epoch, loss.avg / len(train_loader.dataset)))
