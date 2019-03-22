@@ -60,7 +60,7 @@ torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/combo/results/'
 save_files = '/homes/aclyde11/imageVAE/combo/model/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
@@ -103,6 +103,8 @@ class ImageFolderWithFile(datasets.ImageFolder):
         while len(t) < 70:
             t.append(' ')
         embed = [vocab[i] for i in t]
+        print(embed)
+        print(caplen)
         return  super(ImageFolderWithFile, self).__getitem__(index), torch.LongTensor(embed), torch.LongTensor(caplen)
 
 def generate_data_loader(root, batch_size, data_size):
