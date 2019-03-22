@@ -3,95 +3,137 @@ from torch.autograd import Variable
 from skimage import io, transform
 from torch import nn, optim
 from torch.nn import functional as F
-
+import torchvision
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+class Encoder(nn.Module):
+    """
+    Encoder.
+    """
 
-def conv5x5(in_planes, out_planes, stride=1):
-    """5x5 convolution with padding"""
-    return nn.Conv2d(in_planes, out_planes, kernel_size=5, stride=stride,
-                     padding=2, bias=False)
+    def __init__(self, encoded_image_size=14):
+        super(Encoder, self).__init__()
+        self.enc_image_size = encoded_image_size
 
+        resnet = torchvision.models.resnet50(pretrained=True)  # pretrained ImageNet ResNet-101
 
-class BasicBlock(nn.Module):
+        # Remove linear and pool layers (since we're not doing classification)
+        modules = list(resnet.children())[:-2]
+        self.resnet = nn.Sequential(*modules)
 
-    def __init__(self, inplanes, planes, stride=1):
-        super(BasicBlock, self).__init__()
-        self.conv1 = conv5x5(inplanes, planes, stride)
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.relu = nn.ReLU(inplace=True)
-        self.conv2 = conv5x5(planes, planes)
-        self.bn2 = nn.BatchNorm2d(planes)
+        # Resize image to fixed size to allow input images of variable size
+        self.adaptive_pool = nn.AdaptiveAvgPool2d((encoded_image_size, encoded_image_size))
 
-        self.stride = stride
-        if self.stride > 1:
-            self.maxpooling = nn.MaxPool2d(kernel_size=self.stride, stride=1, padding=0, dilation=1, ceil_mode=False)
+        self.fine_tune()
 
-    def forward(self, x):
-        print("INPUT SHAPE: ", x.shape)
-        identity = x
-
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
-
-        out = self.conv2(out)
-        out = self.bn2(out)
-
-        if self.stride > 1:
-            out = self.maxpooling(out)
-            identity   = self.maxpooling(identity)
-        print("IDEN SHAPE: ", identity.shape)
-        print("out SHAPE: ", out.shape)
-        out += identity
-        out = self.relu(out)
-
+    def forward(self, images):
+        """
+        Forward propagation.
+        :param images: images, a tensor of dimensions (batch_size, 3, image_size, image_size)
+        :return: encoded images
+        """
+        out = self.resnet(images)  # (batch_size, 2048, image_size/32, image_size/32)
+        out = self.adaptive_pool(out)  # (batch_size, 2048, encoded_image_size, encoded_image_size)
+        out = out.permute(0, 2, 3, 1)  # (batch_size, encoded_image_size, encoded_image_size, 2048)
         return out
 
-    def get_output_size(self, input_dim):
-        if self.stride == 1:
-            return input_dim
-        else:
-            return (input_dim + 2 * 0 - 1 * (2 - 1) - 1) / 1 + 1
+    def fine_tune(self, fine_tune=True):
+        """
+        Allow or prevent the computation of gradients for convolutional blocks 2 through 4 of the encoder.
+        :param fine_tune: Allow?
+        """
+        for p in self.resnet.parameters():
+            p.requires_grad = False
+        # If fine-tuning, only fine-tune convolutional blocks 2 through 4
+        for c in list(self.resnet.children())[5:]:
+            for p in c.parameters():
+                p.requires_grad = fine_tune
 
 
-class Encoder(nn.Module):
-    def __init__(self):
-        super(Encoder, self).__init__()
-        params = {
-            'block1_layers' : 2,
-            'block2_layers' : 4,
-            'block4_layers' : 3
-        }
-
-        self.params = params
-
-        self.block1 = self.__make__blocks(params['block1_layers'], pooling=1, inplanes=3, outplanes=3)
-        self.block2 = self.__make__blocks(params['block2_layers'], pooling=2, inplanes=3, outplanes=3)
-        self.block3 = self.__make__blocks(1, pooling=1, inplanes=3, outplanes=3)
-        self.block4 = self.__make__blocks(params['block4_layers'], pooling=2, inplanes=3, outplanes=3)
-        self.statefc = nn.Sequential(nn.Linear(250, 250), nn.ReLU())
-
-        self.gridLSTM = None
-        self.attention = None
-
-
-    def __make__blocks(self, number_blocks, pooling=1, inplanes=3, outplanes=3):
-        layers = []
-        for i in range(number_blocks):
-            layers.append(BasicBlock(inplanes, outplanes, pooling))
-        return nn.Sequential(*layers)
-
-    def forward(self, x):
-        out = self.block1(x)
-        out = self.block2(out)
-        atten_out = self.block3(out)
-        out = self.block4(atten_out)
-        print(out.shape)
-        state_vector = self.statefc(out.view(-1, 256 * 256))
-
-
-        return state_vector
+# def conv5x5(in_planes, out_planes, stride=1):
+#     """5x5 convolution with padding"""
+#     return nn.Conv2d(in_planes, out_planes, kernel_size=5, stride=stride,
+#                      padding=2, bias=False)
+#
+#
+# class BasicBlock(nn.Module):
+#
+#     def __init__(self, inplanes, planes, stride=1):
+#         super(BasicBlock, self).__init__()
+#         self.conv1 = conv5x5(inplanes, planes, stride)
+#         self.bn1 = nn.BatchNorm2d(planes)
+#         self.relu = nn.ReLU(inplace=True)
+#         self.conv2 = conv5x5(planes, planes)
+#         self.bn2 = nn.BatchNorm2d(planes)
+#
+#         self.stride = stride
+#         if self.stride > 1:
+#             self.maxpooling = nn.MaxPool2d(kernel_size=self.stride, stride=1, padding=0, dilation=1, ceil_mode=False)
+#
+#     def forward(self, x):
+#         print("INPUT SHAPE: ", x.shape)
+#         identity = x
+#
+#         out = self.conv1(x)
+#         out = self.bn1(out)
+#         out = self.relu(out)
+#
+#         out = self.conv2(out)
+#         out = self.bn2(out)
+#
+#         if self.stride > 1:
+#             out = self.maxpooling(out)
+#             identity   = self.maxpooling(identity)
+#         print("IDEN SHAPE: ", identity.shape)
+#         print("out SHAPE: ", out.shape)
+#         out += identity
+#         out = self.relu(out)
+#
+#         return out
+#
+#     def get_output_size(self, input_dim):
+#         if self.stride == 1:
+#             return input_dim
+#         else:
+#             return (input_dim + 2 * 0 - 1 * (2 - 1) - 1) / 1 + 1
+#
+#
+# class Encoder(nn.Module):
+#     def __init__(self):
+#         super(Encoder, self).__init__()
+#         params = {
+#             'block1_layers' : 2,
+#             'block2_layers' : 4,
+#             'block4_layers' : 3
+#         }
+#
+#         self.params = params
+#
+#         self.block1 = self.__make__blocks(params['block1_layers'], pooling=1, inplanes=3, outplanes=3)
+#         self.block2 = self.__make__blocks(params['block2_layers'], pooling=2, inplanes=3, outplanes=3)
+#         self.block3 = self.__make__blocks(1, pooling=1, inplanes=3, outplanes=3)
+#         self.block4 = self.__make__blocks(params['block4_layers'], pooling=2, inplanes=3, outplanes=3)
+#         self.statefc = nn.Sequential(nn.Linear(250, 250), nn.ReLU())
+#
+#         self.gridLSTM = None
+#         self.attention = None
+#
+#
+#     def __make__blocks(self, number_blocks, pooling=1, inplanes=3, outplanes=3):
+#         layers = []
+#         for i in range(number_blocks):
+#             layers.append(BasicBlock(inplanes, outplanes, pooling))
+#         return nn.Sequential(*layers)
+#
+#     def forward(self, x):
+#         out = self.block1(x)
+#         out = self.block2(out)
+#         atten_out = self.block3(out)
+#         out = self.block4(atten_out)
+#         out = out.permute(0, 2, 3, 1)
+#
+#
+#         return out
 
 class Attention(nn.Module):
     """
