@@ -98,7 +98,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         #embed = apply_one_hot([t])[0].astype(np.float32)
         embed = [vocab[i] for i in t]
         print(embed)
-        return  super(ImageFolderWithFile, self).__getitem__(index), embed, len(embed)
+        return  super(ImageFolderWithFile, self).__getitem__(index), torch.LongTensor(embed), torch.LongTensor(len(embed))
 
 def generate_data_loader(root, batch_size, data_size):
     invert = transforms.Compose([
