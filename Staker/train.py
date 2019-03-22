@@ -38,7 +38,7 @@ epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
 data_para = True
-log_interval = 7
+log_interval = 1
 LR = hyper_params['learning_rate']       ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
@@ -104,7 +104,6 @@ class ImageFolderWithFile(datasets.ImageFolder):
             t.append(' ')
         embed = [vocab[i] for i in t]
         embed = torch.LongTensor(embed)
-        print(embed)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed, caplen
 
 def generate_data_loader(root, batch_size, data_size):
