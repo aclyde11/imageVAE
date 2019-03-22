@@ -28,6 +28,7 @@ class BasicBlock(nn.Module):
             self.maxpooling = nn.MaxPool2d(kernel_size=self.stride, stride=1, padding=0, dilation=1, ceil_mode=False)
 
     def forward(self, x):
+        print("INPUT SHAPE: ", x.shape)
         identity = x
 
         out = self.conv1(x)
@@ -40,7 +41,8 @@ class BasicBlock(nn.Module):
         if self.stride > 1:
             out = self.maxpooling(out)
             identity   = self.maxpooling(identity)
-
+        print("IDEN SHAPE: ", identity.shape)
+        print("out SHAPE: ", out.shape)
         out += identity
         out = self.relu(out)
 
