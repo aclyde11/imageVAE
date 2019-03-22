@@ -264,13 +264,6 @@ def test(epoch):
     val_losses.append(test_loss)
 
 for epoch in range(starting_epoch, epochs):
-
-
-    if epoch > 100:
-        for param_group in optimizer.param_groups:
-            param_group['lr'] = 0.0001
-    for param_group in optimizer.param_groups:
-        print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
-    test(epoch)
+    #test(epoch)
 
