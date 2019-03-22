@@ -198,6 +198,7 @@ def train(epoch):
             imgs = encoder(imgs)
             scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens)
 
+            print(scores.shape)
             # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
             targets = caps_sorted[:, 1:]
 
@@ -205,6 +206,7 @@ def train(epoch):
             # pack_padded_sequence is an easy trick to do this
             scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
             targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+            print(scores.shape)
 
             # Calculate loss
             loss = criterion(scores, targets)
