@@ -241,13 +241,24 @@ def train(epoch):
                            100. * batch_idx / len(train_loader),
                            loss.item() / len(data), datetime.datetime.now()))
 
+
+
                 sampled = scores.cpu().detach().numpy()
-                print(sampled.shape)
-                print(sampled)
-                mol = targets.cpu().numpy()
-                mol = decode_smiles_from_indexes(mol)
-                sampled = decode_smiles_from_indexes(sampled)
-                print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
+
+                _, preds = torch.max(sampled, dim=2)
+                preds = preds.tolist()
+                temp_preds = list()
+                for j, p in enumerate(preds):
+                    temp_preds.append(preds[j][:decode_lengths[j]])  # remove pads
+                preds = temp_preds
+                print(preds)
+
+                # print(sampled.shape)
+                # print(sampled)
+                # mol = targets.cpu().numpy()
+                # mol = decode_smiles_from_indexes(mol)
+                # sampled = decode_smiles_from_indexes(sampled)
+                # print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
 
         print('====> Epoch: {} Average loss: {:.4f}'.format(
             epoch, loss.avg / len(train_loader.dataset)))
