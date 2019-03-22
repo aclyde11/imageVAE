@@ -153,8 +153,8 @@ encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, en
 encoder = encoder.cuda()
 decoder = decoder.cuda()
 
-train_loader = generate_data_loader(train_root, 16, int(50000))
-val_loader = generate_data_loader(val_root, 16, int(800))
+train_loader = generate_data_loader(train_root, 128, int(50000))
+val_loader = generate_data_loader(val_root, 128, int(800))
 criterion = nn.CrossEntropyLoss().to(device)
 
 class AverageMeter(object):
