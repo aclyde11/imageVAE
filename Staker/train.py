@@ -44,7 +44,8 @@ rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
-print(vocab)
+vocab.insert(0, '!')
+vocab.insert(0, '?')
 vocab = {k: v for v, k in enumerate(vocab)}
 embedding_width = 60
 embedding_size = len(vocab)
@@ -96,6 +97,11 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t = int(t.split('/')[-1].split('.')[0])
         t = list(smiles_lookup.iloc[t, 1])
         #embed = apply_one_hot([t])[0].astype(np.float32)
+        t.insert(0, '!')
+        t.append('?')
+        if len(t) < 70:
+            for i in range(70 - len(t)):
+                t.append(' ')
         embed = [vocab[i] for i in t]
         print(embed)
         return  super(ImageFolderWithFile, self).__getitem__(index), torch.LongTensor(embed), torch.LongTensor(len(embed))
