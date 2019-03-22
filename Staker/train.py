@@ -244,6 +244,7 @@ def train(epoch):
 
                 print(scores_copy.shape)
                 _, preds = torch.max(scores_copy, dim=2)
+                print(preds)
 
                 #
                 #
