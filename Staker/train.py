@@ -242,16 +242,17 @@ def train(epoch):
                            loss.item() / len(data), datetime.datetime.now()))
 
 
-
-                sampled = scores.cpu().detach()
-
-                _, preds = torch.max(sampled, dim=2)
-                preds = preds.tolist()
-                temp_preds = list()
-                for j, p in enumerate(preds):
-                    temp_preds.append(preds[j][:decode_lengths[j]])  # remove pads
-                preds = temp_preds
-                print(preds)
+                #
+                #
+                # sampled = scores.cpu().detach()
+                #
+                # _, preds = torch.max(sampled, dim=2)
+                # preds = preds.tolist()
+                # temp_preds = list()
+                # for j, p in enumerate(preds):
+                #     temp_preds.append(preds[j][:decode_lengths[j]])  # remove pads
+                # preds = temp_preds
+                # print(preds)
 
                 # print(sampled.shape)
                 # print(sampled)
