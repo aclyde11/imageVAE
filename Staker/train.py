@@ -45,6 +45,7 @@ embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
 print(vocab)
+vocab = {k: v for v, k in enumerate(vocab)}
 embedding_width = 60
 embedding_size = len(vocab)
 embedding_size = len(vocab)
@@ -94,7 +95,9 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t = self.imgs[index][0]
         t = int(t.split('/')[-1].split('.')[0])
         t = list(smiles_lookup.iloc[t, 1])
-        embed = apply_one_hot([t])[0].astype(np.float32)
+        #embed = apply_one_hot([t])[0].astype(np.float32)
+        embed = [vocab[i] for i in t]
+        print(embed)
         return  super(ImageFolderWithFile, self).__getitem__(index), embed, len(embed)
 
 def generate_data_loader(root, batch_size, data_size):
