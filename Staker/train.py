@@ -243,8 +243,8 @@ def train(epoch):
 
                 sampled = scores.cpu().detach().numpy()
                 mol = targets.cpu().numpy()
-                mol = decode_smiles_from_indexes(mol, vocab)
-                sampled = decode_smiles_from_indexes(sampled, vocab)
+                mol = decode_smiles_from_indexes(mol)
+                sampled = decode_smiles_from_indexes(sampled)
                 print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
 
         print('====> Epoch: {} Average loss: {:.4f}'.format(
@@ -272,8 +272,8 @@ def test(epoch):
                     for i in range(4):
                         sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
                         mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
-                        mol = decode_smiles_from_indexes(mol, vocab)
-                        sampled = decode_smiles_from_indexes(sampled, vocab)
+                        mol = decode_smiles_from_indexes(mol)
+                        sampled = decode_smiles_from_indexes(sampled)
                         print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
 
     experiment.log_metric("loss", test_loss)
