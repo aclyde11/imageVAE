@@ -182,7 +182,7 @@ def train(epoch):
         for batch_idx, (data, embed, embedlen) in enumerate(train_loader):
             imgs = data[0].float().cuda()
             caps = embed.float().cuda()
-            caplens = embedlen.float().cuda()
+            caplens = embedlen.float().cuda().view(-1, 1)
 
             # Forward prop.
             imgs = encoder(imgs)
