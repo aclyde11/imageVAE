@@ -131,15 +131,17 @@ decoder = DecoderWithAttention(attention_dim=attention_dim,
                                embed_dim=emb_dim,
                                decoder_dim=decoder_dim,
                                vocab_size=embedding_size,
-                               dropout=dropout).cuda()
+                               dropout=dropout)
 
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
-encoder = Encoder().cuda()
+encoder = Encoder()
+encoder.fine_tune(fine_tune_encoder)
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
 
-
+encoder = encoder.cuda()
+decoder = decoder.cuda()
 
 train_loader = generate_data_loader(train_root, 500, int(50000))
 val_loader = generate_data_loader(val_root, 100, int(800))
