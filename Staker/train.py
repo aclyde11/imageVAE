@@ -99,11 +99,12 @@ class ImageFolderWithFile(datasets.ImageFolder):
         #embed = apply_one_hot([t])[0].astype(np.float32)
         t.insert(0, '!')
         t.append('?')
+        caplen = len(t)
         if len(t) < 70:
             for i in range(70 - len(t)):
                 t.append(' ')
         embed = [vocab[i] for i in t]
-        return  super(ImageFolderWithFile, self).__getitem__(index), torch.LongTensor(embed), torch.LongTensor(len(embed))
+        return  super(ImageFolderWithFile, self).__getitem__(index), torch.LongTensor(embed), torch.LongTensor(caplen)
 
 def generate_data_loader(root, batch_size, data_size):
     invert = transforms.Compose([
@@ -189,8 +190,8 @@ def train(epoch):
         losses = AverageMeter()  # loss (per word decoded)
         for batch_idx, (data, embed, embedlen) in enumerate(train_loader):
             imgs = data[0].float().cuda()
-            caps = embed.float().cuda()
-            caplens = embedlen.float().cuda().view(-1, 1)
+            caps = embed.cuda()
+            caplens = embedlen.cuda().view(-1, 1)
 
             # Forward prop.
             imgs = encoder(imgs)
