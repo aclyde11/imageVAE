@@ -105,7 +105,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         embed = [vocab[i] for i in t]
         print(embed)
         print(caplen)
-        return  super(ImageFolderWithFile, self).__getitem__(index), torch.LongTensor(embed), torch.LongTensor(caplen)
+        return  super(ImageFolderWithFile, self).__getitem__(index), embed, caplen
 
 def generate_data_loader(root, batch_size, data_size):
     invert = transforms.Compose([
