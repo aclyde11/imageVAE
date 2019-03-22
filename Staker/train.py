@@ -130,10 +130,10 @@ def clip_gradient(optimizer, grad_clip):
 emb_dim = 512  # dimension of word embeddings
 attention_dim = 512  # dimension of attention linear layers
 decoder_dim = 512  # dimension of decoder RNN
-dropout = 0.5
+dropout = 0.1
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # sets device for model and PyTorch tensors
-encoder_lr = 5e-4  # learning rate for encoder if fine-tuning
-decoder_lr = 4e-4  # learning rate for decoder
+encoder_lr = 8e-4  # learning rate for encoder if fine-tuning
+decoder_lr = 8e-4  # learning rate for decoder
 grad_clip = 5.  # clip gradients at an absolute value of
 alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as in the paper
 fine_tune_encoder = True  # fine-tune encoder?
