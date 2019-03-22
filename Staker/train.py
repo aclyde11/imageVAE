@@ -47,7 +47,7 @@ vocab.insert(0,' ')
 vocab.insert(0, '!')
 vocab.insert(0, '?')
 vocab = {k: v for v, k in enumerate(vocab)}
-charset = {k: v for v ,k in vocab}
+charset = {k: v for v ,k in vocab.iteritems()}
 embedding_width = 60
 embedding_size = len(vocab)
 embedding_size = len(vocab)
