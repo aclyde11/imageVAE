@@ -48,7 +48,7 @@ vocab.insert(0, '!')
 vocab.insert(0, '?')
 vocab = {k: v for v, k in enumerate(vocab)}
 charset = {k: v for v ,k in vocab.iteritems()}
-embedding_width = 60
+embedding_width = 70
 embedding_size = len(vocab)
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
@@ -127,7 +127,7 @@ def clip_gradient(optimizer, grad_clip):
             if param.grad is not None:
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
-emb_dim = 60  # dimension of word embeddings
+emb_dim = 512  # dimension of word embeddings
 attention_dim = 512  # dimension of attention linear layers
 decoder_dim = 512  # dimension of decoder RNN
 dropout = 0.5
@@ -140,7 +140,7 @@ fine_tune_encoder = True  # fine-tune encoder?
 decoder = DecoderWithAttention(attention_dim=attention_dim,
                                embed_dim=emb_dim,
                                decoder_dim=decoder_dim,
-                               vocab_size=embedding_size,
+                               vocab_size=len(vocab),
                                dropout=dropout)
 
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
