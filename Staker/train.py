@@ -241,6 +241,10 @@ def train(epoch):
                            100. * batch_idx / len(train_loader),
                            loss.item() / len(data), datetime.datetime.now()))
 
+                scores_copy = scores.clone()
+                print(scores_copy)
+                print(scores_copy.shape)
+                _, preds = torch.max(scores_copy, dim=2)
 
                 #
                 #
