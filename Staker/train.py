@@ -261,8 +261,6 @@ def train(epoch):
                 # sampled = decode_smiles_from_indexes(sampled)
                 # print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
 
-        print('====> Epoch: {} Average loss: {:.4f}'.format(
-            epoch, loss.avg / len(train_loader.dataset)))
 
 
 
