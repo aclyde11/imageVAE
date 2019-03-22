@@ -178,7 +178,7 @@ def train(epoch):
         encoder.train()
         losses = AverageMeter()  # loss (per word decoded)
         for batch_idx, (data, embed, embedlen) in enumerate(train_loader):
-            data = data[0].float().cuda()
+            imgs = data[0].float().cuda()
             caps = embed.float().cuda()
             caplens = embedlen.float().cuda()
 
