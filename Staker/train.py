@@ -100,9 +100,8 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t.insert(0, '!')
         t.append('?')
         caplen = len(t)
-        if len(t) < 70:
-            for i in range(70 - len(t)):
-                t.append(' ')
+        while len(t) < 70:
+            t.append(' ')
         embed = [vocab[i] for i in t]
         return  super(ImageFolderWithFile, self).__getitem__(index), torch.LongTensor(embed), torch.LongTensor(caplen)
 
