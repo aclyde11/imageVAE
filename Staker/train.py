@@ -242,6 +242,8 @@ def train(epoch):
                            loss.item() / len(data), datetime.datetime.now()))
 
                 sampled = scores.cpu().detach().numpy()
+                print(sampled.shape)
+                print(sampled)
                 mol = targets.cpu().numpy()
                 mol = decode_smiles_from_indexes(mol)
                 sampled = decode_smiles_from_indexes(sampled)
@@ -271,8 +273,7 @@ def test(epoch):
                 if i == 0:
                     for i in range(4):
                         sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
-                        print(sampled.shape)
-                        print(sampled)
+
                         mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
                         mol = decode_smiles_from_indexes(mol)
                         sampled = decode_smiles_from_indexes(sampled)
