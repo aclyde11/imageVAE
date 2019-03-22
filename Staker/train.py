@@ -243,7 +243,7 @@ def train(epoch):
 
 
 
-                sampled = scores.cpu().detach().numpy()
+                sampled = scores.cpu().detach()
 
                 _, preds = torch.max(sampled, dim=2)
                 preds = preds.tolist()
