@@ -54,7 +54,7 @@ class BasicBlock(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, params):
+    def __init__(self):
         super(Encoder, self).__init__()
         params = {
             'block1_layers' : 2,
@@ -85,7 +85,7 @@ class Encoder(nn.Module):
         out = self.block2(out)
         atten_out = self.block3(out)
         out = self.block4(atten_out)
-
+        print(out.shape)
         state_vector = self.statefc(out.view(-1, 256 * 256))
 
 
