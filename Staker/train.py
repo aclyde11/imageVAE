@@ -245,10 +245,10 @@ def train(epoch):
                 print(scores_copy.shape)
                 _, preds = torch.max(scores_copy, dim=2)
                 preds = preds.cpu().numpy()
-                target = caps.cpu().numpy()
+                targets = caps.cpu().numpy()
                 for i in range(4):
                     sample = preds[i,...]
-                    target = embed[i,...]
+                    target = targets[i,...]
                     print("ORIG: {}\nNEW : {}\n".format(
                         "".join([charset[chars] for chars in target]),
                         "".join([charset[chars] for chars in sample])
