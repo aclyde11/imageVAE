@@ -103,7 +103,6 @@ class ImageFolderWithFile(datasets.ImageFolder):
             for i in range(70 - len(t)):
                 t.append(' ')
         embed = [vocab[i] for i in t]
-        print(embed)
         return  super(ImageFolderWithFile, self).__getitem__(index), torch.LongTensor(embed), torch.LongTensor(len(embed))
 
 def generate_data_loader(root, batch_size, data_size):
