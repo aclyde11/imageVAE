@@ -274,6 +274,7 @@ class DecoderWithAttention(nn.Module):
 
         # Create tensors to hold word predicion scores and alphas
         predictions = torch.zeros(batch_size, max(decode_lengths), vocab_size).to(device)
+        print(predictions.shape)
         alphas = torch.zeros(batch_size, max(decode_lengths), num_pixels).to(device)
 
         # At each time-step, decode by
