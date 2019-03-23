@@ -100,6 +100,8 @@ class ImageFolderWithFile(datasets.ImageFolder):
         #embed = apply_one_hot([t])[0].astype(np.float32)
         t.insert(0, '!')
         t.append('?')
+        print(t)
+        print(len(t))
         caplen = len(t)
         while len(t) < 70:
             t.append(' ')
@@ -156,7 +158,7 @@ encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 5,
 encoder = encoder.cuda()
 decoder = decoder.cuda()
 
-train_loader = generate_data_loader(train_root, 42, int(125000))
+train_loader = generate_data_loader(train_root, 4, int(125000))
 val_loader = generate_data_loader(val_root, 32, int(800))
 criterion = nn.CrossEntropyLoss().to(device)
 
@@ -196,6 +198,8 @@ def train(epoch):
             imgs = data[0].float().cuda()
             caps = embed.cuda()
             caplens = embedlen.cuda().view(-1, 1)
+            print(caps[0,...])
+            print(str(['t' for i in range(caplens[0,0].item())]))
 
             # Forward prop.
             imgs = encoder(imgs)
