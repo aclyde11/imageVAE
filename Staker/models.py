@@ -195,7 +195,7 @@ class DecoderWithAttention(nn.Module):
         self.embedding = nn.Embedding(vocab_size, embed_dim)  # embedding layer
         self.dropout = nn.Dropout(p=self.dropout)
         #self.decode_step = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)  # decoding LSTMCell
-        self.decode_step = nn.LSTM(embed_dim + encoder_dim, decoder_dim, num_layers=3, bias=True)
+        self.decode_step = nn.LSTM(embed_dim + encoder_dim, decoder_dim, num_layers=3, bias=True, batch_first=True)
         self.init_h = nn.Linear(encoder_dim, decoder_dim)  # linear layer to find initial hidden state of LSTMCell
         self.init_c = nn.Linear(encoder_dim, decoder_dim)  # linear layer to find initial cell state of LSTMCell
         self.f_beta = nn.Linear(decoder_dim, encoder_dim)  # linear layer to create a sigmoid-activated gate
