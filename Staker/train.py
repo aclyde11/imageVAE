@@ -142,7 +142,7 @@ decoder = DecoderWithAttention(attention_dim=attention_dim,
                                decoder_dim=decoder_dim,
                                vocab_size=len(vocab),
                                dropout=dropout)
-
+decoder.fine_tune(True)
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
 encoder = Encoder()

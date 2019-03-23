@@ -15,7 +15,7 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.enc_image_size = encoded_image_size
 
-        resnet = torchvision.models.resnet50(pretrained=True)  # pretrained ImageNet ResNet-101
+        resnet = torchvision.models.resnet101(pretrained=True)  # pretrained ImageNet ResNet-101
 
         # Remove linear and pool layers (since we're not doing classification)
         modules = list(resnet.children())[:-2]
@@ -194,7 +194,8 @@ class DecoderWithAttention(nn.Module):
 
         self.embedding = nn.Embedding(vocab_size, embed_dim)  # embedding layer
         self.dropout = nn.Dropout(p=self.dropout)
-        self.decode_step = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)  # decoding LSTMCell
+        #self.decode_step = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)  # decoding LSTMCell
+        self.decode_step = nn.LSTM(embed_dim + encoder_dim, decoder_dim, num_layers=3, bias=True)
         self.init_h = nn.Linear(encoder_dim, decoder_dim)  # linear layer to find initial hidden state of LSTMCell
         self.init_c = nn.Linear(encoder_dim, decoder_dim)  # linear layer to find initial cell state of LSTMCell
         self.f_beta = nn.Linear(decoder_dim, encoder_dim)  # linear layer to create a sigmoid-activated gate
@@ -235,6 +236,7 @@ class DecoderWithAttention(nn.Module):
         h = self.init_h(mean_encoder_out)  # (batch_size, decoder_dim)
         c = self.init_c(mean_encoder_out)
         return h, c
+
 
     def forward(self, encoder_out, encoded_captions, caption_lengths):
         """
