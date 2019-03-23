@@ -233,8 +233,8 @@ class DecoderWithAttention(nn.Module):
         :return: hidden state, cell state
         """
         mean_encoder_out = encoder_out.mean(dim=1)
-        h = self.init_h(mean_encoder_out)  # (batch_size, decoder_dim)
-        c = self.init_c(mean_encoder_out)
+        h = self.init_h(mean_encoder_out).repeat(1, 3, 1)  # (batch_size, decoder_dim)
+        c = self.init_c(mean_encoder_out).repeat(1, 3, 1)
         return h, c
 
 
