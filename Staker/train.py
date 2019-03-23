@@ -244,8 +244,8 @@ def train(epoch):
 
             # Keep track of metrics
             losses.update(loss.item(), sum(decode_lengths))
-            print(torch.max(scores)[1].shape, targets.shape)
-            acc = torch.max(scores)[1].eq(targets).sum().item()
+            print(torch.max(scores, dim=1)[1].shape, targets.shape)
+            acc = torch.max(scores, dim=1)[1].eq(targets).sum().item()
 
             experiment.log_metric("acc", acc)
             if batch_idx % log_interval == 0:
