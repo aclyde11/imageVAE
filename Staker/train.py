@@ -210,7 +210,7 @@ def train(epoch):
             # pack_padded_sequence is an easy trick to do this
             for i in range(4):
                 print(scores_copy.shape)
-                print(targets_copy.shaep)
+                print(targets_copy.shape)
 
             scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
             targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
