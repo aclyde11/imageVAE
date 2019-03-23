@@ -203,7 +203,7 @@ def train(epoch):
 
             scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch > 2))
 
-            scores_copy = scores.clone()[:, 1:]
+            scores_copy = scores.clone()
             # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
             targets = caps_sorted[:, 1:]
             targets_copy = targets.clone()
@@ -261,7 +261,7 @@ def train(epoch):
                     sample = preds[i,...]
                     target = targets_copy[i,...]
                     print("ORIG: {}\nNEW : {}\n".format(
-                        "".join([charset[chars] for chars in target[1:]]),
+                        "".join([charset[chars] for chars in target]),
                         "".join([charset[chars] for chars in sample])
                     ))
 
