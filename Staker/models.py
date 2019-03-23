@@ -234,7 +234,7 @@ class DecoderWithAttention(nn.Module):
         """
         mean_encoder_out = encoder_out.mean(dim=1)
         h = self.init_h(mean_encoder_out).repeat(1, 3, 1)  # (batch_size, decoder_dim)
-        c = self.init_c(mean_encoder_out)
+        c = self.init_c(mean_encoder_out).repeat(1, 3, 1)
         return h, c
 
 
@@ -282,12 +282,12 @@ class DecoderWithAttention(nn.Module):
 
             batch_size_t = sum([l > t for l in decode_lengths])
             attention_weighted_encoding, alpha = self.attention(encoder_out[:batch_size_t],
-                                                                h[:batch_size_t])
-            gate = self.sigmoid(self.f_beta(h[:batch_size_t]))  # gating scalar, (batch_size_t, encoder_dim)
+                                                                h[:batch_size_t, 0, ...])
+            gate = self.sigmoid(self.f_beta(h[:batch_size_t, 0, ...]))  # gating scalar, (batch_size_t, encoder_dim)
             attention_weighted_encoding = gate * attention_weighted_encoding
             h, c = self.decode_step(
                 torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1),
-                (h[:batch_size_t].repeat(1, 3, 1), c[:batch_size_t].repeat(1, 3, 1)))  # (batch_size_t, decoder_dim)
+                (h[:batch_size_t], c[:batch_size_t]))  # (batch_size_t, decoder_dim)
             preds = self.fc(self.dropout(h))  # (batch_size_t, vocab_size)
             predictions[:batch_size_t, t, :] = preds
             alphas[:batch_size_t, t, :] = alpha
