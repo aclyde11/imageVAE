@@ -351,9 +351,16 @@ def test(epoch):
 
 
     experiment.log_metric("loss", losses.avg)
+    return losses.avg
 
 
 for epoch in range(starting_epoch, epochs):
-    #train(epoch)
-    test(epoch)
+    best_val = 1000000
+    train(epoch)
+    val = test(epoch)
+    if val < best_val:
+        torch.save(encoder.state_dict(), "encoder.best.pt")
+        torch.save(decoder.state_dict(), "decoder.best.pt")
+        best_val = val
+
 
