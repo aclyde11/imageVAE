@@ -38,7 +38,7 @@ epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
 data_para = True
-log_interval = 2
+log_interval = 10
 LR = hyper_params['learning_rate']       ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
@@ -157,7 +157,7 @@ encoder = encoder.cuda()
 decoder = decoder.cuda()
 
 train_loader = generate_data_loader(train_root, 50, int(100000))
-val_loader = generate_data_loader(val_root, 50, int(800))
+val_loader = generate_data_loader(val_root, 50, int(2000))
 criterion = nn.CrossEntropyLoss().to(device)
 
 class AverageMeter(object):
