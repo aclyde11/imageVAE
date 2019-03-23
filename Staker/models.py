@@ -293,7 +293,7 @@ class DecoderWithAttention(nn.Module):
 
             lstm_input = torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1)
             print("lstm_input: {}, h: {}, c{}".format(lstm_input.shape, h.shape, c.shape))
-            h, c = self.decode_step(
+            h, c = self.decode_step1(
                 lstm_input,
                 (h[:batch_size_t], c[:batch_size_t]))  # (batch_size_t, decoder_dim)
             print("output: {}, h: {}, c{}".format(h.shape, c.shape))
