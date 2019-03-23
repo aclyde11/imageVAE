@@ -204,7 +204,7 @@ def train(epoch):
             scores_copy = scores.clone()
             # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
             targets = caps_sorted[:, 1:]
-
+            targets_copy = targets.clone()
             # Remove timesteps that we didn't decode at, or are pads
             # pack_padded_sequence is an easy trick to do this
             scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
@@ -248,10 +248,10 @@ def train(epoch):
                 print(scores_copy.shape)
                 _, preds = torch.max(scores_copy, dim=2)
                 preds = preds.cpu().numpy()
-                targets = caps.cpu().numpy()
+                targets_copy = targets_copy.cpu().numpy()
                 for i in range(4):
                     sample = preds[i,...]
-                    target = targets[i,...]
+                    target = targets_copy[i,...]
                     print("ORIG: {}\nNEW : {}\n".format(
                         "".join([charset[chars] for chars in target[1:]]),
                         "".join([charset[chars] for chars in sample])
