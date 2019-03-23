@@ -244,13 +244,13 @@ def train(epoch):
 
             # Keep track of metrics
             losses.update(loss.item(), sum(decode_lengths))
+
+            experiment.log_metric('loss', loss.item())
             acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
+            experiment.log_metric("acc_per_char", acc)
 
-            experiment.log_metric("acc", acc)
+
             if batch_idx % log_interval == 0:
-
-
-
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),
                            100. * batch_idx / len(train_loader),
@@ -259,13 +259,17 @@ def train(epoch):
                 _, preds = torch.max(scores_copy, dim=2)
                 preds = preds.cpu().numpy()
                 targets_copy = targets_copy.cpu().numpy()
-                for i in range(4):
+                acc_per_string = 0
+                for i in range(preds.shape[0]):
                     sample = preds[i,...]
                     target = targets_copy[i,...]
-                    print("ORIG: {}\nNEW : {}\n".format(
-                        "".join([charset[chars] for chars in target]),
-                        "".join([charset[chars] for chars in sample])
-                    ))
+                    s1 = "".join([charset[chars] for chars in target])
+                    s2 = "".join([charset[chars] for chars in sample])
+                    if i < 4:
+                        print("ORIG: {}\nNEW : {}\n".format(s1, s2))
+                    acc_per_string += int(s1 == s2)
+                experiment.log_metric('acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
+
 
 
                 #
@@ -332,9 +336,9 @@ def test(epoch):
 
                 # Keep track of metrics
                 losses.update(loss.item(), sum(decode_lengths))
-                acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
 
-                experiment.log_metric("acc", acc)
+                acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
+                experiment.log_metric("acc_per_char", acc)
                 if batch_idx % log_interval == 0:
 
                     print('Eval Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
