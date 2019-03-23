@@ -292,7 +292,7 @@ class DecoderWithAttention(nn.Module):
 
             lstm_input = None
             if teacher_forcing and t > 0:
-                lstm_input = torch.cat([self.embedding(predictions[:batch_size_t, t, :]), attention_weighted_encoding], dim=1)
+                lstm_input = torch.cat([self.embedding(torch.max(predictions[:batch_size_t, t, :], dim=2)[1]), attention_weighted_encoding], dim=1)
             else:
                 lstm_input = torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1)
             h, c = self.decode_step1(
