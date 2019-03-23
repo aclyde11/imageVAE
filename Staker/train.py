@@ -302,9 +302,11 @@ def test(epoch):
 
                 # Forward prop.
                 imgs = encoder(imgs)
-                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens)
 
-                scores_copy = scores.clone()[:, 1:]
+                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
+                                                                                teacher_forcing=bool(epoch > 1))
+
+                scores_copy = scores.clone()
                 # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
                 targets = caps_sorted[:, 1:]
                 targets_copy = targets.clone()
@@ -325,16 +327,16 @@ def test(epoch):
                 # Add doubly stochastic attention regularization
                 loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
 
-
                 # Keep track of metrics
                 losses.update(loss.item(), sum(decode_lengths))
 
                 if batch_idx % log_interval == 0:
 
-                    print('Val Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
+                    print('Eval Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                         epoch, batch_idx * len(data), len(train_loader.dataset),
                                100. * batch_idx / len(train_loader),
                                loss.item() / len(data), datetime.datetime.now()))
+
                     _, preds = torch.max(scores_copy, dim=2)
                     preds = preds.cpu().numpy()
                     targets_copy = targets_copy.cpu().numpy()
@@ -342,9 +344,11 @@ def test(epoch):
                         sample = preds[i, ...]
                         target = targets_copy[i, ...]
                         print("ORIG: {}\nNEW : {}\n".format(
-                            "".join([charset[chars] for chars in target[1:]]),
+                            "".join([charset[chars] for chars in target]),
                             "".join([charset[chars] for chars in sample])
                         ))
+
+
 
     experiment.log_metric("loss", losses.avg)
 
