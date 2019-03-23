@@ -234,7 +234,7 @@ class DecoderWithAttention(nn.Module):
         """
         mean_encoder_out = encoder_out.mean(dim=1)
         h = self.init_h(mean_encoder_out).repeat(1, 3, 1)  # (batch_size, decoder_dim)
-        c = self.init_c(mean_encoder_out).repeat(1, 3, 1)
+        c = self.init_c(mean_encoder_out)
         return h, c
 
 
@@ -287,7 +287,7 @@ class DecoderWithAttention(nn.Module):
             attention_weighted_encoding = gate * attention_weighted_encoding
             h, c = self.decode_step(
                 torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1),
-                (h[:batch_size_t], c[:batch_size_t]))  # (batch_size_t, decoder_dim)
+                (h[:batch_size_t].repeat(1, 3, 1), c[:batch_size_t].repeat(1, 3, 1)))  # (batch_size_t, decoder_dim)
             preds = self.fc(self.dropout(h))  # (batch_size_t, vocab_size)
             predictions[:batch_size_t, t, :] = preds
             alphas[:batch_size_t, t, :] = alpha
