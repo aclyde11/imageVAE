@@ -333,6 +333,9 @@ def test(epoch):
 
                 # Keep track of metrics
                 losses.update(loss.item(), sum(decode_lengths))
+                print(torch.max(scores_copy, dim=2)[1].shape)
+                print(targets_copy)
+                print((torch.max(scores_copy, dim=2)[1].eq(targets_copy)).shape)
                 acc = (torch.max(scores_copy, dim=2)[1].eq(targets_copy)).sum().item()
 
                 experiment.log_metric("acc", acc)
