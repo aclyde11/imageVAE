@@ -43,9 +43,9 @@ LR = hyper_params['learning_rate']       ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
-vocab.insert(0,' ')
 vocab.insert(0, '!')
 vocab.insert(0, '?')
+vocab.insert(0,' ')
 vocab = {k: v for v, k in enumerate(vocab)}
 charset = {k: v for v ,k in vocab.iteritems()}
 embedding_width = 70
@@ -100,8 +100,6 @@ class ImageFolderWithFile(datasets.ImageFolder):
         #embed = apply_one_hot([t])[0].astype(np.float32)
         t.insert(0, '!')
         t.append('?')
-        print(t)
-        print(len(t))
         caplen = len(t)
         while len(t) < 70:
             t.append(' ')
@@ -198,8 +196,7 @@ def train(epoch):
             imgs = data[0].float().cuda()
             caps = embed.cuda()
             caplens = embedlen.cuda().view(-1, 1)
-            print(caps[0,...])
-            print(str(['t' for i in range(caplens[0,0].item())]))
+
 
             # Forward prop.
             imgs = encoder(imgs)
