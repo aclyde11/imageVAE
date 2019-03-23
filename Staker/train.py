@@ -208,11 +208,11 @@ def train(epoch):
             targets_copy = targets.clone()
             # Remove timesteps that we didn't decode at, or are pads
             # pack_padded_sequence is an easy trick to do this
-            print(caplens)
-            for i in range(4):
-                print(scores_copy[i, ...].shape)
-                print(targets_copy[i, ...].shape)
-                print(decode_lengths[i])
+            # print(caplens)
+            # for i in range(4):
+            #     print(scores_copy[i, ...].shape)
+            #     print(targets_copy[i, ...].shape)
+            #     print(decode_lengths[i])
 
 
             scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
@@ -253,7 +253,6 @@ def train(epoch):
                            100. * batch_idx / len(train_loader),
                            loss.item() / len(data), datetime.datetime.now()))
 
-                print(scores_copy.shape)
                 _, preds = torch.max(scores_copy, dim=2)
                 preds = preds.cpu().numpy()
                 targets_copy = targets_copy.cpu().numpy()
@@ -291,31 +290,63 @@ def train(epoch):
 def test(epoch):
     with experiment.test():
         experiment.log_current_epoch(epoch)
-        model.eval()
-        test_loss = 0
+        decoder.eval()
+        encoder.eval()
+        losses = AverageMeter()  # loss (per word decoded)
         with torch.no_grad():
-            for i, (data, embed, smiles) in enumerate(val_loader):
-                data = data[0].float().cuda()
-                embed = embed.float().cuda()
-                recon_batch = model(data)
+            for batch_idx, (data, embed, embedlen) in enumerate(train_loader):
+                imgs = data[0].float().cuda()
+                caps = embed.cuda()
+                caplens = embedlen.cuda().view(-1, 1)
 
-                loss = lossf(recon_batch.float(), embed)
+                # Forward prop.
+                imgs = encoder(imgs)
+                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens)
 
-                test_loss += loss.item()
+                scores_copy = scores.clone()[:, 1:]
+                # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
+                targets = caps_sorted[:, 1:]
+                targets_copy = targets.clone()
+                # Remove timesteps that we didn't decode at, or are pads
+                # pack_padded_sequence is an easy trick to do this
+                # print(caplens)
+                # for i in range(4):
+                #     print(scores_copy[i, ...].shape)
+                #     print(targets_copy[i, ...].shape)
+                #     print(decode_lengths[i])
 
-                if i == 0:
+                scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+                targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+
+                # Calculate loss
+                loss = criterion(scores, targets)
+
+                # Add doubly stochastic attention regularization
+                loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
+
+
+                # Keep track of metrics
+                losses.update(loss.item(), sum(decode_lengths))
+
+                if batch_idx % log_interval == 0:
+
+                    print('Val Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
+                        epoch, batch_idx * len(data), len(train_loader.dataset),
+                               100. * batch_idx / len(train_loader),
+                               loss.item() / len(data), datetime.datetime.now()))
+                    _, preds = torch.max(scores_copy, dim=2)
+                    preds = preds.cpu().numpy()
+                    targets_copy = targets_copy.cpu().numpy()
                     for i in range(4):
-                        sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
+                        sample = preds[i, ...]
+                        target = targets_copy[i, ...]
+                        print("ORIG: {}\nNEW : {}\n".format(
+                            "".join([charset[chars] for chars in target[1:]]),
+                            "".join([charset[chars] for chars in sample])
+                        ))
 
-                        mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
-                        mol = decode_smiles_from_indexes(mol)
-                        sampled = decode_smiles_from_indexes(sampled)
-                        print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
+    experiment.log_metric("loss", losses.avg)
 
-    experiment.log_metric("loss", test_loss)
-    test_loss /= len(val_loader.dataset)
-    print('====> Test set loss: {:.4f}'.format(test_loss))
-    val_losses.append(test_loss)
 
 for epoch in range(starting_epoch, epochs):
     train(epoch)
