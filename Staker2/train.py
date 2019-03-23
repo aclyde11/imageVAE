@@ -150,9 +150,6 @@ encoder.fine_tune(fine_tune_encoder)
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
 
-
-decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 5, eta_min=8e-5, last_epoch=-1)
-encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 5, eta_min=8e-5, last_epoch=-1)
 encoder = encoder.cuda()
 decoder = decoder.cuda()
 
@@ -253,7 +250,7 @@ def train(epoch):
                     sample = preds[i,...]
                     target = targets[i,...]
                     print("ORIG: {}\nNEW : {}\n".format(
-                        "".join([charset[chars] for chars in target[1:]]),
+                        "".join([charset[chars] for chars in target]),
                         "".join([charset[chars] for chars in sample])
                     ))
 
