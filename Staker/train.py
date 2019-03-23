@@ -209,8 +209,10 @@ def train(epoch):
             # Remove timesteps that we didn't decode at, or are pads
             # pack_padded_sequence is an easy trick to do this
             for i in range(4):
-                print(scores_copy.shape)
-                print(targets_copy.shape)
+                print(scores_copy[i, ...].shape)
+                print(targets_copy[i, ...].shape)
+                print(decode_lengths[i])
+
 
             scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
             targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
