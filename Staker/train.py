@@ -201,6 +201,7 @@ def train(epoch):
             imgs = encoder(imgs)
             scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens)
 
+            scores = scores[:,1:]
             scores_copy = scores.clone()
             # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
             targets = caps_sorted[:, 1:]
