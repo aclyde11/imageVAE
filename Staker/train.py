@@ -208,6 +208,7 @@ def train(epoch):
             targets_copy = targets.clone()
             # Remove timesteps that we didn't decode at, or are pads
             # pack_padded_sequence is an easy trick to do this
+            print(caplens)
             for i in range(4):
                 print(scores_copy[i, ...].shape)
                 print(targets_copy[i, ...].shape)
