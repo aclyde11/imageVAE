@@ -289,12 +289,10 @@ class DecoderWithAttention(nn.Module):
             gate = self.sigmoid(self.f_beta(h[:batch_size_t]))  # gating scalar, (batch_size_t, encoder_dim)
             attention_weighted_encoding = gate * attention_weighted_encoding
 
-            print('embed', embeddings[:batch_size_t, t, :].shape)
-            print("h ", h.shape)
-            print('preds ', predictions[:batch_size_t, t, :].shape)
+
             lstm_input = None
             if teacher_forcing and t > 0:
-                lstm_input = torch.cat([h, attention_weighted_encoding], dim=1)
+                lstm_input = torch.cat([self.embedding(predictions[:batch_size_t, t, :]), attention_weighted_encoding], dim=1)
             else:
                 lstm_input = torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1)
             h, c = self.decode_step1(
