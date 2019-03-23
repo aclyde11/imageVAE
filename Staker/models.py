@@ -242,7 +242,7 @@ class DecoderWithAttention(nn.Module):
         return h, c
 
 
-    def forward(self, encoder_out, encoded_captions, caption_lengths):
+    def forward(self, encoder_out, encoded_captions, caption_lengths, teacher_forcing=True):
         """
         Forward propagation.
         :param encoder_out: encoded images, a tensor of dimension (batch_size, enc_image_size, enc_image_size, encoder_dim)
@@ -289,7 +289,11 @@ class DecoderWithAttention(nn.Module):
             gate = self.sigmoid(self.f_beta(h[:batch_size_t]))  # gating scalar, (batch_size_t, encoder_dim)
             attention_weighted_encoding = gate * attention_weighted_encoding
 
-            lstm_input = torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1)
+            lstm_input = None
+            if teacher_forcing and t > 0:
+                lstm_input = torch.cat([h[:batch_size_t, t, :], attention_weighted_encoding], dim=1)
+            else:
+                lstm_input = torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1)
             h, c = self.decode_step1(
                 lstm_input,
                 (h[:batch_size_t], c[:batch_size_t]))  # (batch_size_t, decoder_dim)
