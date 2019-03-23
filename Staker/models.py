@@ -270,7 +270,6 @@ class DecoderWithAttention(nn.Module):
 
         # Initialize LSTM state
         h, c = self.init_hidden_state(encoder_out)  # (batch_size, decoder_dim)
-        print("h: {}, c{}".format(h.shape, c.shape))
 
         # We won't decode at the <end> position, since we've finished generating as soon as we generate <end>
         # So, decoding lengths are actual lengths - 1
@@ -292,18 +291,16 @@ class DecoderWithAttention(nn.Module):
             attention_weighted_encoding = gate * attention_weighted_encoding
 
             lstm_input = torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1)
-            print("lstm_input: {}, h: {}, c{}".format(lstm_input.shape, h.shape, c.shape))
             h, c = self.decode_step1(
                 lstm_input,
                 (h[:batch_size_t], c[:batch_size_t]))  # (batch_size_t, decoder_dim)
-            # h, c = self.decode_step1(
-            #     lstm_input,
-            #     (h[:batch_size_t], c[:batch_size_t]))  # (batch_size_t, decoder_dim)
-            # h, c = self.decode_step1(
-            #     lstm_input,
-            #     (h[:batch_size_t], c[:batch_size_t]))  # (batch_size_t, decoder_dim)
+            h, c = self.decode_step2(
+                lstm_input,
+                (h[:batch_size_t], c[:batch_size_t]))  # (batch_size_t, decoder_dim)
+            h, c = self.decode_step3(
+                lstm_input,
+                (h[:batch_size_t], c[:batch_size_t]))  # (batch_size_t, decoder_dim)
 
-            print("h: {}, c{}".format(h.shape, c.shape))
             preds = self.fc(self.dropout(h))  # (batch_size_t, vocab_size)
             predictions[:batch_size_t, t, :] = preds
             alphas[:batch_size_t, t, :] = alpha
