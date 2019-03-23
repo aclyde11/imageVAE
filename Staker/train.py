@@ -132,8 +132,8 @@ attention_dim = 512  # dimension of attention linear layers
 decoder_dim = 512  # dimension of decoder RNN
 dropout = 0.1
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # sets device for model and PyTorch tensors
-encoder_lr = 8e-4  # learning rate for encoder if fine-tuning
-decoder_lr = 8e-4  # learning rate for decoder
+encoder_lr = 1e-3  # learning rate for encoder if fine-tuning
+decoder_lr = 1e-3  # learning rate for decoder
 grad_clip = 5.  # clip gradients at an absolute value of
 alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as in the paper
 fine_tune_encoder = True  # fine-tune encoder?
@@ -151,8 +151,8 @@ encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, en
                                      lr=encoder_lr) if fine_tune_encoder else None
 
 
-decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 5, eta_min=8e-5, last_epoch=-1)
-encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 5, eta_min=8e-5, last_epoch=-1)
+decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 4, eta_min=5e-5, last_epoch=-1)
+encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 4, eta_min=5e-5, last_epoch=-1)
 encoder = encoder.cuda()
 decoder = decoder.cuda()
 
@@ -245,6 +245,9 @@ def train(epoch):
             # Keep track of metrics
             losses.update(loss.item(), sum(decode_lengths))
 
+            acc = (torch.max(scores_copy, dim=2)[1].eq(targets_copy)).sum().item()
+
+            experiment.log_metric("acc", acc)
             if batch_idx % log_interval == 0:
 
 
@@ -264,6 +267,7 @@ def train(epoch):
                         "".join([charset[chars] for chars in target]),
                         "".join([charset[chars] for chars in sample])
                     ))
+
 
                 #
                 #
@@ -329,7 +333,9 @@ def test(epoch):
 
                 # Keep track of metrics
                 losses.update(loss.item(), sum(decode_lengths))
+                acc = (torch.max(scores_copy, dim=2)[1].eq(targets_copy)).sum().item()
 
+                experiment.log_metric("acc", acc)
                 if batch_idx % log_interval == 0:
 
                     print('Eval Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
@@ -350,12 +356,14 @@ def test(epoch):
 
 
 
-    experiment.log_metric("loss", losses.avg)
+        experiment.log_metric("loss", losses.avg)
     return losses.avg
 
 
 for epoch in range(starting_epoch, epochs):
     best_val = 1000000
+    decoder_sched.step()
+    encoder_sched.step()
     train(epoch)
     val = test(epoch)
     if val < best_val:
