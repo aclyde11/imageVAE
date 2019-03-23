@@ -194,8 +194,12 @@ class DecoderWithAttention(nn.Module):
 
         self.embedding = nn.Embedding(vocab_size, embed_dim)  # embedding layer
         self.dropout = nn.Dropout(p=self.dropout)
-        #self.decode_step = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)  # decoding LSTMCell
-        self.decode_step = nn.LSTM(embed_dim + encoder_dim, decoder_dim, num_layers=3, bias=True, batch_first=True)
+        self.decode_step1 = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)  # decoding LSTMCell
+        self.decode_step2 = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)  # decoding LSTMCell
+        self.decode_step3 = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)  # decoding LSTMCell
+
+
+        #self.decode_step = nn.LSTM(embed_dim + encoder_dim, decoder_dim, num_layers=3, bias=True, batch_first=True)
         self.init_h = nn.Linear(encoder_dim, decoder_dim)  # linear layer to find initial hidden state of LSTMCell
         self.init_c = nn.Linear(encoder_dim, decoder_dim)  # linear layer to find initial cell state of LSTMCell
         self.f_beta = nn.Linear(decoder_dim, encoder_dim)  # linear layer to create a sigmoid-activated gate
@@ -233,8 +237,8 @@ class DecoderWithAttention(nn.Module):
         :return: hidden state, cell state
         """
         mean_encoder_out = encoder_out.mean(dim=1)
-        h = self.init_h(mean_encoder_out).repeat(1, 3, 1)  # (batch_size, decoder_dim)
-        c = self.init_c(mean_encoder_out).repeat(1, 3, 1)
+        h = self.init_h(mean_encoder_out)  # (batch_size, decoder_dim)
+        c = self.init_c(mean_encoder_out)
         return h, c
 
 
@@ -283,16 +287,16 @@ class DecoderWithAttention(nn.Module):
 
             batch_size_t = sum([l > t for l in decode_lengths])
             attention_weighted_encoding, alpha = self.attention(encoder_out[:batch_size_t],
-                                                                h[:batch_size_t, 0, ...])
-            gate = self.sigmoid(self.f_beta(h[:batch_size_t, 0, ...]))  # gating scalar, (batch_size_t, encoder_dim)
+                                                                h[:batch_size_t])
+            gate = self.sigmoid(self.f_beta(h[:batch_size_t]))  # gating scalar, (batch_size_t, encoder_dim)
             attention_weighted_encoding = gate * attention_weighted_encoding
 
             lstm_input = torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1)
             print("lstm_input: {}, h: {}, c{}".format(lstm_input.shape, h.shape, c.shape))
-            output, h, c = self.decode_step(
+            h, c = self.decode_step(
                 lstm_input,
                 (h[:batch_size_t], c[:batch_size_t]))  # (batch_size_t, decoder_dim)
-            print("output: {}, h: {}, c{}".format(output.shape, h.shape, c.shape))
+            print("output: {}, h: {}, c{}".format(h.shape, c.shape))
             preds = self.fc(self.dropout(h[:,-1,...]))  # (batch_size_t, vocab_size)
             predictions[:batch_size_t, t, :] = preds
             alphas[:batch_size_t, t, :] = alpha
