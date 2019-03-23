@@ -156,7 +156,7 @@ encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 5,
 encoder = encoder.cuda()
 decoder = decoder.cuda()
 
-train_loader = generate_data_loader(train_root, 1, int(125000))
+train_loader = generate_data_loader(train_root, 4, int(125000))
 val_loader = generate_data_loader(val_root, 32, int(800))
 criterion = nn.CrossEntropyLoss().to(device)
 
@@ -208,6 +208,10 @@ def train(epoch):
             targets_copy = targets.clone()
             # Remove timesteps that we didn't decode at, or are pads
             # pack_padded_sequence is an easy trick to do this
+            for i in range(4):
+                print(scores_copy.shape)
+                print(targets_copy.shaep)
+
             scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
             targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
