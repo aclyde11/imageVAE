@@ -295,7 +295,7 @@ def test(epoch):
         encoder.eval()
         losses = AverageMeter()  # loss (per word decoded)
         with torch.no_grad():
-            for batch_idx, (data, embed, embedlen) in enumerate(train_loader):
+            for batch_idx, (data, embed, embedlen) in enumerate(val_loader):
                 imgs = data[0].float().cuda()
                 caps = embed.cuda()
                 caplens = embedlen.cuda().view(-1, 1)
