@@ -156,7 +156,7 @@ encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 5,
 encoder = encoder.cuda()
 decoder = decoder.cuda()
 
-train_loader = generate_data_loader(train_root, 50, int(150000))
+train_loader = generate_data_loader(train_root, 50, int(100000))
 val_loader = generate_data_loader(val_root, 50, int(800))
 criterion = nn.CrossEntropyLoss().to(device)
 
@@ -200,7 +200,8 @@ def train(epoch):
 
             # Forward prop.
             imgs = encoder(imgs)
-            scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens)
+
+            scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch > 2))
 
             scores_copy = scores.clone()[:, 1:]
             # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
