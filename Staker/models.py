@@ -266,6 +266,7 @@ class DecoderWithAttention(nn.Module):
 
         # Initialize LSTM state
         h, c = self.init_hidden_state(encoder_out)  # (batch_size, decoder_dim)
+        print("h: {}, c{}".format(h.shape, c.shape))
 
         # We won't decode at the <end> position, since we've finished generating as soon as we generate <end>
         # So, decoding lengths are actual lengths - 1
@@ -285,10 +286,13 @@ class DecoderWithAttention(nn.Module):
                                                                 h[:batch_size_t, 0, ...])
             gate = self.sigmoid(self.f_beta(h[:batch_size_t, 0, ...]))  # gating scalar, (batch_size_t, encoder_dim)
             attention_weighted_encoding = gate * attention_weighted_encoding
+
+            print("h: {}, c{}".format(h.shape, c.shape))
             h, c = self.decode_step(
                 torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1),
                 (h[:batch_size_t], c[:batch_size_t]))  # (batch_size_t, decoder_dim)
-            preds = self.fc(self.dropout(h))  # (batch_size_t, vocab_size)
+            print("h: {}, c{}".format(h.shape, c.shape))
+            preds = self.fc(self.dropout(h[:,-1,...]))  # (batch_size_t, vocab_size)
             predictions[:batch_size_t, t, :] = preds
             alphas[:batch_size_t, t, :] = alpha
 
