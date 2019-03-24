@@ -347,8 +347,8 @@ class GridLSTMDecoderWithAttention(nn.Module):
 
         # Initialize LSTM state
         h, m = self.init_hidden_state(encoder_out)  # (batch_size, decoder_dim)
-        newhs = [h.clone(), h.clone(), h.clone()]
-        newms = [m.clone(), m.clone(), m.clone()]
+        newhs = [h, h, h]
+        newms = [m, m, m]
         # We won't decode at the <end> position, since we've finished generating as soon as we generate <end>
         # So, decoding lengths are actual lengths - 1
         decode_lengths = (caption_lengths - 1).tolist()
