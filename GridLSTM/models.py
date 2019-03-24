@@ -320,7 +320,7 @@ class GridLSTMDecoderWithAttention(nn.Module):
         return h, c
 
 
-    def forward(self, encoder_out, encoded_captions, caption_lengths, teacher_forcing=True, use_first_state=True):
+    def forward(self, encoder_out, encoded_captions, caption_lengths, teacher_forcing=True, use_first_state=False):
         """
         Forward propagation.
         :param encoder_out: encoded images, a tensor of dimension (batch_size, enc_image_size, enc_image_size, encoder_dim)
@@ -371,6 +371,8 @@ class GridLSTMDecoderWithAttention(nn.Module):
             attention_weighted_encoding = gate * attention_weighted_encoding
 
             lstm_input = None
+            print("embedding size", embeddings.shape, attention_weighted_encoding.shape)
+
             if teacher_forcing and t > 0:
                 lstm_input = torch.cat([self.embedding(torch.max(predictions[:batch_size_t, t, :], dim=1)[1].long()), attention_weighted_encoding], dim=1)
             else:

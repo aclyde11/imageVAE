@@ -156,8 +156,8 @@ encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 5,
 encoder = encoder.cuda()
 decoder = decoder.cuda()
 
-train_loader = generate_data_loader(train_root, 2, int(50000))
-val_loader = generate_data_loader(val_root, 2, int(10000))
+train_loader = generate_data_loader(train_root, 4, int(50000))
+val_loader = generate_data_loader(val_root, 4, int(10000))
 criterion = nn.CrossEntropyLoss().to(device)
 
 class AverageMeter(object):
