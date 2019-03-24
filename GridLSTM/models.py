@@ -244,7 +244,7 @@ class StackGridLSTMCell2d(nn.Module):
         hsA4, hsB3prime, msA4, msB3prime = self.lstm3(x, [hsA3, hsB3], [msA3, msB3])
 
         #need
-        return hsA4, [hsB1prime, hsB2prime, hsB3prime], [msB1prime, msB2prime, msB3prime]
+        return hsA4, msA4, [hsB1prime, hsB2prime, hsB3prime], [msB1prime, msB2prime, msB3prime]
 
 
 
