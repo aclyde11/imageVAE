@@ -389,8 +389,6 @@ class GridLSTMDecoderWithAttention(nn.Module):
             newhs = map(lambda x : x[:batch_size_t, ...], newhs)
             newms = map(lambda x : x[:batch_size_t, ...], newms)
 
-            map(lambda x : print("h size ", x.shape), newhs)
-            map(lambda x : print("m size ", x.shape), newms)
             print("input shape", lstm_input.shape)
             print('running grid ', t)
             h, m, newhs, newms = self.decode_step1(lstm_input, newhs, newms)
