@@ -123,7 +123,7 @@ class PictureEncoder(nn.Module):
         modules = list(resnet.children())[:-2]
         self.encoder = nn.Sequential(*modules)
         self.fc_mu = nn.Linear(512, 512)
-        self.log_var = nn.Lienar(512, 512)
+        self.log_var = nn.Linear(512, 512)
 
 
     def forward(self, x):
