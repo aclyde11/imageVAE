@@ -386,8 +386,8 @@ class GridLSTMDecoderWithAttention(nn.Module):
 
             newhs.insert(0, h)
             newms.insert(0, m)
-            map(lambda x : x[:batch_size_t, ...], newhs)
-            map(lambda x : x[:batch_size_t, ...], newms)
+            newhs = map(lambda x : x[:batch_size_t, ...], newhs)
+            newms = map(lambda x : x[:batch_size_t, ...], newms)
 
             map(lambda x : print("h size ", x.shape), newhs)
             map(lambda x : print("m size ", x.shape), newms)
