@@ -38,14 +38,14 @@ epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
 data_para = True
-log_interval = 1
+log_interval = 10
 LR = hyper_params['learning_rate']       ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
-vocab.insert(0,' ')
 vocab.insert(0, '!')
 vocab.insert(0, '?')
+vocab.insert(0,' ')
 vocab = {k: v for v, k in enumerate(vocab)}
 charset = {k: v for v ,k in vocab.iteritems()}
 embedding_width = 70
@@ -61,8 +61,8 @@ torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/combo/results/'
 save_files = '/homes/aclyde11/imageVAE/combo/model/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
-
+#kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
+kwargs =  {}
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
 val_root =   '/homes/aclyde11/moldata/moses/test/'
@@ -132,8 +132,8 @@ attention_dim = 512  # dimension of attention linear layers
 decoder_dim = 512  # dimension of decoder RNN
 dropout = 0.1
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # sets device for model and PyTorch tensors
-encoder_lr = 8e-4  # learning rate for encoder if fine-tuning
-decoder_lr = 8e-4  # learning rate for decoder
+encoder_lr = 5e-4  # learning rate for encoder if fine-tuning
+decoder_lr = 5e-4  # learning rate for decoder
 grad_clip = 5.  # clip gradients at an absolute value of
 alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as in the paper
 fine_tune_encoder = True  # fine-tune encoder?
@@ -142,7 +142,7 @@ decoder = DecoderWithAttention(attention_dim=attention_dim,
                                decoder_dim=decoder_dim,
                                vocab_size=len(vocab),
                                dropout=dropout)
-
+decoder.fine_tune_embeddings(True)
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
 encoder = Encoder()
@@ -150,11 +150,14 @@ encoder.fine_tune(fine_tune_encoder)
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
 
+
+decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 5, eta_min=1e-5, last_epoch=-1)
+encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 5, eta_min=1e-5, last_epoch=-1)
 encoder = encoder.cuda()
 decoder = decoder.cuda()
 
-train_loader = generate_data_loader(train_root, 64, int(50000))
-val_loader = generate_data_loader(val_root, 64, int(800))
+train_loader = generate_data_loader(train_root, 64, int(150000))
+val_loader = generate_data_loader(val_root, 50, int(10000))
 criterion = nn.CrossEntropyLoss().to(device)
 
 class AverageMeter(object):
@@ -194,16 +197,25 @@ def train(epoch):
             caps = embed.cuda()
             caplens = embedlen.cuda().view(-1, 1)
 
+
             # Forward prop.
             imgs = encoder(imgs)
-            scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens)
+
+            scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch > 1))
 
             scores_copy = scores.clone()
             # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
             targets = caps_sorted[:, 1:]
-
+            targets_copy = targets.clone()
             # Remove timesteps that we didn't decode at, or are pads
             # pack_padded_sequence is an easy trick to do this
+            # print(caplens)
+            # for i in range(4):
+            #     print(scores_copy[i, ...].shape)
+            #     print(targets_copy[i, ...].shape)
+            #     print(decode_lengths[i])
+
+
             scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
             targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
@@ -233,26 +245,32 @@ def train(epoch):
             # Keep track of metrics
             losses.update(loss.item(), sum(decode_lengths))
 
+            experiment.log_metric('loss', loss.item())
+            acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
+            experiment.log_metric("acc_per_char", acc)
+
+
             if batch_idx % log_interval == 0:
-
-
-
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),
                            100. * batch_idx / len(train_loader),
                            loss.item() / len(data), datetime.datetime.now()))
 
-                print(scores_copy.shape)
                 _, preds = torch.max(scores_copy, dim=2)
                 preds = preds.cpu().numpy()
-                targets = caps.cpu().numpy()
-                for i in range(4):
+                targets_copy = targets_copy.cpu().numpy()
+                acc_per_string = 0
+                for i in range(preds.shape[0]):
                     sample = preds[i,...]
-                    target = targets[i,...]
-                    print("ORIG: {}\nNEW : {}\n".format(
-                        "".join([charset[chars] for chars in target]),
-                        "".join([charset[chars] for chars in sample])
-                    ))
+                    target = targets_copy[i,...]
+                    s1 = "".join([charset[chars] for chars in target])
+                    s2 = "".join([charset[chars] for chars in sample])
+                    if i < 4:
+                        print("ORIG: {}\nNEW : {}\n".format(s1, s2))
+                    acc_per_string += int(s1 == s2)
+                experiment.log_metric('acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
+
+
 
                 #
                 #
@@ -280,33 +298,77 @@ def train(epoch):
 def test(epoch):
     with experiment.test():
         experiment.log_current_epoch(epoch)
-        model.eval()
-        test_loss = 0
+        decoder.eval()
+        encoder.eval()
+        losses = AverageMeter()  # loss (per word decoded)
         with torch.no_grad():
-            for i, (data, embed, smiles) in enumerate(val_loader):
-                data = data[0].float().cuda()
-                embed = embed.float().cuda()
-                recon_batch = model(data)
+            for batch_idx, (data, embed, embedlen) in enumerate(val_loader):
+                imgs = data[0].float().cuda()
+                caps = embed.cuda()
+                caplens = embedlen.cuda().view(-1, 1)
 
-                loss = lossf(recon_batch.float(), embed)
+                # Forward prop.
+                imgs = encoder(imgs)
 
-                test_loss += loss.item()
+                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
+                                                                                teacher_forcing=bool(epoch > 1))
 
-                if i == 0:
+                scores_copy = scores.clone()
+                # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
+                targets = caps_sorted[:, 1:]
+                targets_copy = targets.clone()
+                # Remove timesteps that we didn't decode at, or are pads
+                # pack_padded_sequence is an easy trick to do this
+                # print(caplens)
+                # for i in range(4):
+                #     print(scores_copy[i, ...].shape)
+                #     print(targets_copy[i, ...].shape)
+                #     print(decode_lengths[i])
+
+                scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+                targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+
+                # Calculate loss
+                loss = criterion(scores, targets)
+
+                # Add doubly stochastic attention regularization
+                loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
+
+                # Keep track of metrics
+                losses.update(loss.item(), sum(decode_lengths))
+
+                acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
+                experiment.log_metric("acc_per_char", acc)
+                if batch_idx % log_interval == 0:
+
+                    print('Eval Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
+                        epoch, batch_idx * len(data), len(train_loader.dataset),
+                               100. * batch_idx / len(train_loader),
+                               loss.item() / len(data), datetime.datetime.now()))
+
+                    _, preds = torch.max(scores_copy, dim=2)
+                    preds = preds.cpu().numpy()
+                    targets_copy = targets_copy.cpu().numpy()
                     for i in range(4):
-                        sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
+                        sample = preds[i, ...]
+                        target = targets_copy[i, ...]
+                        print("ORIG: {}\nNEW : {}\n".format(
+                            "".join([charset[chars] for chars in target]),
+                            "".join([charset[chars] for chars in sample])
+                        ))
 
-                        mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
-                        mol = decode_smiles_from_indexes(mol)
-                        sampled = decode_smiles_from_indexes(sampled)
-                        print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
 
-    experiment.log_metric("loss", test_loss)
-    test_loss /= len(val_loader.dataset)
-    print('====> Test set loss: {:.4f}'.format(test_loss))
-    val_losses.append(test_loss)
+
+        experiment.log_metric("loss", losses.avg)
+    return losses.avg
+
 
 for epoch in range(starting_epoch, epochs):
+    decoder_sched.step()
+    encoder_sched.step()
     train(epoch)
-    #test(epoch)
+    val = test(epoch)
+    torch.save(encoder.state_dict(), "encoder." + str(epoch) + ".pt")
+    torch.save(decoder.state_dict(), "decoder." + str(epoch) + ".pt")
+
 
