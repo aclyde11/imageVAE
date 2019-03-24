@@ -14,7 +14,7 @@ from torchvision.utils import save_image
 import torchvision
 import pickle
 from PIL import  ImageOps
-from models import DecoderWithAttention, Encoder
+from models import GridLSTMDecoderWithAttention, Encoder
 from invert import Invert
 
 import numpy as np
@@ -137,7 +137,7 @@ decoder_lr = 5e-4  # learning rate for decoder
 grad_clip = 5.  # clip gradients at an absolute value of
 alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as in the paper
 fine_tune_encoder = True  # fine-tune encoder?
-decoder = DecoderWithAttention(attention_dim=attention_dim,
+decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                                embed_dim=emb_dim,
                                decoder_dim=decoder_dim,
                                vocab_size=len(vocab),
