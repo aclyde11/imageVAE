@@ -20,6 +20,7 @@ from invert import Invert
 import numpy as np
 import pandas as pd
 
+torch.cuda.set_device(5)
 
 hyper_params = {
     "num_epochs": 1000,
@@ -106,35 +107,38 @@ def generate_data_loader(root, batch_size, data_size):
         ImageFolderWithFile(root, transform=invert),
         batch_size=batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
+class customLoss(nn.Module):
+    def __init__(self):
+        super(customLoss, self).__init__()
+        self.mse_loss = nn.MSELoss(reduction="sum")
+        self.crispyLoss = MS_SSIM()
+
+    def forward(self, x_recon, x, mu, logvar, epoch):
+        loss_MSE = self.mse_loss(x_recon, x)
+        loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        loss_cripsy = self.crispyLoss(x_recon, x)
+
+        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
 
-model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_15.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder1_epoch_15.pt'}
-model_load2 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder2_epoch_15.pt', 'encoder':'/homes/aclyde11/imageVAE/combo/model/encoder2_epoch_15.pt'}
-
-decoder2 = MolDecoder(i=292)
-# encoder1 = torch.load(model_load1['encoder'])
-# encoder2 = torch.load(model_load2['encoder'])
-# decoder1 = torch.load(model_load1['decoder'])
-# decoder2 = torch.load(model_load2['decoder'])
-
-model = AutoModel(None, decoder2).cuda()
+encoder = PictureEncoder()
+decoder = PictureDecoder()
+model = GeneralVae(encoder, decoder)
 
 
-
-if data_para and torch.cuda.device_count() > 1:
-    print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model = nn.DataParallel(model)
+# if data_para and torch.cuda.device_count() > 1:
+#     print("Let's use", torch.cuda.device_count(), "GPUs!")
+#     model = nn.DataParallel(model)
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
-#optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
-#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=0.0001, last_epoch=-1)
 
-train_loader = generate_data_loader(train_root, 500, int(50000))
-val_loader = generate_data_loader(val_root, 100, int(800))
-lossf = nn.BCEWithLogitsLoss(reduction='sum').cuda()
+
+train_loader = generate_data_loader(train_root, 24, int(50000))
+val_loader = generate_data_loader(val_root, 24, int(800))
 val_losses = []
 train_losses = []
+lossf = customLoss().cuda()
 
 def get_batch_size(epoch):
     return 100
@@ -148,10 +152,10 @@ def train(epoch):
         train_loss = 0
         for batch_idx, (data, embed, _) in enumerate(train_loader):
             data = data[0].float().cuda()
-            embed = embed.float().cuda()
+            #embed = embed.float().cuda()
             recon_batch = model(data)
 
-            loss = lossf(recon_batch.float(), embed)
+            loss = lossf(recon_batch, data)
 
             experiment.log_metric("loss", loss.item())
             optimizer.zero_grad()
@@ -161,12 +165,6 @@ def train(epoch):
             train_loss += loss.item()
             if batch_idx % log_interval == 0:
 
-                for i in range(4):
-                    sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
-                    mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
-                    mol = decode_smiles_from_indexes(mol, vocab)
-                    sampled = decode_smiles_from_indexes(sampled, vocab)
-                    print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
 
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),

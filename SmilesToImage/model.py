@@ -5,7 +5,7 @@ from torch import nn, optim
 from torch.nn import functional as F
 from ResNet import ResNet, BasicBlock, Bottleneck
 import torch.utils.model_zoo as model_zoo
-
+import torchvision
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
     'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
@@ -117,69 +117,97 @@ class PictureEncoder(nn.Module):
     def __init__(self, rep_size=500):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
-        self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size)
+        resnet = torchvision.models.resnet50(pretrained=True)  # pretrained ImageNet ResNet-101
+
+        # Remove linear and pool layers (since we're not doing classification)
+        modules = list(resnet.children())[:-2]
+        self.encoder = nn.Sequential(*modules)
+        self.fc_mu = nn.Linear(512, 512)
+        self.log_var = nn.Lienar(512, 512)
+
 
     def forward(self, x):
         x = self.encoder(x)
+        x = x.view(x.shape[0], -1)
+        print(x.shape)
+        return self.fc_mu(x), self.log_var(x)
 
-        return x
+def conv3x3T(in_planes, out_planes, stride=1):
+    """3x3 convolution with padding"""
+    return nn.ConvTranspose2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                     padding=1, bias=False)
+
+
+def conv1x1T(in_planes, out_planes, stride=1):
+    """1x1 convolution"""
+    return nn.ConvTranspose2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+
+
+
+class TransposeBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, stride=1, upscale=None):
+        super(TransposeBlock, self).__init__()
+
+        self.conv1 = conv1x1T(in_channels, out_channels)
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.conv2 = conv3x3T(out_channels, out_channels, stride)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+        self.conv3 = conv1x1T(out_channels, out_channels)
+        self.bn3 = nn.BatchNorm2d(out_channels )
+        self.relu = nn.ReLU(inplace=True)
+        self.stride = stride
+
+    def forward(self, x):
+        identity = x
+
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu(x)
+
+        x = self.conv3(x)
+        x = self.bn3(x)
+        x = self.relu(x)
+
+        if self.stride > 1:
+            identity = nn.MaxUnpool2d(4, stride=2, padding=1)(identity)
+        x = x + identity
+        return self.relu(x)
+
+
 
 
 class PictureDecoder(nn.Module):
-    def __init__(self, rep_size=500):
+    def __init__(self, rep_size=512):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
-        # Sampling vector
-        self.fc3 = nn.Linear(rep_size, rep_size)
-        self.fc_bn3 = nn.BatchNorm1d(rep_size)
-        self.fc4 = nn.Linear(rep_size, rep_size)
-        self.fc_bn4 = nn.BatchNorm1d(rep_size)
-
+        self.in_planes = 8
+        self.fc = nn.Sequential(nn.Linear(rep_size, 512), nn.ReLU())
         # Decoder
-        self.preconv = nn.ConvTranspose2d(125, 125, kernel_size=3, stride=1, padding=0, bias=False)
-        self.conv15 = nn.ConvTranspose2d(125, 128, kernel_size=2, stride=2, padding=0,  bias=False)
-        self.conv15_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn15 = nn.BatchNorm2d(128)
-        self.conv16 = nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1, bias=False)
-        self.conv16_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn16 = nn.BatchNorm2d(128)
-        self.conv20 = nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1, bias=False)
-        self.conv20_ = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=1, padding=1, bias=False)
-        self.bn20 = nn.BatchNorm2d(64)
-        self.conv17 = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1, bias=False)
-        self.conv17_ = nn.ConvTranspose2d(64, 32, kernel_size=5, stride=1, padding=0, bias=False)
-        self.bn21 = nn.BatchNorm2d(32)
-        self.conv18 = nn.ConvTranspose2d(32, 16, kernel_size=40, stride=2, padding=0, bias=False)
-        self.conv18_ = nn.ConvTranspose2d(16, 3, kernel_size=40, stride=1, padding=0, bias=False)
-        self.bn22 = nn.BatchNorm2d(3)
-        self.conv19 = nn.ConvTranspose2d(3, 3, kernel_size=40, stride=1, padding=0, bias=False)
+        layers = []
+        sizes = [3, 3, 3, 3, 3, 3, 3]
+        strides = [2, 2, 2, 2, 2, 2, 1]
+
+        for size, stride in zip(sizes, strides):
+            for i in range(size):
+                if i == 0 and stride > 1:
+                    layers.append(TransposeBlock(self.in_planes, self.in_planes * stride))
+                    self.in_planes = self.in_planes * stride
+                else:
+                    layers.append(TransposeBlock(self.in_planes, self.in_planes, stride=1))
+
+        self.model = nn.Sequential(*layers)
         self.relu = nn.ReLU()
 
     def decode(self, z):
-        out = self.fc_bn3(self.fc3(z))
-        out = self.relu(out)
-        out = self.fc_bn4(self.fc4(out))
-        out = self.relu(out).view(-1, 125, 2, 2)
-        out = self.relu(self.preconv(out))
-        out = self.relu(self.conv15(out))
-        out = self.relu(self.conv15_(out))
-        out = self.bn15(out)
-        out = self.relu(self.conv16(out))
-        out = self.relu(self.conv16_(out))
-        out = self.bn16(out)
-
-        out = self.relu(self.conv20(out))
-        out = self.relu(self.conv20_(out))
-        out = self.bn20(out)
-        out = self.relu(self.conv17(out))
-        out = self.relu(self.conv17_(out))
-        out = self.bn21(out)
-
-        out = self.relu(self.conv18(out))
-        out = self.relu(self.conv18_(out))
-        out = self.bn22(out)
-        out = self.conv19(out)
-        return out
+        z = self.fc(z)
+        z = z.view(-1, 8, 8, 8)
+        z = self.model(z)
+        print(z.shape)
+        return z
 
 
     def forward(self, z):
@@ -187,7 +215,7 @@ class PictureDecoder(nn.Module):
 
 
 class GeneralVae(nn.Module):
-    def __init__(self, encoder_model, decoder_model, rep_size=2000):
+    def __init__(self, encoder_model, decoder_model, rep_size=512):
         super(GeneralVae, self).__init__()
         self.rep_size = rep_size
 
