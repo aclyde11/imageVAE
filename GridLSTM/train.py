@@ -20,7 +20,7 @@ from invert import Invert
 import numpy as np
 import pandas as pd
 
-
+torch.cuda.set_device(1)
 hyper_params = {
     "num_epochs": 1000,
     "train_batch_size": 28,
