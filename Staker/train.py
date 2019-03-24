@@ -33,7 +33,7 @@ hyper_params = {
 experiment = Experiment(project_name="pytorch")
 experiment.log_parameters(hyper_params)
 
-starting_epoch=1
+starting_epoch=3
 epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
@@ -132,8 +132,8 @@ attention_dim = 512  # dimension of attention linear layers
 decoder_dim = 512  # dimension of decoder RNN
 dropout = 0.1
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # sets device for model and PyTorch tensors
-encoder_lr = 1e-3  # learning rate for encoder if fine-tuning
-decoder_lr = 1e-3  # learning rate for decoder
+encoder_lr = 5e-4  # learning rate for encoder if fine-tuning
+decoder_lr = 5e-4  # learning rate for decoder
 grad_clip = 5.  # clip gradients at an absolute value of
 alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as in the paper
 fine_tune_encoder = True  # fine-tune encoder?
@@ -151,13 +151,13 @@ encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, en
                                      lr=encoder_lr) if fine_tune_encoder else None
 
 
-decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 4, eta_min=5e-5, last_epoch=-1)
-encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 4, eta_min=5e-5, last_epoch=-1)
+decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 5, eta_min=1e-5, last_epoch=-1)
+encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 5, eta_min=1e-5, last_epoch=-1)
 encoder = encoder.cuda()
 decoder = decoder.cuda()
 
-train_loader = generate_data_loader(train_root, 50, int(100000))
-val_loader = generate_data_loader(val_root, 50, int(2000))
+train_loader = generate_data_loader(train_root, 55, int(150000))
+val_loader = generate_data_loader(val_root, 50, int(10000))
 criterion = nn.CrossEntropyLoss().to(device)
 
 class AverageMeter(object):
@@ -369,9 +369,7 @@ for epoch in range(starting_epoch, epochs):
     encoder_sched.step()
     train(epoch)
     val = test(epoch)
-    if val < best_val:
-        torch.save(encoder.state_dict(), "encoder.best.pt")
-        torch.save(decoder.state_dict(), "decoder.best.pt")
-        best_val = val
+    torch.save(encoder.state_dict(), "encoder." + str(epoch) + ".pt")
+    torch.save(decoder.state_dict(), "decoder." + str(epoch) + ".pt")
 
 
