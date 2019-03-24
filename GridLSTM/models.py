@@ -211,7 +211,7 @@ class StackGridLSTMCell2d(nn.Module):
     Decoder.
     """
 
-    def __init__(self, attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim=2048, dropout=0.5):
+    def __init__(self,  attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim=2048, dropout=0.5):
         """
         :param attention_dim: size of attention network
         :param embed_dim: embedding size
@@ -229,9 +229,9 @@ class StackGridLSTMCell2d(nn.Module):
         self.vocab_size = vocab_size
         self.dropout = dropout
 
-        self.lstm1 = GridLSTMCell2d(attention_dim, embed_dim, vocab_size, encoder_dim, dropout)
-        self.lstm2 = GridLSTMCell2d(attention_dim, embed_dim, vocab_size, encoder_dim, dropout)
-        self.lstm3 = GridLSTMCell2d(attention_dim, embed_dim, vocab_size, encoder_dim, dropout)
+        self.lstm1 = GridLSTMCell2d(attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim, dropout)
+        self.lstm2 = GridLSTMCell2d(attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim, dropout)
+        self.lstm3 = GridLSTMCell2d(attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim, dropout)
 
 
 
