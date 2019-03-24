@@ -127,7 +127,7 @@ def clip_gradient(optimizer, grad_clip):
             if param.grad is not None:
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
-emb_dim = 256  # dimension of word embeddings
+emb_dim = 196  # dimension of word embeddings
 attention_dim = 512  # dimension of attention linear layers
 decoder_dim = 512  # dimension of decoder RNN
 dropout = 0.1
@@ -156,8 +156,8 @@ encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 5,
 encoder = encoder.cuda()
 decoder = decoder.cuda()
 
-train_loader = generate_data_loader(train_root, 32, int(75000))
-val_loader = generate_data_loader(val_root, 32, int(5000))
+train_loader = generate_data_loader(train_root, 64, int(150000))
+val_loader = generate_data_loader(val_root, 64, int(10000))
 criterion = nn.CrossEntropyLoss().to(device)
 
 class AverageMeter(object):
