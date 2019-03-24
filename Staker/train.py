@@ -33,7 +33,7 @@ hyper_params = {
 experiment = Experiment(project_name="pytorch")
 experiment.log_parameters(hyper_params)
 
-starting_epoch=3
+starting_epoch=1
 epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
@@ -156,7 +156,7 @@ encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 5,
 encoder = encoder.cuda()
 decoder = decoder.cuda()
 
-train_loader = generate_data_loader(train_root, 55, int(150000))
+train_loader = generate_data_loader(train_root, 64, int(150000))
 val_loader = generate_data_loader(val_root, 50, int(10000))
 criterion = nn.CrossEntropyLoss().to(device)
 
@@ -364,7 +364,6 @@ def test(epoch):
 
 
 for epoch in range(starting_epoch, epochs):
-    best_val = 1000000
     decoder_sched.step()
     encoder_sched.step()
     train(epoch)
