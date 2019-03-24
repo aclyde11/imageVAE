@@ -189,6 +189,8 @@ class GridLSTMCell2d(nn.Module):
         self.vocab_size = vocab_size
         self.dropout = dropout
 
+        print(embed_dim + encoder_dim)
+        print(decoder_dim)
         self.lstm1 = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)
         self.lstm2 = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)
 
