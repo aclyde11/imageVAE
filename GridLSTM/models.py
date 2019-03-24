@@ -196,7 +196,7 @@ class GridLSTMCell2d(nn.Module):
 
 
     def forward(self, x, hs, ms): # x : (batch, embedded), H : (batch, 2, h), M : (batch, 2, m)
-        H = torch.sum(hs, dim=1)
+        H = hs[0] +hs[1]
         m1 = ms[0]
         m2 = ms[1]
 
