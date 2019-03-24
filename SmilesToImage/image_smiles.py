@@ -123,7 +123,7 @@ class customLoss(nn.Module):
 
 encoder = PictureEncoder()
 decoder = PictureDecoder()
-model = GeneralVae(encoder, decoder)
+model = GeneralVae(encoder, decoder).cuda()
 
 
 # if data_para and torch.cuda.device_count() > 1:
