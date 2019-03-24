@@ -239,11 +239,8 @@ class StackGridLSTMCell2d(nn.Module):
         hsA1, hsB1, hsB2, hsB3 = hs
         msA1, msB1, msB2, msB3 = ms
 
-        print(1)
         hsA2, hsB1prime, msA2, msB1prime = self.lstm1(x, [hsA1, hsB1], [msA1, msB1])
-        print(2)
         hsA3, hsB2prime, msA3, msB2prime = self.lstm2(x,  [hsA2, hsB2], [msA2, msB2])
-        print(3)
         hsA4, hsB3prime, msA4, msB3prime = self.lstm3(x, [hsA3, hsB3], [msA3, msB3])
 
         #need
@@ -374,7 +371,7 @@ class GridLSTMDecoderWithAttention(nn.Module):
             attention_weighted_encoding = gate * attention_weighted_encoding
 
             lstm_input = None
-            print("embedding size", embeddings.shape, attention_weighted_encoding.shape)
+            #print("embedding size", embeddings.shape, attention_weighted_encoding.shape)
 
             if teacher_forcing and t > 0:
                 lstm_input = torch.cat([self.embedding(torch.max(predictions[:batch_size_t, t, :], dim=1)[1].long()), attention_weighted_encoding], dim=1)
@@ -389,8 +386,8 @@ class GridLSTMDecoderWithAttention(nn.Module):
             newhs = map(lambda x : x[:batch_size_t, ...], newhs)
             newms = map(lambda x : x[:batch_size_t, ...], newms)
 
-            print("input shape", lstm_input.shape)
-            print('running grid ', t)
+            #print("input shape", lstm_input.shape)
+            #print('running grid ', t)
             h, m, newhs, newms = self.decode_step1(lstm_input, newhs, newms)
 
             preds = self.fc(self.dropout(h))  # (batch_size_t, vocab_size)
