@@ -153,7 +153,8 @@ def conv1x1T(in_planes, out_planes, stride=1):
 class TransposeBlock(nn.Module):
     def __init__(self, in_channels, out_channels, stride=1, upscale=None):
         super(TransposeBlock, self).__init__()
-
+        self.inc = in_channels
+        self.ouc = out_channels
         self.conv1 = conv1x1T(in_channels, out_channels)
         self.bn1 = nn.BatchNorm2d(out_channels)
         if stride > 1:
@@ -187,6 +188,8 @@ class TransposeBlock(nn.Module):
             print(identity.shape)
             identity = self.unpool(identity)
             print(identity.shape)
+            identity = self.upconv(identity)
+        elif self.inc != self.ouc:
             identity = self.upconv(identity)
 
         print('x  ', x.shape, 'id', identity.shape)
