@@ -117,7 +117,7 @@ class PictureEncoder(nn.Module):
     def __init__(self, rep_size=500):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
-        resnet = torchvision.models.resnet50(pretrained=False)  # pretrained ImageNet ResNet-101
+        resnet = torchvision.models.resnet50(pretrained=True)  # pretrained ImageNet ResNet-101
 
         # Remove linear and pool layers (since we're not doing classification)
         modules = list(resnet.children())[:-1]
