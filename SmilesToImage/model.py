@@ -204,17 +204,18 @@ class PictureDecoder(nn.Module):
         self.fc = nn.Sequential(nn.Linear(rep_size, 512), nn.ReLU())
         # Decoder
         layers = []
-        sizes = [2, 1, 1, 2, 2, 2, 1]
-        strides = [2, 2, 2, 2, 2, 2, 1]
+        sizes =   [2, 1, 1, 2, 2, 2, 1]
+        strides = [2, 2, 2, 2, 1, 2, 1]
+        planes =  [8, 7, 6, 5, 4, 3, 3]
 
-        for size, stride in zip(sizes, strides):
+        for size, stride, plane in zip(sizes, strides, planes):
             for i in range(size):
                 if i == 0 and stride > 1:
                     print('going from ', self.in_planes, ' to ', self.in_planes / 2)
-                    layers.append(TransposeBlock(self.in_planes, self.in_planes, stride=2))
-                    self.in_planes = self.in_planes
+                    layers.append(TransposeBlock(self.in_planes, plane, stride=2))
                 else:
-                    layers.append(TransposeBlock(self.in_planes, self.in_planes, stride=1))
+                    layers.append(TransposeBlock(self.in_planes, plane, stride=1))
+                self.in_planes = plane
 
         self.model = nn.Sequential(*layers)
         self.relu = nn.ReLU()
