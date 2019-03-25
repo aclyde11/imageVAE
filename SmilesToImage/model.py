@@ -122,6 +122,8 @@ class PictureEncoder(nn.Module):
         # Remove linear and pool layers (since we're not doing classification)
         modules = list(resnet.children())[:-1]
         self.encoder = nn.Sequential(*modules)
+        for p in self.encoder.parameters():
+            p.requires_grad = True
         self.fc = nn.Sequential(nn.Linear(8192, 512), nn.ReLU())
         self.fc_mu = nn.Linear(512, 512)
         self.log_var = nn.Linear(512, 512)
