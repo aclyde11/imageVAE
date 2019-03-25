@@ -210,6 +210,7 @@ class PictureDecoder(nn.Module):
         for size, stride in zip(sizes, strides):
             for i in range(size):
                 if i == 0 and stride > 1:
+                    print('going from ', self.in_planes, ' to ', self.in_planes / 2)
                     layers.append(TransposeBlock(self.in_planes, self.in_planes / stride, stride=2))
                     self.in_planes = self.in_planes / stride
                 else:
