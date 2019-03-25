@@ -20,6 +20,7 @@ from invert import Invert
 import numpy as np
 import pandas as pd
 
+torch.cuda.set_device(4)
 
 hyper_params = {
     "num_epochs": 1000,
@@ -125,9 +126,9 @@ decoder = PictureDecoder()
 model = GeneralVae(encoder, decoder).cuda()
 
 
-if torch.cuda.device_count() > 1:
+if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model = nn.DataParallel(model)
+    model = nn.DataParallel(model, [4,5,6,7])
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
