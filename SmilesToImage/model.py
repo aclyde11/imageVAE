@@ -179,7 +179,7 @@ class TransposeBlock(nn.Module):
             identity = self.unpool(identity)
             identity = self.upconv(identity)
 
-        print(x.shape, print(identity.shape))
+        print(x.shape, identity.shape)
         x = x + identity
         return self.relu(x)
 
