@@ -20,7 +20,6 @@ from invert import Invert
 import numpy as np
 import pandas as pd
 
-torch.cuda.set_device(5)
 
 hyper_params = {
     "num_epochs": 1000,
@@ -51,13 +50,13 @@ embedding_size = len(vocab)
 embedding_size = len(vocab)
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 #load_state = None
-model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_111.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_100.pt'}
+#model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_111.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_100.pt'}
 #model_load = None
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
-output_dir = '/homes/aclyde11/imageVAE/combo/results/'
-save_files = '/homes/aclyde11/imageVAE/combo/model/'
+output_dir = '/homes/aclyde11/imageVAE/resnet/results/'
+save_files = '/homes/aclyde11/imageVAE/resnet/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
@@ -126,16 +125,16 @@ decoder = PictureDecoder()
 model = GeneralVae(encoder, decoder).cuda()
 
 
-# if data_para and torch.cuda.device_count() > 1:
-#     print("Let's use", torch.cuda.device_count(), "GPUs!")
-#     model = nn.DataParallel(model)
+if data_para and torch.cuda.device_count() > 1:
+    print("Let's use", torch.cuda.device_count(), "GPUs!")
+    model = nn.DataParallel(model)
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 
 
-train_loader = generate_data_loader(train_root, 4, int(50000))
-val_loader = generate_data_loader(val_root, 4, int(800))
+train_loader = generate_data_loader(train_root, 128, int(2000))
+val_loader = generate_data_loader(val_root, 128, int(5000))
 val_losses = []
 train_losses = []
 lossf = customLoss()
@@ -177,6 +176,16 @@ def train(epoch):
 
 
 
+def interpolate_points(x,y, sampling):
+    from sklearn.linear_model import LinearRegression
+    ln = LinearRegression()
+    data = np.stack((x,y))
+    data_train = np.array([0, 1]).reshape(-1, 1)
+    ln.fit(data_train, data)
+
+    return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
+
+
 
 def test(epoch):
     with experiment.test():
@@ -186,20 +195,47 @@ def test(epoch):
         with torch.no_grad():
             for i, (data, embed, smiles) in enumerate(val_loader):
                 data = data[0].float().cuda()
-                embed = embed.float().cuda()
-                recon_batch = model(data)
+                recon_batch, mu, logvar = model(data)
 
-                loss = lossf(recon_batch.float(), embed)
+                loss = lossf(recon_batch, data, mu, logvar, epoch)
 
                 test_loss += loss.item()
 
                 if i == 0:
-                    for i in range(4):
-                        sampled = recon_batch.cpu().detach().numpy()[i, ...].argmax(axis=1)
-                        mol = embed.cpu().numpy()[i, ...].argmax(axis=1)
-                        mol = decode_smiles_from_indexes(mol, vocab)
-                        sampled = decode_smiles_from_indexes(sampled, vocab)
-                        print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
+                    n_image_gen = 8
+                    images = []
+                    n_samples_linspace = 16
+                    for i in range(n_image_gen):
+                        data_latent = model.module.encode_latent_(data)[0]
+                        pt_1 = data_latent[i * 2, ...].cpu().numpy()
+                        pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
+                        sample_vec = interpolate_points(pt_1, pt_2,
+                                                        np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                        sample_vec = torch.from_numpy(sample_vec).to(device)
+                        images.append(model.module.decode(sample_vec).cpu())
+                    save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png',
+                               nrow=n_samples_linspace)
+
+                    n_image_gen = 8
+                    images = []
+                    n_samples_linspace = 16
+                    for i in range(n_image_gen):
+                        data_latent = model.module.encode_latent_(data)[0]
+                        pt_1 = data_latent[i, ...].cpu().numpy()
+                        pt_2 = data_latent[i + 1, ...].cpu().numpy()
+                        sample_vec = interpolate_points(pt_1, pt_2,
+                                                        np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                        sample_vec = torch.from_numpy(sample_vec).to(device)
+                        images.append(model.module.decode(sample_vec).cpu())
+                    save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png',
+                               nrow=n_samples_linspace)
+
+                    ##
+                    n = min(data.size(0), 8)
+                    comparison = torch.cat([data[:n],
+                                            recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
+                    save_image(comparison.cpu(),
+                               output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
 
     experiment.log_metric("loss", test_loss)
     test_loss /= len(val_loader.dataset)
@@ -216,4 +252,11 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
     test(epoch)
+    torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
+    torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
+    with torch.no_grad():
+        sample = torch.randn(64, 512).to(device)
+        sample = model.module.decode(sample).cpu()
+        save_image(sample.view(64, 3, 256, 256),
+                   output_dir + 'sample_' + str(epoch) + '.png')
 
