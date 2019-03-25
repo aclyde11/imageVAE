@@ -134,8 +134,8 @@ if data_para and torch.cuda.device_count() > 1:
 optimizer = optim.Adam(model.parameters(), lr=LR)
 
 
-train_loader = generate_data_loader(train_root, 400, int(2000))
-val_loader = generate_data_loader(val_root, 400, int(5000))
+train_loader = generate_data_loader(train_root, 400, int(150000))
+val_loader = generate_data_loader(val_root, 400, int(10000))
 val_losses = []
 train_losses = []
 lossf = customLoss()
