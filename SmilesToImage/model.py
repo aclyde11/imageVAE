@@ -136,8 +136,13 @@ class PictureEncoder(nn.Module):
 def conv3x3T(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
     return nn.ConvTranspose2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                     padding=0, bias=False)
+                     padding=1, bias=False)
 
+
+def conv4x4T(in_planes, out_planes, stride=1):
+    """3x3 convolution with padding"""
+    return nn.ConvTranspose2d(in_planes, out_planes, kernel_size=4, stride=stride,
+                     padding=1, bias=False)
 
 def conv1x1T(in_planes, out_planes, stride=1):
     """1x1 convolution"""
@@ -151,7 +156,10 @@ class TransposeBlock(nn.Module):
 
         self.conv1 = conv1x1T(in_channels, out_channels)
         self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = conv3x3T(out_channels, out_channels, stride)
+        if stride > 1:
+            self.conv2 = conv4x4T(out_channels, out_channels, stride)
+        else:
+            self.conv2 = conv3x3T(out_channels, out_channels, stride)
         self.bn2 = nn.BatchNorm2d(out_channels)
         self.conv3 = conv1x1T(out_channels, out_channels)
         self.bn3 = nn.BatchNorm2d(out_channels )
@@ -176,7 +184,9 @@ class TransposeBlock(nn.Module):
         x = self.relu(x)
 
         if self.stride > 1:
+            print(identity.shape)
             identity = self.unpool(identity)
+            print(identity.shape)
             identity = self.upconv(identity)
 
         print('x  ', x.shape, 'id', identity.shape)
