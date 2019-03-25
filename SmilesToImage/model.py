@@ -136,7 +136,7 @@ class PictureEncoder(nn.Module):
 def conv3x3T(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
     return nn.ConvTranspose2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                     padding=1, bias=False)
+                     padding=0, bias=False)
 
 
 def conv1x1T(in_planes, out_planes, stride=1):
@@ -179,7 +179,7 @@ class TransposeBlock(nn.Module):
             identity = self.unpool(identity)
             identity = self.upconv(identity)
 
-        print(x.shape, identity.shape)
+        print('x ', x.shape, 'id', identity.shape)
         x = x + identity
         return self.relu(x)
 
