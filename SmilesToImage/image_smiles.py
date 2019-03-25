@@ -208,7 +208,6 @@ def test(epoch):
                     n_samples_linspace = 16
                     data_latent = model.module.encode_latent_(data)
                     for i in range(n_image_gen):
-                        print("latent shape ", data_latent.shape)
                         pt_1 = data_latent[i * 2, ...].cpu().numpy()
                         pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                         sample_vec = interpolate_points(pt_1, pt_2,
