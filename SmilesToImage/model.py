@@ -156,6 +156,8 @@ class TransposeBlock(nn.Module):
         self.conv3 = conv1x1T(out_channels, out_channels)
         self.bn3 = nn.BatchNorm2d(out_channels )
         self.relu = nn.ReLU(inplace=True)
+        self.unpool = nn.MaxUnpool2d(4, stride=2, padding=1)
+        self.upconv = conv1x1T(in_channels, out_channels)
         self.stride = stride
 
     def forward(self, x):
@@ -174,7 +176,10 @@ class TransposeBlock(nn.Module):
         x = self.relu(x)
 
         if self.stride > 1:
-            identity = nn.MaxUnpool2d(4, stride=2, padding=1)(identity)
+            identity = self.unpool(identity)
+            identity = self.upconv(identity)
+
+        print(x.shape, print(identity.shape))
         x = x + identity
         return self.relu(x)
 
