@@ -185,14 +185,11 @@ class TransposeBlock(nn.Module):
         x = self.relu(x)
 
         if self.stride > 1:
-            print(identity.shape)
             identity = self.unpool(identity)
-            print(identity.shape)
             identity = self.upconv(identity)
         elif self.inc != self.ouc:
             identity = self.upconv(identity)
 
-        print('x  ', x.shape, 'id', identity.shape)
         x = x + identity
         return self.relu(x)
 
@@ -214,7 +211,6 @@ class PictureDecoder(nn.Module):
         for size, stride, plane in zip(sizes, strides, planes):
             for i in range(size):
                 if i == 0 and stride > 1:
-                    print('going from ', self.in_planes, ' to ', self.in_planes / 2)
                     layers.append(TransposeBlock(self.in_planes, plane, stride=2))
                 else:
                     layers.append(TransposeBlock(self.in_planes, plane, stride=1))
@@ -227,7 +223,6 @@ class PictureDecoder(nn.Module):
         z = self.fc(z)
         z = z.view(-1, 8, 8, 8)
         z = self.model(z)
-        print(z.shape)
         return z
 
 

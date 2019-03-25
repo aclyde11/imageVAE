@@ -153,9 +153,9 @@ def train(epoch):
         for batch_idx, (data, embed, _) in enumerate(train_loader):
             data = data[0].float().cuda()
             #embed = embed.float().cuda()
-            recon_batch = model(data)
+            recon_batch, mu, logvar = model(data)
 
-            loss = lossf(recon_batch, data)
+            loss = lossf(recon_batch, data, mu, logvar, epoch)
 
             experiment.log_metric("loss", loss.item())
             optimizer.zero_grad()
