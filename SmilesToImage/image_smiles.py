@@ -132,6 +132,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=5e-5, last_epoch=-1)
 
 
 train_loader = generate_data_loader(train_root, 400, int(150000))
@@ -245,9 +246,11 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
 
 
-    if epoch > 100:
+    if epoch > 250:
         for param_group in optimizer.param_groups:
             param_group['lr'] = 0.0001
+    else:
+        sched.step()
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
