@@ -111,13 +111,13 @@ class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         self.mse_loss = nn.MSELoss(reduction="sum")
-        self.crispyLoss = MS_SSIM()
+        #self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        loss_cripsy = self.crispyLoss(x_recon, x)
-
+        #loss_cripsy = self.crispyLoss(x_recon, x)
+        loss_cripsy = 0
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
 
@@ -138,7 +138,7 @@ train_loader = generate_data_loader(train_root, 4, int(50000))
 val_loader = generate_data_loader(val_root, 4, int(800))
 val_losses = []
 train_losses = []
-lossf = customLoss().cuda()
+lossf = customLoss()
 
 def get_batch_size(epoch):
     return 100
