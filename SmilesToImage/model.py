@@ -156,7 +156,7 @@ class TransposeBlock(nn.Module):
         self.conv3 = conv1x1T(out_channels, out_channels)
         self.bn3 = nn.BatchNorm2d(out_channels )
         self.relu = nn.ReLU(inplace=True)
-        self.unpool = nn.MaxUnpool2d(4, stride=2, padding=1)
+        self.unpool = nn.Upsample(scale_factor=[1, 2, 2])
         self.upconv = conv1x1T(in_channels, out_channels)
         self.stride = stride
 
