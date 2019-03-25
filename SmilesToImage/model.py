@@ -204,7 +204,7 @@ class PictureDecoder(nn.Module):
         self.fc = nn.Sequential(nn.Linear(rep_size, 512), nn.ReLU())
         # Decoder
         layers = []
-        sizes = [2, 2, 2, 2, 2, 3, 3]
+        sizes = [2, 1, 1, 2, 2, 2, 1]
         strides = [2, 2, 2, 2, 2, 2, 1]
 
         for size, stride in zip(sizes, strides):
