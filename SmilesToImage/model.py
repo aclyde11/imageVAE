@@ -121,13 +121,16 @@ class PictureEncoder(nn.Module):
 
         # Remove linear and pool layers (since we're not doing classification)
         modules = list(resnet.children())[:-1]
-        self.encoder = nn.Sequential(*modules,  nn.Linear(8192, 512), nn.ReLU())
+        self.encoder = nn.Sequential(*modules)
+        self.fc = nn.Linear(8192, 512), nn.ReLU()
         self.fc_mu = nn.Linear(512, 512)
         self.log_var = nn.Linear(512, 512)
 
 
     def forward(self, x):
         x = self.encoder(x)
+        x = x.view(x.shape[0], -1)
+        x = self.fc(x)
         return self.fc_mu(x), self.log_var(x)
 
 def conv3x3T(in_planes, out_planes, stride=1):
