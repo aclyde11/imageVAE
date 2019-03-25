@@ -120,9 +120,9 @@ class PictureEncoder(nn.Module):
         resnet = torchvision.models.resnet50(pretrained=True)  # pretrained ImageNet ResNet-101
 
         # Remove linear and pool layers (since we're not doing classification)
-        #modules = list(resnet.children())[:-2]
-        #self.encoder = nn.Sequential(*modules)
-        self.encoder = resnet
+        modules = list(resnet.children())[:-1]
+        self.encoder = nn.Sequential(*modules)
+
         self.fc_mu = nn.Linear(512, 512)
         self.log_var = nn.Linear(512, 512)
 
