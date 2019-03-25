@@ -134,8 +134,8 @@ model = GeneralVae(encoder, decoder).cuda()
 optimizer = optim.Adam(model.parameters(), lr=LR)
 
 
-train_loader = generate_data_loader(train_root, 24, int(50000))
-val_loader = generate_data_loader(val_root, 24, int(800))
+train_loader = generate_data_loader(train_root, 4, int(50000))
+val_loader = generate_data_loader(val_root, 4, int(800))
 val_losses = []
 train_losses = []
 lossf = customLoss().cuda()
