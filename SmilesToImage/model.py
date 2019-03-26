@@ -195,6 +195,44 @@ class TransposeBlock(nn.Module):
         x = x + identity
         return self.relu(x)
 
+## Dense Net
+class BindingAffModel(nn.Module):
+    def __init__(self, rep_size=512, dropout=None):
+        super(BindingAffModel, self).__init__()
+        self.rep_size = rep_size
+
+        sizes = [256, 128, 64, 64]
+        self.layers = None
+
+        curr_size = rep_size
+        for i in sizes:
+            if dropout is not None:
+                self.layers.append(nn.Sequential(
+                    nn.Linear(curr_size, i),
+                    nn.ReLU(),
+                    nn.Dropout(dropout)
+                ))
+            else:
+                self.layers.append(nn.Sequential(
+                    nn.Linear(curr_size, i),
+                    nn.ReLU()
+                ))
+            curr_size += i
+        self.final_layer = nn.Sequential(
+            nn.Linear(curr_size, 1),
+            nn.ReLU()
+        )
+
+
+
+    def forward(self, x):
+        concats = x
+        for layer in self.layers:
+            x = layer(concats)
+            concats = torch.cat((concats, x), dim=1)
+        x = self.final_layer(concats)
+        return x
+
 
 
 
@@ -262,7 +300,7 @@ class GeneralVae(nn.Module):
     def forward(self, x):
         mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar)
-        return self.decode(z), mu, logvar
+        return self.decode(z), mu, logvar, z
 
 class Lambda(nn.Module):
 
