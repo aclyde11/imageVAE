@@ -117,7 +117,7 @@ class PictureEncoder(nn.Module):
     def __init__(self, rep_size=500):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
-        resnet = torchvision.models.resnet50(pretrained=True)  # pretrained ImageNet ResNet-101
+        resnet = torchvision.models.resnet34(pretrained=True)  # pretrained ImageNet ResNet-101
 
         # Remove linear and pool layers (since we're not doing classification)
         modules = list(resnet.children())[:-1]
@@ -131,6 +131,7 @@ class PictureEncoder(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
+        print(x.shape)
         x = x.view(x.shape[0], -1)
         x = self.fc(x)
         return self.fc_mu(x), self.log_var(x)
@@ -206,9 +207,9 @@ class PictureDecoder(nn.Module):
         self.fc = nn.Sequential(nn.Linear(rep_size, 512), nn.ReLU())
         # Decoder
         layers = []
-        sizes =   [2, 1, 1, 2, 2, 2, 1]
-        strides = [2, 2, 2, 2, 1, 2, 1]
-        planes =  [8, 7, 6, 5, 4, 3, 3]
+        sizes =   [2,    2,  2, 2, 2, 1, 1, 1]
+        strides = [2,    2,  2, 2, 2, 2, 2, 1]
+        planes =  [128, 64, 16, 8, 4, 3, 3, 3]
 
         for size, stride, plane in zip(sizes, strides, planes):
             for i in range(size):
@@ -223,7 +224,7 @@ class PictureDecoder(nn.Module):
 
     def decode(self, z):
         z = self.fc(z)
-        z = z.view(-1, 8, 8, 8)
+        z = z.view(-1, 128, 2, 2)
         z = self.model(z)
         return z
 
