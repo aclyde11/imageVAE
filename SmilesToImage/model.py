@@ -131,7 +131,6 @@ class PictureEncoder(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
-        print(x.shape)
         x = x.view(x.shape[0], -1)
         x = self.fc(x)
         return self.fc_mu(x), self.log_var(x)
