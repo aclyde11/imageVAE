@@ -132,17 +132,15 @@ if data_para and torch.cuda.device_count() > 1:
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=5e-4, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=9e-4, last_epoch=-1)
 
 
-train_loader = generate_data_loader(train_root, 600, int(100000))
-val_loader = generate_data_loader(val_root, 600, int(10000))
 val_losses = []
 train_losses = []
 lossf = customLoss()
 
 def get_batch_size(epoch):
-    return 600
+    return min(600, 32 + 8 * int(epoch / 5))
 
 def train(epoch):
     with experiment.train():
@@ -154,7 +152,7 @@ def train(epoch):
         for batch_idx, (data, embed, _) in enumerate(train_loader):
             data = data[0].float().cuda()
             #embed = embed.float().cuda()
-            recon_batch, mu, logvar = model(data)
+            recon_batch, mu, logvar, _ = model(data)
 
             loss = lossf(recon_batch, data, mu, logvar, epoch)
 
@@ -197,7 +195,7 @@ def test(epoch):
         with torch.no_grad():
             for i, (data, embed, smiles) in enumerate(val_loader):
                 data = data[0].float().cuda()
-                recon_batch, mu, logvar = model(data)
+                recon_batch, mu, logvar, _ = model(data)
 
                 loss = lossf(recon_batch, data, mu, logvar, epoch)
 
@@ -244,17 +242,18 @@ def test(epoch):
     val_losses.append(test_loss)
 
 for epoch in range(starting_epoch, epochs):
-
+    train_loader = generate_data_loader(train_root, get_batch_size(epoch), int(200000))
+    val_loader = generate_data_loader(val_root, get_batch_size(epoch), int(10000))
 
     if epoch > 250:
         for param_group in optimizer.param_groups:
             param_group['lr'] = 0.0001
-    #else:
-        #sched.step()
+    else:
+        sched.step()
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-    train(epoch)
-    test(epoch)
+    train(epoch, train_loader)
+    test(epoch, val_loader)
     torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
     torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
