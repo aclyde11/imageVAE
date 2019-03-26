@@ -117,14 +117,14 @@ class PictureEncoder(nn.Module):
     def __init__(self, rep_size=500):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
-        resnet = torchvision.models.resnet34(pretrained=True)  # pretrained ImageNet ResNet-101
+        resnet = torchvision.models.resnet34(pretrained=False)  # pretrained ImageNet ResNet-101
 
         # Remove linear and pool layers (since we're not doing classification)
         modules = list(resnet.children())[:-1]
         self.encoder = nn.Sequential(*modules)
         for p in self.encoder.parameters():
             p.requires_grad = True
-        self.fc = nn.Sequential(nn.Linear(8192, 512), nn.ReLU())
+        self.fc = nn.Sequential(nn.Linear(2048, 512), nn.ReLU())
         self.fc_mu = nn.Linear(512, 512)
         self.log_var = nn.Linear(512, 512)
 
