@@ -40,7 +40,7 @@ no_cuda = False
 seed = hyper_params['seed']
 data_para = True
 log_interval = 7
-LR = hyper_params['learning_rate']       ##adam rate
+LR = 0.0005
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -107,17 +107,18 @@ def generate_data_loader(root, batch_size, data_size):
         ImageFolderWithFile(root, transform=invert),
         batch_size=batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
+
 class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         self.mse_loss = nn.MSELoss(reduction="sum")
-        #self.crispyLoss = MS_SSIM()
+        self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        #loss_cripsy = self.crispyLoss(x_recon, x)
-        loss_cripsy = 0
+        loss_cripsy = self.crispyLoss(x_recon, x)
+
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
 
@@ -132,7 +133,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=5e-4, last_epoch=-1)
+#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=5e-4, last_epoch=-1)
 
 
 val_losses = []
@@ -140,7 +141,8 @@ train_losses = []
 lossf = customLoss()
 
 def get_batch_size(epoch):
-    return 64 + min(600-64, 16 * int(epoch / 5))
+    return min(64  + 2 * epoch, 322 )
+
 
 def train(epoch, train_loader):
     with experiment.train():
@@ -152,16 +154,15 @@ def train(epoch, train_loader):
         for batch_idx, (data, embed, _) in enumerate(train_loader):
             data = data[0].float().cuda()
             #embed = embed.float().cuda()
-            recon_batch, mu, logvar, _ = model(data)
-
-            loss = lossf(recon_batch, data, mu, logvar, epoch)
-
-            experiment.log_metric("loss", loss.item())
             optimizer.zero_grad()
+            recon_batch, mu, logvar, _ = model(data)
+            loss = lossf(recon_batch, data, mu, logvar, epoch)
             loss.backward()
+            train_loss += loss.item()
             optimizer.step()
 
-            train_loss += loss.item()
+            experiment.log_metric("loss", loss.item())
+
             if batch_idx % log_interval == 0:
 
 
@@ -198,6 +199,7 @@ def test(epoch, val_loader):
                 recon_batch, mu, logvar, _ = model(data)
 
                 loss = lossf(recon_batch, data, mu, logvar, epoch)
+                experiment.log_metric("loss", loss.item())
 
                 test_loss += loss.item()
 
@@ -244,15 +246,15 @@ def test(epoch, val_loader):
 train_loader = generate_data_loader(train_root, get_batch_size(1), int(200000))
 val_loader = generate_data_loader(val_root, get_batch_size(1), int(10000))
 for epoch in range(starting_epoch, epochs):
-    if epoch % 5 == 0:
-        train_loader = generate_data_loader(train_root, get_batch_size(epoch), int(200000))
-        val_loader = generate_data_loader(val_root, get_batch_size(epoch), int(10000))
+    # if epoch % 5 == 0:
+    #     train_loader = generate_data_loader(train_root, get_batch_size(epoch), int(200000))
+    #     val_loader = generate_data_loader(val_root, get_batch_size(epoch), int(10000))
 
     if epoch > 250:
         for param_group in optimizer.param_groups:
             param_group['lr'] = 0.0001
-    else:
-        sched.step()
+    # else:
+    #     sched.step()
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch, train_loader)

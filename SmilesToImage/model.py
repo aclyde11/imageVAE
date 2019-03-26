@@ -114,26 +114,18 @@ class Flatten(nn.Module):
 #         return self.fc21(x), self.fc22(x)
 
 class PictureEncoder(nn.Module):
-    def __init__(self, rep_size=500):
+    def __init__(self, rep_size=512):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
-        resnet = torchvision.models.resnet34(pretrained=False)  # pretrained ImageNet ResNet-101
-
-        # Remove linear and pool layers (since we're not doing classification)
-        modules = list(resnet.children())[:-1]
-        self.encoder = nn.Sequential(*modules)
-        for p in self.encoder.parameters():
-            p.requires_grad = True
-        self.fc = nn.Sequential(nn.Linear(2048, 512), nn.ReLU())
-        self.fc_mu = nn.Linear(512, 512)
-        self.log_var = nn.Linear(512, 512)
-
+        self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size)
+        self.mu = nn.Linear(rep_size, rep_size)
+        self.logvar = nn.Linear(rep_size, rep_size)
 
     def forward(self, x):
         x = self.encoder(x)
-        x = x.view(x.shape[0], -1)
-        x = self.fc(x)
-        return self.fc_mu(x), self.log_var(x)
+
+        return self.mu(x), self.logvar(x)
+
 
 def conv3x3T(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
@@ -244,8 +236,8 @@ class PictureDecoder(nn.Module):
         self.fc_bn4 = nn.BatchNorm1d(rep_size)
 
         # Decoder
-        self.preconv = nn.ConvTranspose2d(128, 125, kernel_size=3, stride=1, padding=0, bias=False)
-        self.conv15 = nn.ConvTranspose2d(125, 128, kernel_size=2, stride=2, padding=0,  bias=False)
+        self.preconv = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=0, bias=False)
+        self.conv15 = nn.ConvTranspose2d(128, 128, kernel_size=2, stride=2, padding=0,  bias=False)
         self.conv15_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn15 = nn.BatchNorm2d(128)
         self.conv16 = nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1, bias=False)
