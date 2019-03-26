@@ -281,7 +281,7 @@ lossf = customLoss()
 binding_loss = nn.MSELoss().cuda()
 
 def get_batch_size(epoch):
-    return 32 + min(600 - 32, 8 * epoch)
+    return 64 + min(600 - 32, 8 * epoch)
 
 def train(epoch, train_loader):
     with experiment.train():
