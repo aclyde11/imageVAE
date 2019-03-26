@@ -136,7 +136,7 @@ sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=5e-4, l
 
 
 train_loader = generate_data_loader(train_root, 500, int(75000))
-val_loader = generate_data_loader(val_root, 500 int(10000))
+val_loader = generate_data_loader(val_root, 500, int(10000))
 val_losses = []
 train_losses = []
 lossf = customLoss()
