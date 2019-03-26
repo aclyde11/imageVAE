@@ -142,7 +142,7 @@ lossf = customLoss()
 def get_batch_size(epoch):
     return min(600, 32 + 8 * int(epoch / 5))
 
-def train(epoch):
+def train(epoch, train_loader):
     with experiment.train():
         experiment.log_current_epoch(epoch)
 
@@ -187,7 +187,7 @@ def interpolate_points(x,y, sampling):
 
 
 
-def test(epoch):
+def test(epoch, val_loader):
     with experiment.test():
         experiment.log_current_epoch(epoch)
         model.eval()
