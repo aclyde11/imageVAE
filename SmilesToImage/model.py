@@ -203,13 +203,13 @@ class PictureDecoder(nn.Module):
     def __init__(self, rep_size=512):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
-        self.in_planes = 8
+        self.in_planes = 128
         self.fc = nn.Sequential(nn.Linear(rep_size, 512), nn.ReLU())
         # Decoder
         layers = []
         sizes =   [2,    2,  2, 2, 2, 1, 1, 1]
         strides = [2,    2,  2, 2, 2, 2, 2, 1]
-        planes =  [128, 64, 16, 8, 4, 3, 3, 3]
+        planes =  [64, 32, 16, 8, 4, 3, 3, 3]
 
         for size, stride, plane in zip(sizes, strides, planes):
             for i in range(size):
