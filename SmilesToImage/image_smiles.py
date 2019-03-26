@@ -27,7 +27,7 @@ hyper_params = {
     "train_batch_size": 28,
     "val_batch_size": 128,
     'seed' : 42,
-    "learning_rate": 5e-3
+    "learning_rate": 1e-3
 }
 
 
@@ -132,7 +132,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=9e-4, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=5e-4, last_epoch=-1)
 
 
 val_losses = []
@@ -140,7 +140,7 @@ train_losses = []
 lossf = customLoss()
 
 def get_batch_size(epoch):
-    return min(600, 32 + 8 * int(epoch / 5))
+    return 64 + min(600-64, 16 * int(epoch / 5))
 
 def train(epoch, train_loader):
     with experiment.train():
@@ -241,9 +241,12 @@ def test(epoch, val_loader):
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
 
+train_loader = generate_data_loader(train_root, get_batch_size(1), int(200000))
+val_loader = generate_data_loader(val_root, get_batch_size(1), int(10000))
 for epoch in range(starting_epoch, epochs):
-    train_loader = generate_data_loader(train_root, get_batch_size(epoch), int(200000))
-    val_loader = generate_data_loader(val_root, get_batch_size(epoch), int(10000))
+    if epoch % 5 == 0:
+        train_loader = generate_data_loader(train_root, get_batch_size(epoch), int(200000))
+        val_loader = generate_data_loader(val_root, get_batch_size(epoch), int(10000))
 
     if epoch > 250:
         for param_group in optimizer.param_groups:
