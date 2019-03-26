@@ -243,12 +243,10 @@ def test(epoch, val_loader):
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
 
-train_loader = generate_data_loader(train_root, get_batch_size(1), int(200000))
-val_loader = generate_data_loader(val_root, get_batch_size(1), int(10000))
+
 for epoch in range(starting_epoch, epochs):
-    # if epoch % 5 == 0:
-    #     train_loader = generate_data_loader(train_root, get_batch_size(epoch), int(200000))
-    #     val_loader = generate_data_loader(val_root, get_batch_size(epoch), int(10000))
+    train_loader = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
+    val_loader = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
 
     if epoch > 250:
         for param_group in optimizer.param_groups:
