@@ -27,7 +27,7 @@ hyper_params = {
     "train_batch_size": 28,
     "val_batch_size": 128,
     'seed' : 42,
-    "learning_rate": 5e-3
+    "learning_rate": 1e-3
 }
 
 
@@ -133,7 +133,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=8e-4, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=6e-4, last_epoch=-1)
 
 
 traifrom comet_ml import Experiment
