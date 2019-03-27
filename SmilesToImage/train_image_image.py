@@ -160,7 +160,7 @@ def train(epoch):
         binding_loss = loss_mse(aff, binding_pred)
 
         loss = loss_picture(recon_batch, data, mu, logvar, epoch)
-        loss.backward()
+        loss.backward(retrain_graph=True)
         binding_loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -257,6 +257,8 @@ for epoch in range(starting_epoch, epochs):
         'encoder_state_dict': model.module.encoder.state_dict(),
         'decoder_state_dict' : model.module.decoder.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
+        'binding_state_dict' : binding_model.state_dict(),
+        'binding_optimizer_state_dict' : binding_optimizer.state_dict(),
         'loss': loss}, save_files + 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
