@@ -197,6 +197,7 @@ def test(epoch):
     binding_model.eval()
     test_loss = 0
     binding_loss = 0
+    binding_mae
     with torch.no_grad():
         for i, (data, _, aff) in enumerate(val_loader_food):
             data = data[0].cuda()
@@ -206,7 +207,7 @@ def test(epoch):
 
             binding_pred = binding_model(z.cuda(4))
             binding_loss += loss_mse(aff, binding_pred).item()
-
+            binding_mae += loss_mae(aff, binding_pred).item()
 
             loss = loss_picture(recon_batch, data, mu, logvar, epoch)
             test_loss += loss.item()
@@ -246,6 +247,8 @@ def test(epoch):
 
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
+    print("BINDING LOSS: mse {}, mae {}".format(binding_loss.item(), binding_mae.item()))
+
     val_losses.append(test_loss)
 
 for epoch in range(starting_epoch, epochs):
