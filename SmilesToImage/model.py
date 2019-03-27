@@ -114,7 +114,7 @@ class Flatten(nn.Module):
 #         return self.fc21(x), self.fc22(x)
 
 class PictureEncoder(nn.Module):
-    def __init__(self, rep_size=512):
+    def __init__(self, rep_size=500):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
         self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size)
@@ -226,7 +226,7 @@ class BindingAffModel(nn.Module):
         return x
 
 class PictureDecoder(nn.Module):
-    def __init__(self, rep_size=512):
+    def __init__(self, rep_size=500):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
         # Sampling vector
@@ -236,7 +236,7 @@ class PictureDecoder(nn.Module):
         self.fc_bn4 = nn.BatchNorm1d(rep_size)
 
         # Decoder
-        self.preconv = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=0, bias=False)
+        self.preconv = nn.ConvTranspose2d(125, 128, kernel_size=3, stride=1, padding=0, bias=False)
         self.conv15 = nn.ConvTranspose2d(128, 128, kernel_size=2, stride=2, padding=0,  bias=False)
         self.conv15_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn15 = nn.BatchNorm2d(128)
@@ -259,7 +259,7 @@ class PictureDecoder(nn.Module):
         out = self.fc_bn3(self.fc3(z))
         out = self.relu(out)
         out = self.fc_bn4(self.fc4(out))
-        out = self.relu(out).view(-1, 128, 2, 2)
+        out = self.relu(out).view(-1, 125, 2, 2)
         out = self.relu(self.preconv(out))
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
@@ -321,7 +321,7 @@ class PictureDecoder(nn.Module):
 
 
 class GeneralVae(nn.Module):
-    def __init__(self, encoder_model, decoder_model, rep_size=512):
+    def __init__(self, encoder_model, decoder_model, rep_size=500):
         super(GeneralVae, self).__init__()
         self.rep_size = rep_size
 

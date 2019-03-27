@@ -40,8 +40,8 @@ no_cuda = False
 seed = hyper_params['seed']
 data_para = True
 log_interval = 7
-LR = 0.0005
-rampDataSize = 0.2 ## data set size to use
+LR = 0.001
+rampDataSize = 0.8 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
@@ -141,7 +141,7 @@ train_losses = []
 lossf = customLoss()
 
 def get_batch_size(epoch):
-    return min(64  + 2 * epoch, 322 )
+    return min(64  + 16 * epoch, 322 )
 
 
 def train(epoch, train_loader):
@@ -248,11 +248,11 @@ for epoch in range(starting_epoch, epochs):
     train_loader = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
     val_loader = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
 
-    if epoch > 250:
-        for param_group in optimizer.param_groups:
-            param_group['lr'] = 0.0001
-    # else:
-    #     sched.step()
+    # if epoch > 250:
+    #     for param_group in optimizer.param_groups:
+    #         param_group['lr'] = 0.0001
+    # # else:
+    # #     sched.step()
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch, train_loader)
@@ -260,7 +260,7 @@ for epoch in range(starting_epoch, epochs):
     torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
     torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
-        sample = torch.randn(64, 512).to(device)
+        sample = torch.randn(64, 500).to(device)
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    output_dir + 'sample_' + str(epoch) + '.png')
