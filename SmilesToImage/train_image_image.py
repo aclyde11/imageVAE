@@ -109,7 +109,7 @@ decoder.load_state_dict(checkpoint['decoder_state_dict'])
 model = GeneralVae(encoder, decoder, rep_size=500)
 
 
-binding_model = BindingAffModel(rep_size=500).cuda(7)
+binding_model = BindingAffModel(rep_size=500).cuda(4)
 
 
 if data_para and torch.cuda.device_count() > 1:
@@ -125,7 +125,7 @@ binding_optimizer = optim.Adam(binding_model.parameters(), lr=0.0001)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_picture = customLoss()
-loss_mse = nn.MSELoss().cuda(7)
+loss_mse = nn.MSELoss().cuda(4)
 
 val_losses = []
 train_losses = []
@@ -142,14 +142,14 @@ def train(epoch):
     loss = None
     for batch_idx, (data, _, aff) in enumerate(train_loader_food):
         data = data[0].cuda()
-        aff = aff.float().cuda(7)
+        aff = aff.float().cuda(4)
 
         optimizer.zero_grad()
         binding_optimizer.zero_grad()
 
         recon_batch, mu, logvar, z = model(data)
 
-        binding_pred = binding_model(z.cuda(7))
+        binding_pred = binding_model(z.cuda(4))
         binding_loss = loss_mse(aff, binding_pred)
 
         loss = loss_picture(recon_batch, data, mu, logvar, epoch)
@@ -190,11 +190,11 @@ def test(epoch):
     with torch.no_grad():
         for i, (data, _, aff) in enumerate(val_loader_food):
             data = data[0].cuda()
-            aff = aff.float().cuda(7)
+            aff = aff.float().cuda(4)
 
             recon_batch, mu, logvar, z = model(data)
 
-            binding_pred = binding_model(z.cuda(7))
+            binding_pred = binding_model(z.cuda(4))
             binding_loss += loss_mse(aff, binding_pred).item()
 
 
