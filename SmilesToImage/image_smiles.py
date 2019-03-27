@@ -40,7 +40,7 @@ no_cuda = False
 seed = hyper_params['seed']
 data_para = True
 log_interval = 7
-LR = 0.001
+LR = 0.0007
 rampDataSize = 0.08 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -122,8 +122,8 @@ class customLoss(nn.Module):
         return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD +  loss_cripsy
 
 
-encoder = PictureEncoder()
-decoder = PictureDecoder()
+encoder = torch.load('/homes/aclyde11/imageVAE/resnet/model/encoder_epoch_5.pt')
+decoder = torch.load('/homes/aclyde11/imageVAE/resnet/model/decoder_epoch_5.pt')
 model = GeneralVae(encoder, decoder).cuda()
 
 
