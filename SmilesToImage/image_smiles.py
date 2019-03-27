@@ -40,7 +40,7 @@ no_cuda = False
 seed = hyper_params['seed']
 data_para = True
 log_interval = 7
-LR = 0.0007
+LR = 0.0005
 rampDataSize = 0.08 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -141,7 +141,7 @@ train_losses = []
 lossf = customLoss()
 
 def get_batch_size(epoch):
-    return 322 #min(64  + 16 * epoch, 322 )
+    return 400 #min(64  + 16 * epoch, 322 )
 
 
 
