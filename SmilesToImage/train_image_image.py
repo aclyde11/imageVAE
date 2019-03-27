@@ -57,6 +57,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
         t = self.imgs[index][0]
         t = int(t.split('/')[-1].split('.')[0])
+        f=t
         try:
             t = list(smiles_lookup.iloc[t-1, 1])
         except:
@@ -65,7 +66,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         embed = apply_one_hot([t])[0].astype(np.float32)
         im = super(ImageFolderWithFile, self).__getitem__(index)
 
-        return  im, embed, t-1
+        return  im, embed, f-1
 
 def generate_data_loader(root, batch_size, data_size):
     invert = transforms.Compose([
