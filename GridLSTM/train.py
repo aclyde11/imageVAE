@@ -138,19 +138,19 @@ alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as i
 fine_tune_encoder = True  # fine-tune encoder?
 
 
-#decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
-#                               embed_dim=emb_dim,
-#                               decoder_dim=decoder_dim,
-#                               vocab_size=len(vocab),
-#                               dropout=dropout)
+decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
+                              embed_dim=emb_dim,
+                              decoder_dim=decoder_dim,
+                              vocab_size=len(vocab),
+                              dropout=dropout)
 #decoder = torch.load("decoder.95.pt")
-#decoder.fine_tune_embeddings(True)
+decoder.fine_tune_embeddings(True)
 
 #encoder = torch.load("encoder.95.pt")
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
-#encoder = Encoder()
-#encoder.fine_tune(fine_tune_encoder)
+encoder = Encoder()
+encoder.fine_tune(fine_tune_encoder)
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
 
