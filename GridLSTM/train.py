@@ -129,7 +129,7 @@ def clip_gradient(optimizer, grad_clip):
 emb_dim = 196  # dimension of word embeddings
 attention_dim = 512  # dimension of attention linear layers
 decoder_dim = 512  # dimension of decoder RNN
-dropout = 0.1
+dropout = 0.15
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # sets device for model and PyTorch tensors
 encoder_lr = 5e-4  # learning rate for encoder if fine-tuning
 decoder_lr = 5e-4  # learning rate for decoder
@@ -142,6 +142,7 @@ decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               embed_dim=emb_dim,
                               decoder_dim=decoder_dim,
                               vocab_size=len(vocab),
+                              encoder_dim=512,
                               dropout=dropout)
 #decoder = torch.load("decoder.95.pt")
 decoder.fine_tune_embeddings(True)
@@ -160,7 +161,7 @@ encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8,
 encoder = encoder.cuda(1)
 decoder = decoder.cuda(2)
 
-train_loader = generate_data_loader(train_root, 64, int(200))
+train_loader = generate_data_loader(train_root, 64, int(2000))
 val_loader = generate_data_loader(val_root, 64, int(20000))
 criterion = nn.CrossEntropyLoss().cuda(2)
 
