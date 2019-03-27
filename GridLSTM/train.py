@@ -161,7 +161,7 @@ encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8,
 encoder = encoder.cuda(1)
 decoder = decoder.cuda(2)
 
-train_loader = generate_data_loader(train_root, 300, int(2000))
+train_loader = generate_data_loader(train_root, 300, int(500000))
 val_loader = generate_data_loader(val_root, 300, int(20000))
 criterion = nn.CrossEntropyLoss().cuda(2)
 
@@ -187,7 +187,7 @@ class AverageMeter(object):
 
 
 def get_batch_size(epoch):
-    return 100
+    return 300
 
 
 def train(epoch):
