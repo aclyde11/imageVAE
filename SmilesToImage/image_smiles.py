@@ -40,7 +40,7 @@ no_cuda = False
 seed = hyper_params['seed']
 data_para = True
 log_interval = 7
-LR = 0.00001
+LR = 0.000005
 rampDataSize = 0.08 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -131,7 +131,7 @@ if data_para and torch.cuda.device_count() > 1:
     model = nn.DataParallel(model, [4,5,6,7])
 
 
-optimizer = optim.SGD(model.parameters(), lr=LR, momentum=0.9, nesterov=True)
+optimizer = optim.SGD(model.parameters(), lr=LR, momentum=0.9)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=5e-4, last_epoch=-1)
 
 
