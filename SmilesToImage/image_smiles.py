@@ -41,7 +41,7 @@ seed = hyper_params['seed']
 data_para = True
 log_interval = 7
 LR = 1e-4
-rampDataSize = 0.08 ## data set size to use
+rampDataSize = 0.06 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
