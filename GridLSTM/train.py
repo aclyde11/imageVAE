@@ -3,7 +3,6 @@ from torch.nn.utils.rnn import pack_padded_sequence
 
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2, 3, 4,5,6,7'
 from itertools import chain
 
 import datetime
@@ -137,28 +136,33 @@ decoder_lr = 5e-4  # learning rate for decoder
 grad_clip = 5.  # clip gradients at an absolute value of
 alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as in the paper
 fine_tune_encoder = True  # fine-tune encoder?
-decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
-                               embed_dim=emb_dim,
-                               decoder_dim=decoder_dim,
-                               vocab_size=len(vocab),
-                               dropout=dropout)
-decoder.fine_tune_embeddings(True)
+
+
+#decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
+#                               embed_dim=emb_dim,
+#                               decoder_dim=decoder_dim,
+#                               vocab_size=len(vocab),
+#                               dropout=dropout)
+decoder = torch.load("decoder.95.pt")
+#decoder.fine_tune_embeddings(True)
+
+encoder = torch.load("encoder.95.pt")
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
-encoder = Encoder()
-encoder.fine_tune(fine_tune_encoder)
+#encoder = Encoder()
+#encoder.fine_tune(fine_tune_encoder)
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
 
 
-decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 5, eta_min=1e-5, last_epoch=-1)
-encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 5, eta_min=1e-5, last_epoch=-1)
-encoder = encoder.cuda()
-decoder = decoder.cuda()
+decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
+encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
+encoder = encoder.cuda(1)
+decoder = decoder.cuda(2)
 
-train_loader = generate_data_loader(train_root, 64, int(150000))
-val_loader = generate_data_loader(val_root, 64, int(10000))
-criterion = nn.CrossEntropyLoss().to(device)
+train_loader = generate_data_loader(train_root, 64, int(200))
+val_loader = generate_data_loader(val_root, 64, int(20000))
+criterion = nn.CrossEntropyLoss().cuda(2)
 
 class AverageMeter(object):
     """
@@ -193,13 +197,13 @@ def train(epoch):
         encoder.train()
         losses = AverageMeter()  # loss (per word decoded)
         for batch_idx, (data, embed, embedlen) in enumerate(train_loader):
-            imgs = data[0].float().cuda()
-            caps = embed.cuda()
-            caplens = embedlen.cuda().view(-1, 1)
+            imgs = data[0].float().cuda(1)
+            caps = embed.cuda(2)
+            caplens = embedlen.cuda(2).view(-1, 1)
 
 
             # Forward prop.
-            imgs = encoder(imgs)
+            imgs = encoder(imgs).cuda(2)
 
             scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch > 1))
 
@@ -265,6 +269,7 @@ def train(epoch):
                     target = targets_copy[i,...]
                     s1 = "".join([charset[chars] for chars in target])
                     s2 = "".join([charset[chars] for chars in sample])
+                    print(s1, s2)
                     if i < 4:
                         print("ORIG: {}\nNEW : {}\n".format(s1, s2))
                     acc_per_string += int(s1 == s2)
@@ -368,7 +373,11 @@ for epoch in range(starting_epoch, epochs):
     encoder_sched.step()
     train(epoch)
     val = test(epoch)
-    torch.save(encoder.state_dict(), "encoder." + str(epoch) + ".pt")
-    torch.save(decoder.state_dict(), "decoder." + str(epoch) + ".pt")
 
 
+    torch.save({
+        'epoch': epoch,
+        'decoder_state_dict': decoder.state_dict(),
+        'decoder_optimizer_state_dict': decoder_optimizer.state_dict(),
+        'encoder_state_dict' : encoder.state_dict(),
+        'encoder_optimizer_state_dict' : encoder_optimizer.state_dict()}, 'state_' + str(epoch) + ".pt")
