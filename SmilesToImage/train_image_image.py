@@ -133,6 +133,7 @@ binding_optimizer = optim.Adam(binding_model.parameters(), lr=0.0001)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_picture = customLoss()
 loss_mse = nn.MSELoss().cuda(4)
+loss_mae = nn.L1Loss().cuda(4)
 
 val_losses = []
 train_losses = []
@@ -158,6 +159,7 @@ def train(epoch):
 
         binding_pred = binding_model(z.cuda(4))
         binding_loss = loss_mse(aff, binding_pred)
+        binding_mae = loss_mae(aff, binding_pred)
 
         loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         loss.backward(retain_graph=True)
@@ -171,7 +173,7 @@ def train(epoch):
                 epoch, batch_idx * len(data), len(train_loader_food.dataset),
                        100. * batch_idx / len(train_loader_food),
                        loss.item() / len(data), datetime.datetime.now()))
-            print("BINDING LOSS: {}".format(binding_loss.item()))
+            print("BINDING LOSS: mse {}, mae {}".format(binding_loss.item(), binding_mae.item()))
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, train_loss / len(train_loader_food.dataset)))
