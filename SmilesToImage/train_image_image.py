@@ -36,7 +36,7 @@ torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/im_im_small/results/'
 save_files = '/homes/aclyde11/imageVAE/im_im_small/model/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': 0, 'pin_memory': True} if cuda else {}
 
 binding_aff = pd.read_csv("/homes/aclyde11/moldata/moses/binding_aff.csv")
 binding_aff_orig = binding_aff
@@ -62,15 +62,14 @@ def apply_one_hot(ch):
 
 class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
-        t = self.imgs[index][0]
-        t = int(t.split('/')[-1].split('.')[0])
-        f=t
+        f = self.imgs[index][0]
+        f = int(f.split('/')[-1].split('.')[0])
         try:
-            aff = float(binding_aff.loc[t, 1])
-            t = list(smiles_lookup.loc[t, 0])
+            aff = float(binding_aff.loc[f, 1])
+            t = list(smiles_lookup.loc[f, 0])
         except:
-            print("is it in the thing at all?", binding_aff_orig[binding_aff_orig['id'] == t])
-            print(t)
+            print('aff: ', aff)
+            print('t', t)
             exit()
         embed = apply_one_hot([t])[0].astype(np.float32)
         im = super(ImageFolderWithFile, self).__getitem__(index)
