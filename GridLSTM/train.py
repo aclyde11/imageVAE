@@ -161,8 +161,8 @@ encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8,
 encoder = encoder.cuda(1)
 decoder = decoder.cuda(2)
 
-train_loader = generate_data_loader(train_root, 64, int(2000))
-val_loader = generate_data_loader(val_root, 64, int(20000))
+train_loader = generate_data_loader(train_root, 300, int(2000))
+val_loader = generate_data_loader(val_root, 300, int(20000))
 criterion = nn.CrossEntropyLoss().cuda(2)
 
 class AverageMeter(object):
@@ -270,7 +270,6 @@ def train(epoch):
                     target = targets_copy[i,...]
                     s1 = "".join([charset[chars] for chars in target]).strip()
                     s2 = "".join([charset[chars] for chars in sample]).strip()
-                    print(s1, s2)
                     if i < 4:
                         print("ORIG: {}\nNEW : {}\n".format(s1, s2))
                     acc_per_string += 1 if s1 == s2 else 0
