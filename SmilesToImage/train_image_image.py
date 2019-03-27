@@ -116,7 +116,7 @@ decoder.load_state_dict(checkpoint['decoder_state_dict'])
 model = GeneralVae(encoder, decoder, rep_size=500)
 
 
-binding_model = BindingAffModel(rep_size=500).cuda(4)
+binding_model = BindingAffModel(rep_size=500).cuda()
 
 
 if data_para and torch.cuda.device_count() > 1:
