@@ -60,8 +60,8 @@ torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/combo/results/'
 save_files = '/homes/aclyde11/imageVAE/combo/model/'
 device = torch.device("cuda" if cuda else "cpu")
-#kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
-kwargs =  {}
+kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
+#kwargs =  {}
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
 val_root =   '/homes/aclyde11/moldata/moses/test/'
