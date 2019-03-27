@@ -39,8 +39,9 @@ device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 binding_aff = pd.read_csv("/homes/aclyde11/moldata/moses/binding_aff.csv")
+binding_aff_orig = binding_aff
 binding_aff['id'] = binding_aff['id'].astype('int64')
-#print(binding_aff)
+print(binding_aff.head())
 
 train_root = '/homes/aclyde11/moldata/moses/binding_train/'
 val_root =   '/homes/aclyde11/moldata/moses/binding_test/'
@@ -65,6 +66,8 @@ class ImageFolderWithFile(datasets.ImageFolder):
             aff = float(binding_aff.loc[t-1, 3])
             t = list(smiles_lookup.iloc[t-1, 1])
         except:
+            print("is it in the thing at all?", binding_aff_orig[binding_aff_orig['id'] == t])
+            print('or ', binding_aff_orig[binding_aff_orig['id'] == t-1])
             print(t)
             exit()
         embed = apply_one_hot([t])[0].astype(np.float32)
