@@ -160,7 +160,7 @@ def train(epoch):
         binding_loss = loss_mse(aff, binding_pred)
 
         loss = loss_picture(recon_batch, data, mu, logvar, epoch)
-        loss.backward(retrain_graph=True)
+        loss.backward(retain_graph=True)
         binding_loss.backward()
         train_loss += loss.item()
         optimizer.step()
