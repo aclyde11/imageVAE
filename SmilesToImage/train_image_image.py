@@ -130,7 +130,7 @@ def train(epoch):
         data = data[0].cuda()
 
         optimizer.zero_grad()
-        recon_batch, mu, logvar = model(data)
+        recon_batch, mu, logvar, _ = model(data)
         loss = loss_mse(recon_batch, data, mu, logvar, epoch)
         loss.backward()
         train_loss += loss.item()
@@ -165,7 +165,7 @@ def test(epoch):
         for i, (data, _, ind) in enumerate(val_loader_food):
             data = data[0].cuda()
             print(ind)
-            recon_batch, mu, logvar = model(data)
+            recon_batch, mu, logvar, _ = model(data)
             loss = loss_mse(recon_batch, data, mu, logvar, epoch)
             if i == 0:
                 n_image_gen = 8
