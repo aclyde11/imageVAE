@@ -38,7 +38,7 @@ save_files = '/homes/aclyde11/imageVAE/im_im_small/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 0, 'pin_memory': True} if cuda else {}
 
-binding_aff = pd.read_csv("/homes/aclyde11/moldata/moses/binding_aff.csv")
+binding_aff = pd.read_csv("/homes/aclyde11/moldata/moses/norm_binding_aff.csv")
 binding_aff_orig = binding_aff
 binding_aff['id'] = binding_aff['id'].astype('int64')
 binding_aff = binding_aff.set_index('id')
@@ -67,8 +67,8 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t=None
         aff=None
         try:
-            aff = float(binding_aff.loc[f, 1])
-            t = list(smiles_lookup.loc[f, 0])
+            aff = float(binding_aff.loc[f, 'norm_aff'])
+            t = list(smiles_lookup.loc[f, 'smiles'])
         except:
             print(f)
             print('aff: ', aff)
