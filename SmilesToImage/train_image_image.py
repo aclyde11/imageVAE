@@ -164,9 +164,9 @@ def test(epoch):
     with torch.no_grad():
         for i, (data, _, ind) in enumerate(val_loader_food):
             data = data[0].cuda()
-            print(ind)
             recon_batch, mu, logvar, _ = model(data)
             loss = loss_mse(recon_batch, data, mu, logvar, epoch)
+            test_loss += loss.item()
             if i == 0:
                 n_image_gen = 8
                 images = []
@@ -177,6 +177,7 @@ def test(epoch):
                     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
+                    print(sample_vec.shape)
                     images.append(model.module.decode(sample_vec).cpu())
                 save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
