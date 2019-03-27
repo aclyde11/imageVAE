@@ -64,10 +64,13 @@ class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
         f = self.imgs[index][0]
         f = int(f.split('/')[-1].split('.')[0])
+        t=None
+        aff=None
         try:
             aff = float(binding_aff.loc[f, 1])
             t = list(smiles_lookup.loc[f, 0])
         except:
+            print(f)
             print('aff: ', aff)
             print('t', t)
             exit()
