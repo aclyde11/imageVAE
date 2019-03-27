@@ -143,10 +143,10 @@ fine_tune_encoder = True  # fine-tune encoder?
 #                               decoder_dim=decoder_dim,
 #                               vocab_size=len(vocab),
 #                               dropout=dropout)
-decoder = torch.load("decoder.95.pt")
+#decoder = torch.load("decoder.95.pt")
 #decoder.fine_tune_embeddings(True)
 
-encoder = torch.load("encoder.95.pt")
+#encoder = torch.load("encoder.95.pt")
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
 #encoder = Encoder()
