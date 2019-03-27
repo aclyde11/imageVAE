@@ -194,7 +194,7 @@ class BindingAffModel(nn.Module):
         self.rep_size = rep_size
 
         sizes = [256, 128, 64, 64]
-        self.layers = None
+        self.layers = []
 
         curr_size = rep_size
         for i in sizes:
