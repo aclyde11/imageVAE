@@ -97,7 +97,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
         t = self.imgs[index][0]
         t = int(t.split('/')[-1].split('.')[0])
-        t = list(smiles_lookup.iloc[t, 1])
+        t = list(smiles_lookup.loc[t, 'smiles'])
         #embed = apply_one_hot([t])[0].astype(np.float32)
         t.insert(0, '!')
         t.append('?')

@@ -142,9 +142,9 @@ def get_batch_size(epoch):
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
-    print(list(binding_model.modules()))
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
+    binding_model.train()
     train_loss = 0
     loss = None
     for batch_idx, (data, _, aff) in enumerate(train_loader_food):
@@ -161,7 +161,7 @@ def train(epoch):
 
         loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         loss.backward()
-        binding_loss.backwards()
+        binding_loss.backward()
         train_loss += loss.item()
         optimizer.step()
         binding_loss.step()
@@ -192,6 +192,7 @@ def interpolate_points(x,y, sampling):
 def test(epoch):
     val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
     model.eval()
+    binding_model.eval()
     test_loss = 0
     binding_loss = 0
     with torch.no_grad():
