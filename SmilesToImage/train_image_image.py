@@ -22,7 +22,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 0.0005          ##adam rate
+LR = 0.0003          ##adam rate
 rampDataSize = 0.1 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -141,6 +141,17 @@ train_losses = []
 def get_batch_size(epoch):
     return min(64  + 2 * epoch, 322 )
 
+def clip_gradient(optimizer, grad_clip=5.0):
+    """
+    Clips gradients computed during backpropagation to avoid explosion of gradients.
+    :param optimizer: optimizer with the gradients to be clipped
+    :param grad_clip: clip value
+    """
+    for group in optimizer.param_groups:
+        for param in group['params']:
+            if param.grad is not None:
+                param.grad.data.clamp_(-grad_clip, grad_clip)
+
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
@@ -162,9 +173,13 @@ def train(epoch):
         binding_mae = loss_mae(aff, binding_pred)
 
         loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+        train_loss += loss.item()
+
         loss.backward(retain_graph=True)
         binding_loss.backward()
-        train_loss += loss.item()
+        clip_gradient(binding_optimizer)
+        clip_gradient(optimizer)
+
         optimizer.step()
         binding_optimizer.step()
 
@@ -197,7 +212,7 @@ def test(epoch):
     binding_model.eval()
     test_loss = 0
     binding_loss = 0
-    binding_mae
+    binding_mae = 0
     with torch.no_grad():
         for i, (data, _, aff) in enumerate(val_loader_food):
             data = data[0].cuda()
