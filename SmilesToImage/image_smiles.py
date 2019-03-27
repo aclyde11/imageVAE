@@ -141,7 +141,7 @@ train_losses = []
 lossf = customLoss()
 
 def get_batch_size(epoch):
-    return 500 #min(64  + 16 * epoch, 322 )
+    return 450 #min(64  + 16 * epoch, 322 )
 
 
 
