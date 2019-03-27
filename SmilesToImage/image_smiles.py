@@ -34,7 +34,7 @@ hyper_params = {
 experiment = Experiment(project_name="pytorch")
 experiment.log_parameters(hyper_params)
 
-starting_epoch=1
+starting_epoch=6
 epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
