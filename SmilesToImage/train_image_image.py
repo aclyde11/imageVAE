@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import GeneralVae,  PictureDecoder, PictureEncoder
+from model import GeneralVae,  PictureDecoder, PictureEncoder, BindingAffModel
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
@@ -22,8 +22,8 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 0.0006          ##adam rate
-rampDataSize = 0.08 ## data set size to use
+LR = 0.0005          ##adam rate
+rampDataSize = 0.1 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
@@ -38,9 +38,12 @@ save_files = '/homes/aclyde11/imageVAE/im_im_small/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
+binding_aff = pd.read_csv("/homes/aclyde11/moldata/moses/binding_aff.csv")
+binding_aff['id'] = binding_aff['id'].astype('int64')
+binding_aff = binding_aff.set_index('id')
 
-train_root = '/homes/aclyde11/moldata/moses/train/'
-val_root =   '/homes/aclyde11/moldata/moses/test/'
+train_root = '/homes/aclyde11/moldata/moses/binding_train/'
+val_root =   '/homes/aclyde11/moldata/moses/binding_test/'
 smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab")
 
 def one_hot_array(i, n):
@@ -59,6 +62,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t = int(t.split('/')[-1].split('.')[0])
         f=t
         try:
+            aff = float(binding_aff.loc[t, 3])
             t = list(smiles_lookup.iloc[t-1, 1])
         except:
             print(t)
@@ -66,7 +70,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         embed = apply_one_hot([t])[0].astype(np.float32)
         im = super(ImageFolderWithFile, self).__getitem__(index)
 
-        return  im, embed, f-1
+        return  im, embed, aff
 
 def generate_data_loader(root, batch_size, data_size):
     invert = transforms.Compose([
@@ -94,13 +98,18 @@ class customLoss(nn.Module):
 model = None
 encoder = None
 decoder = None
-if model_load is None:
-    encoder = PictureEncoder()
-    decoder = PictureDecoder()
-else:
-    encoder = torch.load(model_load['encoder'])
-    decoder = torch.load(model_load['decoder'])
+encoder = PictureEncoder()
+decoder = PictureDecoder()
+
+
+checkpoint = torch.load(save_files + 'epoch_' + str(26) + '.pt')
+encoder.load_state_dict(checkpoint['encoder_state_dict'])
+decoder.load_state_dict(checkpoint['decoder_state_dict'])
+
 model = GeneralVae(encoder, decoder, rep_size=500)
+
+
+binding_model = BindingAffModel(rep_size=500).cuda(7)
 
 
 if data_para and torch.cuda.device_count() > 1:
@@ -110,9 +119,13 @@ if data_para and torch.cuda.device_count() > 1:
 model.to(device)
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+binding_optimizer = optim.Adam(binding_model.parameters(), lr=0.0001)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
-loss_mse = customLoss()
+loss_picture = customLoss()
+loss_mse = nn.MSELoss().cuda(7)
 
 val_losses = []
 train_losses = []
@@ -127,21 +140,31 @@ def train(epoch):
     model.train()
     train_loss = 0
     loss = None
-    for batch_idx, (data, _, _) in enumerate(train_loader_food):
+    for batch_idx, (data, _, aff) in enumerate(train_loader_food):
         data = data[0].cuda()
+        aff = aff.float().cuda(7)
 
         optimizer.zero_grad()
-        recon_batch, mu, logvar, _ = model(data)
-        loss = loss_mse(recon_batch, data, mu, logvar, epoch)
+        binding_optimizer.zero_grad()
+
+        recon_batch, mu, logvar, z = model(data)
+
+        binding_pred = binding_model(z.cuda(7))
+        binding_loss = loss_mse(aff, binding_pred)
+
+        loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         loss.backward()
+        binding_loss.backwards()
         train_loss += loss.item()
         optimizer.step()
+        binding_loss.step()
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                 epoch, batch_idx * len(data), len(train_loader_food.dataset),
                        100. * batch_idx / len(train_loader_food),
                        loss.item() / len(data), datetime.datetime.now()))
+            print("BINDING LOSS: {}".format(binding_loss.item()))
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, train_loss / len(train_loader_food.dataset)))
@@ -163,11 +186,19 @@ def test(epoch):
     val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
     model.eval()
     test_loss = 0
+    binding_loss = 0
     with torch.no_grad():
-        for i, (data, _, ind) in enumerate(val_loader_food):
+        for i, (data, _, aff) in enumerate(val_loader_food):
             data = data[0].cuda()
-            recon_batch, mu, logvar, _ = model(data)
-            loss = loss_mse(recon_batch, data, mu, logvar, epoch)
+            aff = aff.float().cuda(7)
+
+            recon_batch, mu, logvar, z = model(data)
+
+            binding_pred = binding_model(z.cuda(7))
+            binding_loss += loss_mse(aff, binding_pred).item()
+
+
+            loss = loss_picture(recon_batch, data, mu, logvar, epoch)
             test_loss += loss.item()
             if i == 0:
                 n_image_gen = 8
