@@ -36,7 +36,7 @@ torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/im_im_small/results/'
 save_files = '/homes/aclyde11/imageVAE/im_im_small/model/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 0, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 binding_aff = pd.read_csv("/homes/aclyde11/moldata/moses/norm_binding_aff.csv")
 binding_aff_orig = binding_aff
@@ -142,7 +142,7 @@ def get_batch_size(epoch):
 
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
-
+    print(binding_model.modules())
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
