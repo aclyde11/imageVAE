@@ -40,7 +40,7 @@ kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 binding_aff = pd.read_csv("/homes/aclyde11/moldata/moses/binding_aff.csv")
 binding_aff['id'] = binding_aff['id'].astype('int64')
-binding_aff = binding_aff.set_index('id')
+#print(binding_aff)
 
 train_root = '/homes/aclyde11/moldata/moses/binding_train/'
 val_root =   '/homes/aclyde11/moldata/moses/binding_test/'
@@ -62,7 +62,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t = int(t.split('/')[-1].split('.')[0])
         f=t
         try:
-            aff = float(binding_aff.loc[t, 3])
+            aff = float(binding_aff.loc[t-1, 3])
             t = list(smiles_lookup.iloc[t-1, 1])
         except:
             print(t)
