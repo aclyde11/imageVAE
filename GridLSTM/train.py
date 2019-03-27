@@ -188,6 +188,7 @@ class AverageMeter(object):
 def get_batch_size(epoch):
     return 100
 
+
 def train(epoch):
     with experiment.train():
         experiment.log_current_epoch(epoch)
@@ -253,7 +254,7 @@ def train(epoch):
             acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
             experiment.log_metric("acc_per_char", acc)
 
-
+            acc_per_string = 0
             if batch_idx % log_interval == 0:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),
@@ -263,16 +264,15 @@ def train(epoch):
                 _, preds = torch.max(scores_copy, dim=2)
                 preds = preds.cpu().numpy()
                 targets_copy = targets_copy.cpu().numpy()
-                acc_per_string = 0
                 for i in range(preds.shape[0]):
                     sample = preds[i,...]
                     target = targets_copy[i,...]
-                    s1 = "".join([charset[chars] for chars in target])
-                    s2 = "".join([charset[chars] for chars in sample])
+                    s1 = "".join([charset[chars] for chars in target]).strip()
+                    s2 = "".join([charset[chars] for chars in sample]).strip()
                     print(s1, s2)
                     if i < 4:
                         print("ORIG: {}\nNEW : {}\n".format(s1, s2))
-                    acc_per_string += int(s1 == s2)
+                    acc_per_string += 1 if s1 == s2 else 0
                 experiment.log_metric('acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
 
 
@@ -308,12 +308,12 @@ def test(epoch):
         losses = AverageMeter()  # loss (per word decoded)
         with torch.no_grad():
             for batch_idx, (data, embed, embedlen) in enumerate(val_loader):
-                imgs = data[0].float().cuda()
-                caps = embed.cuda()
-                caplens = embedlen.cuda().view(-1, 1)
+                imgs = data[0].float().cuda(1)
+                caps = embed.cuda(2)
+                caplens = embedlen.cuda(2).view(-1, 1)
 
                 # Forward prop.
-                imgs = encoder(imgs)
+                imgs = encoder(imgs).cuda(2)
 
                 scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
                                                                                 teacher_forcing=bool(epoch > 1))
