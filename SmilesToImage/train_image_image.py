@@ -22,8 +22,8 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 0.0005          ##adam rate
-rampDataSize = 0.05 ## data set size to use
+LR = 0.0006          ##adam rate
+rampDataSize = 0.08 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
@@ -126,6 +126,7 @@ def train(epoch):
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
+    loss = None
     for batch_idx, (data, _, _) in enumerate(train_loader_food):
         data = data[0].cuda()
 
@@ -145,6 +146,7 @@ def train(epoch):
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, train_loss / len(train_loader_food.dataset)))
     train_losses.append(train_loss / len(train_loader_food.dataset))
+    return loss
 
 
 
@@ -208,10 +210,15 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
-    train(epoch)
+    loss = train(epoch)
     test(epoch)
-    torch.save(model.module.encoder, save_files + 'encoder_epoch_' + str(epoch) + '.pt')
-    torch.save(model.module.decoder, save_files + 'decoder_epoch_' + str(epoch) + '.pt')
+
+    torch.save({
+        'epoch': epoch,
+        'encoder_state_dict': model.module.encoder.state_dict(),
+        'decoder_state_dict' : model.module.decoder.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss}, save_files + 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
         sample = model.module.decode(sample).cpu()
