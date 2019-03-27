@@ -357,7 +357,7 @@ def test(epoch):
                     for i in range(4):
                         sample = preds[i, ...]
                         target = targets_copy[i, ...]
-                        print("ORIG: {}\nNEW : {}\n".format(
+                        print("ORIG: {}\nNEW : {}".format(
                             "".join([charset[chars] for chars in target]),
                             "".join([charset[chars] for chars in sample])
                         ))
