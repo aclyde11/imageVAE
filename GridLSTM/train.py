@@ -65,7 +65,9 @@ kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
 train_root = '/homes/aclyde11/moldata/moses/train/'
 val_root =   '/homes/aclyde11/moldata/moses/test/'
-smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab", header=None)
+smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab", names=['id', 'smiles'])
+smiles_lookup = smiles_lookup.set_index('id')
+print(smiles_lookup.head())
 
 def from_one_hot_array(vec):
     oh = np.where(vec == 1)

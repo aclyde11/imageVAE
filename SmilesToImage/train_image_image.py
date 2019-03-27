@@ -46,7 +46,9 @@ print(binding_aff.head())
 
 train_root = '/homes/aclyde11/moldata/moses/binding_train/'
 val_root =   '/homes/aclyde11/moldata/moses/binding_test/'
-smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab")
+smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab", names=['id', 'smiles'])
+smiles_lookup = smiles_lookup.set_index('id')
+print(smiles_lookup.head())
 
 def one_hot_array(i, n):
     return map(int, [ix == i for ix in range(n)])
@@ -64,8 +66,8 @@ class ImageFolderWithFile(datasets.ImageFolder):
         t = int(t.split('/')[-1].split('.')[0])
         f=t
         try:
-            aff = float(binding_aff.loc[t, 3])
-            t = list(smiles_lookup.loc[t, 1])
+            aff = float(binding_aff.loc[t, 1])
+            t = list(smiles_lookup.loc[t, 0])
         except:
             print("is it in the thing at all?", binding_aff_orig[binding_aff_orig['id'] == t])
             print(t)
