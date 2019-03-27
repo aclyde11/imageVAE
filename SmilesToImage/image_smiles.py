@@ -41,7 +41,7 @@ seed = hyper_params['seed']
 data_para = True
 log_interval = 7
 LR = 0.001
-rampDataSize = 0.8 ## data set size to use
+rampDataSize = 0.08 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab.insert(0,' ')
@@ -141,7 +141,8 @@ train_losses = []
 lossf = customLoss()
 
 def get_batch_size(epoch):
-    return min(64  + 16 * epoch, 322 )
+    return 322 #min(64  + 16 * epoch, 322 )
+
 
 
 def train(epoch, train_loader):
@@ -243,10 +244,10 @@ def test(epoch, val_loader):
     print('====> Test set loss: {:.4f}'.format(test_loss))
     val_losses.append(test_loss)
 
-
+train_loader = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
+val_loader = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
 for epoch in range(starting_epoch, epochs):
-    train_loader = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
-    val_loader = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
+
 
     # if epoch > 250:
     #     for param_group in optimizer.param_groups:
