@@ -129,7 +129,7 @@ model = GeneralVae(encoder, decoder).cuda()
 
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model = nn.DataParallel(model, [4,5,6,7])
+    model = nn.DataParallel(model, [3, 4,5,6,7])
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
