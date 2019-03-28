@@ -85,7 +85,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
             print('aff: ', aff)
             print('t', t)
             exit()
-        embed = apply_one_hot([t])[0].astype(np.float16)
+        embed = apply_one_hot([t])[0].astype(np.float)
         im = super(ImageFolderWithFile, self).__getitem__(index)
 
         return  im, embed, aff
