@@ -128,10 +128,10 @@ binding_model = BindingAffModel(rep_size=500).cuda()
 #optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-binding_optimizer = optim.SGD(binding_model.parameters(), lr=5e-5, momentum=0.9)
+binding_optimizer = optim.SGD(binding_model.parameters(), lr=1e-4, momentum=0.9)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
-binding_sched = torch.optim.lr_scheduler.CosineAnnealingLR(binding_optimizer, 10, eta_min=5e-6, last_epoch=-1)
+binding_sched = torch.optim.lr_scheduler.CosineAnnealingLR(binding_optimizer, 10, eta_min=5e-5, last_epoch=-1)
 #loss_picture = customLoss()
 loss_mse = nn.MSELoss().cuda()
 loss_mae = nn.L1Loss().cuda()
@@ -262,11 +262,11 @@ def test(epoch):
     val_losses.append(test_loss)
 
 for epoch in range(starting_epoch, epochs):
-    for param_group in optimizer.param_groups:
+    for param_group in binding_optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
 
     binding_sched.step()
-    sched.step()
+    # sched.step()
 
     loss = train(epoch)
     test(epoch)
