@@ -216,7 +216,7 @@ class BindingAffModel(nn.Module):
         super(BindingAffModel, self).__init__()
         self.rep_size = rep_size
 
-        sizes = [256, 128, 64, 64]
+        sizes = [64, 32, 16, 8]
         self.layers = []
 
         curr_size = rep_size

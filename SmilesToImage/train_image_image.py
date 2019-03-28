@@ -22,7 +22,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 0.0003          ##adam rate
+LR = 0.0001          ##adam rate
 rampDataSize = 0.1 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -109,7 +109,7 @@ encoder = PictureEncoder()
 decoder = PictureDecoder()
 
 
-checkpoint = torch.load(save_files + 'epoch_' + str(26) + '.pt')
+checkpoint = torch.load(save_files + 'epoch_' + str(29) + '.pt')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
@@ -128,7 +128,7 @@ model.to(device)
 optimizer = optim.Adam(model.parameters(), lr=LR)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-binding_optimizer = optim.Adam(binding_model.parameters(), lr=0.0001)
+binding_optimizer = optim.Adam(binding_model.parameters(), lr=0.00001)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
 loss_picture = customLoss()
