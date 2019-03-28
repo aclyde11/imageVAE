@@ -174,7 +174,8 @@ def train(epoch):
 
         #loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         #train_loss += loss.item()
-        loss += binding_loss.item()
+        loss =binding_loss
+        train_loss += binding_loss.item()
 
         binding_loss.backward()
         clip_gradient(binding_optimizer)
