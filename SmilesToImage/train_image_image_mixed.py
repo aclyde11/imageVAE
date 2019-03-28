@@ -71,6 +71,7 @@ one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(voc
 def apply_one_hot(ch):
     return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=0), ch))
 
+
 class ImageFolderWithFile(datasets.ImageFolder):
     def __getitem__(self, index):
         f = self.imgs[index][0]
@@ -85,10 +86,11 @@ class ImageFolderWithFile(datasets.ImageFolder):
             print('aff: ', aff)
             print('t', t)
             exit()
-        embed = apply_one_hot([t])[0].astype(np.float)
+        embed = apply_one_hot([t])[0].astype(np.float32)
         im = super(ImageFolderWithFile, self).__getitem__(index)
 
         return  im, embed, aff
+
 
 def generate_data_loader(root, batch_size, data_size):
     invert = transforms.Compose([
