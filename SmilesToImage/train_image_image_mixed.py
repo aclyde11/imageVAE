@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '3, 4,5,6,7'
 
 import datetime
 import torch
@@ -159,7 +159,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(64  + 8 * epoch, 322 )
+    return min(64  + 8 * epoch, 550 )
 
 def clip_gradient(optimizer, grad_clip=5.0):
     """
