@@ -255,11 +255,11 @@ class BindingAffModel(nn.Module):
 
         self.model = nn.Sequential(
             nn.Linear(512, 128),
-            nn.ReLU(),
+            nn.SELU(),
             nn.Linear(128, 64),
-            nn.ReLU(),
+            nn.SELU(),
             nn.Linear(64, 64),
-            nn.ReLU(),
+            nn.SELU(),
             nn.Linear(64, 1),
             nn.ReLU()
         )
