@@ -122,9 +122,9 @@ encoder = PictureEncoder()
 decoder = PictureDecoder()
 
 
-#$checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/' + 'epoch_' + str(72) + '.pt', map_location="cuda:0")
-#encoder.load_state_dict(checkpoint['encoder_state_dict'])
-#decoder.load_state_dict(checkpoint['decoder_state_dict'])
+$checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/' + 'epoch_' + str(72) + '.pt', map_location="cuda:0")
+encoder.load_state_dict(checkpoint['encoder_state_dict'])
+decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
@@ -136,8 +136,8 @@ model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
-#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-model, optimizer = amp.initialize(model, optimizer, opt_level='O2')
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
 
 
 
@@ -159,7 +159,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(64  + 2 * epoch, 322 )
+    return min(64  + 8 * epoch, 800 )
 
 def clip_gradient(optimizer, grad_clip=5.0):
     """
