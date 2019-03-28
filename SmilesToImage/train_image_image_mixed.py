@@ -137,7 +137,7 @@ model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-model, optimizer = amp.initialize(model, optimizer, opt_level='O2')
+model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
 
 
 
