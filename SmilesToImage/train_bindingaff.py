@@ -174,17 +174,18 @@ def train(epoch):
 
         #loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         #train_loss += loss.item()
+        loss += binding_loss.item()
 
         binding_loss.backward()
         clip_gradient(binding_optimizer)
         binding_optimizer.step()
-        print("BINDING LOSS: mse {}, mae {}".format(binding_loss.item(), binding_mae.item()))
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                 epoch, batch_idx * len(data), len(train_loader_food.dataset),
                        100. * batch_idx / len(train_loader_food),
                        loss.item() / len(data), datetime.datetime.now()))
+            print("BINDING LOSS: mse {}, mae {}".format(binding_loss.item(), binding_mae.item()))
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, train_loss / len(train_loader_food.dataset)))
