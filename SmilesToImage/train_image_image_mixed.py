@@ -133,6 +133,7 @@ model = GeneralVae(encoder, decoder, rep_size=500)
 
 
 
+model.to(device)
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -144,7 +145,6 @@ if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = nn.DataParallel(model)
 
-model.to(device)
 
 #binding_optimizer = optim.SGD(binding_model.parameters(), lr=5e-5, momentum=0.9)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, nesterov=True)
