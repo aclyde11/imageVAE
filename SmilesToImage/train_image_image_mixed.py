@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '3,4,5,6,77'
+os.environ['CUDA_VISIBLE_DEVICES'] = '3,4,5,6,7'
 
 import datetime
 import torch
@@ -137,7 +137,7 @@ model.to(device)
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
+model, optimizer = amp.initialize(model, optimizer, opt_level='O2')
 
 
 
