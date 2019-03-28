@@ -249,12 +249,12 @@ class ListModule(nn.Module):
 #         x = self.final_layer(concats)
 #         return x
 class BindingAffModel(nn.Module):
-    def __init__(self, rep_size=512, dropout=None):
+    def __init__(self, rep_size=500, dropout=None):
         super(BindingAffModel, self).__init__()
         self.rep_size = rep_size
 
         self.model = nn.Sequential(
-            nn.Linear(512, 128),
+            nn.Linear(500, 128),
             nn.SELU(),
             nn.Linear(128, 64),
             nn.SELU(),
