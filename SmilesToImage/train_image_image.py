@@ -176,11 +176,11 @@ def train(epoch):
         train_loss += loss.item()
 
         loss.backward(retain_graph=True)
+        clip_gradient(optimizer)
+        optimizer.step()
+
         binding_loss.backward()
         clip_gradient(binding_optimizer)
-        clip_gradient(optimizer)
-
-        optimizer.step()
         binding_optimizer.step()
 
         if batch_idx % log_interval == 0:
@@ -236,7 +236,6 @@ def test(epoch):
                     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                     sample_vec = torch.from_numpy(sample_vec).to(device)
-                    print(sample_vec.shape)
                     images.append(model.module.decode(sample_vec).cpu())
                 save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
@@ -262,7 +261,7 @@ def test(epoch):
 
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
-    print("BINDING LOSS: mse {}, mae {}".format(binding_loss.item(), binding_mae.item()))
+    print("BINDING LOSS: mse {}, mae {}".format(binding_loss, binding_mae))
 
     val_losses.append(test_loss)
 
