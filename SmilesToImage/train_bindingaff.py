@@ -140,7 +140,8 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(64  + 2 * epoch, 322 )
+    return 600
+    #return min(64  + 2 * epoch, 322 )
 
 def clip_gradient(optimizer, grad_clip=5.0):
     """
@@ -173,7 +174,7 @@ def train(epoch):
 
         binding_optimizer.zero_grad()
 
-        recon_batch, mu, logvar, z = model(data)
+        z = model.encode_latent_(data)
 
         binding_pred = binding_model(z)
         binding_mae = loss_mse(aff, binding_pred)
@@ -224,7 +225,7 @@ def test(epoch):
             data = data[0].cuda()
             aff = aff.float().cuda()
 
-            recon_batch, mu, logvar, z = model(data)
+            z = model.encode_latent_(data)
 
             binding_pred = binding_model(z)
             binding_loss += loss_mse(aff, binding_pred).item()
