@@ -211,43 +211,63 @@ class ListModule(nn.Module):
     def __len__(self):
         return len(self._modules)
 
+# class BindingAffModel(nn.Module):
+#     def __init__(self, rep_size=512, dropout=None):
+#         super(BindingAffModel, self).__init__()
+#         self.rep_size = rep_size
+#
+#         sizes = [64, 32, 16, 8]
+#         self.layers = []
+#
+#         curr_size = rep_size
+#         for i in sizes:
+#             if dropout is not None:
+#                 self.layers.append(nn.Sequential(
+#                     nn.Linear(curr_size, i),
+#                     nn.ReLU(),
+#                     nn.Dropout(dropout)
+#                 ))
+#             else:
+#                 self.layers.append(nn.Sequential(
+#                     nn.Linear(curr_size, i),
+#                     nn.ReLU()
+#                 ))
+#             curr_size += i
+#         self.layers = ListModule(*self.layers)
+#         self.final_layer = nn.Sequential(
+#             nn.Linear(curr_size, 1),
+#             nn.ReLU()
+#         )
+#
+#
+#
+#     def forward(self, x):
+#         concats = x
+#         for layer in self.layers:
+#             x = layer(concats)
+#             concats = torch.cat((concats, x), dim=1)
+#         x = self.final_layer(concats)
+#         return x
 class BindingAffModel(nn.Module):
     def __init__(self, rep_size=512, dropout=None):
         super(BindingAffModel, self).__init__()
         self.rep_size = rep_size
 
-        sizes = [64, 32, 16, 8]
-        self.layers = []
-
-        curr_size = rep_size
-        for i in sizes:
-            if dropout is not None:
-                self.layers.append(nn.Sequential(
-                    nn.Linear(curr_size, i),
-                    nn.ReLU(),
-                    nn.Dropout(dropout)
-                ))
-            else:
-                self.layers.append(nn.Sequential(
-                    nn.Linear(curr_size, i),
-                    nn.ReLU()
-                ))
-            curr_size += i
-        self.layers = ListModule(*self.layers)
-        self.final_layer = nn.Sequential(
-            nn.Linear(curr_size, 1),
+        self.model = nn.Sequential(
+            nn.Linear(512, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
             nn.ReLU()
         )
 
 
 
     def forward(self, x):
-        concats = x
-        for layer in self.layers:
-            x = layer(concats)
-            concats = torch.cat((concats, x), dim=1)
-        x = self.final_layer(concats)
-        return x
+        return self.model(x)
 
 class PictureDecoder(nn.Module):
     def __init__(self, rep_size=500):
