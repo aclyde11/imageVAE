@@ -153,6 +153,13 @@ def clip_gradient(optimizer, grad_clip=5.0):
             if param.grad is not None:
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
+def r2_keras(y_true, y_pred):
+    y_pred = y_pred.view(-1)
+    y_true = y_true.view(-1)
+    SS_res =  torch.sum((y_true - y_pred).pow(2)).item()
+    SS_tot = torch.sum(torch.square(y_true - torch.mean(y_true))).item()
+    return ( 1 - SS_res/(SS_tot + 1e-5) )
+
 def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
@@ -187,6 +194,7 @@ def train(epoch):
                        100. * batch_idx / len(train_loader_food),
                        loss.item() / len(data), datetime.datetime.now()))
             print("BINDING LOSS: mse {}, mae {}".format(binding_loss.item(), binding_mae.item()))
+            print(r2_keras(aff, binding_pred))
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, train_loss / len(train_loader_food.dataset)))
