@@ -144,6 +144,7 @@ model, optimizer = amp.initialize(model, optimizer, opt_level='O2')
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = nn.DataParallel(model)
+    model = model.cuda()
 
 
 
