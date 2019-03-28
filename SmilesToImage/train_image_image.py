@@ -16,14 +16,14 @@ from invert import Invert
 
 import numpy as np
 import pandas as pd
-starting_epoch=27
+starting_epoch=30
 epochs = 200
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 0.0001          ##adam rate
-rampDataSize = 0.1 ## data set size to use
+LR = 1e-4          ##adam rate
+rampDataSize = 0.15 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
@@ -128,9 +128,10 @@ model.to(device)
 optimizer = optim.Adam(model.parameters(), lr=LR)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-binding_optimizer = optim.Adam(binding_model.parameters(), lr=0.00001)
-#optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
-#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
+binding_optimizer = optim.SGD(binding_model.parameters(), lr=5e-5, momentum=0.9)
+#optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, nesterov=True)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
+binding_sched = torch.optim.lr_scheduler.CosineAnnealingLR(binding_optimizer, 10, eta_min=5e-6, last_epoch=-1)
 loss_picture = customLoss()
 loss_mse = nn.MSELoss().cuda(4)
 loss_mae = nn.L1Loss().cuda(4)
@@ -268,6 +269,10 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
+
+    binding_sched.step()
+    sched.step()
+
     loss = train(epoch)
     test(epoch)
 
