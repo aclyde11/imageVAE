@@ -177,8 +177,8 @@ def train(epoch):
         z = model.encode_latent_(data)
 
         binding_pred = binding_model(z)
-        binding_mae = loss_mse(aff, binding_pred)
-        binding_loss = loss_mae(aff, binding_pred) + loss_mse(aff, binding_pred)
+        binding_mae = loss_mae(aff, binding_pred)
+        binding_loss =  loss_mse(aff, binding_pred)
 
         #loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         #train_loss += loss.item()
