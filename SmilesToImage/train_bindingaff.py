@@ -128,7 +128,7 @@ binding_model = BindingAffModel(rep_size=500).cuda()
 #optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-binding_optimizer = optim.Adam(binding_model.parameters(), lr=1e-3)
+binding_optimizer = optim.Adam(binding_model.parameters(), lr=1e-4)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
 binding_sched = torch.optim.lr_scheduler.CosineAnnealingLR(binding_optimizer, 10, eta_min=5e-4, last_epoch=-1)
