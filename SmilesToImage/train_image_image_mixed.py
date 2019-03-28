@@ -122,9 +122,9 @@ encoder = PictureEncoder()
 decoder = PictureDecoder()
 
 
-checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/' + 'epoch_' + str(72) + '.pt', map_location="cuda:0")
-encoder.load_state_dict(checkpoint['encoder_state_dict'])
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
+#$checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/' + 'epoch_' + str(72) + '.pt', map_location="cuda:0")
+#encoder.load_state_dict(checkpoint['encoder_state_dict'])
+#decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
