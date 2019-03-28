@@ -27,13 +27,13 @@ except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
 
-starting_epoch=1
+starting_epoch=73
 epochs = 200
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 1e-4          ##adam rate
+LR = 7e-5          ##adam rate
 rampDataSize = 0.15 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -122,9 +122,9 @@ encoder = PictureEncoder()
 decoder = PictureDecoder()
 
 
-#checkpoint = torch.load(save_files + 'epoch_' + str(29) + '.pt')
-#encoder.load_state_dict(checkpoint['encoder_state_dict'])
-#decoder.load_state_dict(checkpoint['decoder_state_dict'])
+checkpoint = torch.load(save_files + 'epoch_' + str(72) + '.pt', map_location="cuda:0")
+encoder.load_state_dict(checkpoint['encoder_state_dict'])
+decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500)
 
@@ -141,12 +141,12 @@ model.to(device)
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
-#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+model, optimizer = amp.initialize(model, optimizer, opt_level='O2')
 
 #binding_optimizer = optim.SGD(binding_model.parameters(), lr=5e-5, momentum=0.9)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, nesterov=True)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-6, last_epoch=-1)
 #binding_sched = torch.optim.lr_scheduler.CosineAnnealingLR(binding_optimizer, 10, eta_min=5e-6, last_epoch=-1)
 loss_picture = customLoss()
 
