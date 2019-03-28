@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '3,4,5,6,77'
 
 import datetime
 import torch
@@ -132,21 +132,23 @@ model = GeneralVae(encoder, decoder, rep_size=500)
 #binding_model = BindingAffModel(rep_size=500).cuda(4)
 
 
-# if data_para and torch.cuda.device_count() > 1:
-#     print("Let's use", torch.cuda.device_count(), "GPUs!")
-#     model = nn.DataParallel(model)
-
-model.to(device)
-
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
-#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-model, optimizer = amp.initialize(model, optimizer, opt_level='O2')
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
+
+
+
+if data_para and torch.cuda.device_count() > 1:
+    print("Let's use", torch.cuda.device_count(), "GPUs!")
+    model = nn.DataParallel(model)
+
+model.to(device)
 
 #binding_optimizer = optim.SGD(binding_model.parameters(), lr=5e-5, momentum=0.9)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, nesterov=True)
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-6, last_epoch=-1)
+#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-6, last_epoch=-1)
 #binding_sched = torch.optim.lr_scheduler.CosineAnnealingLR(binding_optimizer, 10, eta_min=5e-6, last_epoch=-1)
 loss_picture = customLoss()
 
@@ -286,7 +288,7 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
 
     #binding_sched.step()
-    sched.step()
+    #sched.step()
 
     loss = train(epoch)
     test(epoch)
