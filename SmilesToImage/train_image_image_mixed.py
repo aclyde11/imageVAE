@@ -137,7 +137,7 @@ model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-model, optimizer = amp.initialize(model, optimizer, opt_level='O2')
+model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
 
 
 
@@ -179,7 +179,7 @@ def train(epoch):
     train_loss = 0
     loss = None
     for batch_idx, (data, _, aff) in enumerate(train_loader_food):
-        data = data[0].cuda()
+        data = data[0].cuda(0)
         #aff = aff.float().cuda(4)
 
         optimizer.zero_grad()
