@@ -27,7 +27,7 @@ except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
 
-starting_epoch=30
+starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
@@ -130,9 +130,9 @@ model = GeneralVae(encoder, decoder, rep_size=500)
 #binding_model = BindingAffModel(rep_size=500).cuda(4)
 
 
-if data_para and torch.cuda.device_count() > 1:
-    print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model = nn.DataParallel(model)
+# if data_para and torch.cuda.device_count() > 1:
+#     print("Let's use", torch.cuda.device_count(), "GPUs!")
+#     model = nn.DataParallel(model)
 
 model.to(device)
 

@@ -214,7 +214,7 @@ def test(epoch):
     with torch.no_grad():
         for i, (data, _, aff) in enumerate(val_loader_food):
             data = data[0].cuda()
-            aff = aff.float().cuda(4)
+            aff = aff.float().cuda()
 
             recon_batch, mu, logvar, z = model(data)
 
