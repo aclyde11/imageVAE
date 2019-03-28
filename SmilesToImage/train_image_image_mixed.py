@@ -86,10 +86,10 @@ class ImageFolderWithFile(datasets.ImageFolder):
             print('aff: ', aff)
             print('t', t)
             exit()
-        embed = apply_one_hot([t])[0].astype(np.float32)
+        #embed = apply_one_hot([t])[0].astype(np.float32)
         im = super(ImageFolderWithFile, self).__getitem__(index)
 
-        return  im, embed, aff
+        return  im, 0, aff
 
 
 def generate_data_loader(root, batch_size, data_size):
