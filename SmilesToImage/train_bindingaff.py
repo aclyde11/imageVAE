@@ -157,7 +157,7 @@ def r2_keras(y_true, y_pred):
     y_pred = y_pred.view(-1)
     y_true = y_true.view(-1)
     SS_res =  torch.sum((y_true - y_pred).pow(2)).item()
-    SS_tot = torch.sum(torch.square(y_true - torch.mean(y_true))).item()
+    SS_tot = torch.sum((y_true - torch.mean(y_true)).pow(2)).item()
     return ( 1 - SS_res/(SS_tot + 1e-5) )
 
 def train(epoch):
