@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '3,4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '7'
 
 import datetime
 import torch
@@ -147,8 +147,7 @@ model, optimizer = amp.initialize(model, optimizer, opt_level=0)
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
 #binding_sched = torch.optim.lr_scheduler.CosineAnnealingLR(binding_optimizer, 10, eta_min=5e-6, last_epoch=-1)
 loss_picture = customLoss()
-loss_mse = nn.MSELoss().cuda(4)
-loss_mae = nn.L1Loss().cuda(4)
+
 
 val_losses = []
 train_losses = []
