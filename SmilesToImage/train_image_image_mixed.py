@@ -283,7 +283,7 @@ for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
 
-    binding_sched.step()
+    #binding_sched.step()
     sched.step()
 
     loss = train(epoch)
