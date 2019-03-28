@@ -179,7 +179,7 @@ def train(epoch):
     train_loss = 0
     loss = None
     for batch_idx, (data, _, aff) in enumerate(train_loader_food):
-        data = data[0].cuda()
+        data = data[0].cuda(3)
         #aff = aff.float().cuda(4)
 
         optimizer.zero_grad()
