@@ -140,7 +140,7 @@ model.to(device)
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-model, optimizer = amp.initialize(model, optimizer, opt_level=0)
+model, optimizer = amp.initialize(model, optimizer, opt_level='O0')
 
 #binding_optimizer = optim.SGD(binding_model.parameters(), lr=5e-5, momentum=0.9)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, nesterov=True)
