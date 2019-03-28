@@ -169,8 +169,8 @@ def train(epoch):
         recon_batch, mu, logvar, z = model(data)
 
         binding_pred = binding_model(z)
-        binding_loss = loss_mse(aff, binding_pred)
-        binding_mae = loss_mae(aff, binding_pred)
+        binding_mae = loss_mse(aff, binding_pred)
+        binding_loss = loss_mae(aff, binding_pred)
 
         #loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         #train_loss += loss.item()
@@ -218,7 +218,7 @@ def test(epoch):
 
             recon_batch, mu, logvar, z = model(data)
 
-            binding_pred = binding_model(z.cuda)
+            binding_pred = binding_model(z)
             binding_loss += loss_mse(aff, binding_pred).item()
             binding_mae += loss_mae(aff, binding_pred).item()
 
