@@ -1,6 +1,6 @@
 import os
 
-#os.environ['CUDA_VISIBLE_DEVICES'] = '3,4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '4,5,6,7'
 
 import datetime
 import torch
@@ -122,21 +122,19 @@ encoder = PictureEncoder()
 decoder = PictureDecoder()
 
 
-checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/' + 'epoch_' + str(72) + '.pt', map_location="cuda:3")
+checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/' + 'epoch_' + str(72) + '.pt', map_location="cuda:0")
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
-model = GeneralVae(encoder, decoder, rep_size=500)
+model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
 
 #binding_model = BindingAffModel(rep_size=500).cuda(4)
 
 
 
-model = model.cuda(3)
-
 optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 model, optimizer = amp.initialize(model, optimizer, opt_level='O2')
 
 
