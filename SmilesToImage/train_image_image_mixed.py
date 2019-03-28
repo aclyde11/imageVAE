@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '3,4,5,6,7'
+#os.environ['CUDA_VISIBLE_DEVICES'] = '3,4,5,6,7'
 
 import datetime
 import torch
@@ -122,7 +122,7 @@ encoder = PictureEncoder()
 decoder = PictureDecoder()
 
 
-checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/' + 'epoch_' + str(72) + '.pt', map_location="cuda:0")
+checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/' + 'epoch_' + str(72) + '.pt', map_location="cuda:3")
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
@@ -133,7 +133,7 @@ model = GeneralVae(encoder, decoder, rep_size=500)
 
 
 
-model = model.cuda()
+model = model.cuda(3)
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -143,7 +143,7 @@ model, optimizer = amp.initialize(model, optimizer, opt_level='O2')
 
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model = nn.DataParallel(model)
+    model = nn.DataParallel(model, device_ids=[3,4,5,6,7])
     model = model.cuda()
 
 
