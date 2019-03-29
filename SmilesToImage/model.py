@@ -307,7 +307,7 @@ class BindingAffModel(nn.Module):
         self.rep_size = rep_size
 
 
-        self.attention = MultiHeadAttention(1, 500)
+        self.attention = MultiHeadAttention(2, 500)
         self.model = nn.Sequential(
             nn.Linear(500, 128),
             nn.SELU(),
@@ -324,6 +324,7 @@ class BindingAffModel(nn.Module):
     def forward(self, x):
         batch_size=x.shape[0]
         out = self.attention(x.view(-1, 1, self.rep_size), x.view(-1, 1, self.rep_size), x.view(-1, 1, self.rep_size))
+        print(out.shape)
         return self.model(out.view(batch_size, -1))
 
 class PictureDecoder(nn.Module):
