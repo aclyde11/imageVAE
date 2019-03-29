@@ -4,6 +4,7 @@ from skimage import io, transform
 from torch import nn, optim
 from torch.nn import functional as F
 from ResNet import ResNet, BasicBlock, Bottleneck
+import math
 import torch.utils.model_zoo as model_zoo
 import torchvision
 model_urls = {
@@ -249,7 +250,7 @@ class ListModule(nn.Module):
 #         x = self.final_layer(concats)
 #         return x
 def attention(q, k, v, d_k, mask=None, dropout=None):
-    scores = torch.matmul(q, k.transpose(-2, -1)) / torch.sqrt(d_k)
+    scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(d_k)
 
     if mask is not None:
         mask = mask.unsqueeze(1)
