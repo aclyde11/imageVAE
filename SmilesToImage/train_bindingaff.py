@@ -109,7 +109,7 @@ encoder = PictureEncoder()
 decoder = PictureDecoder()
 
 
-checkpoint = torch.load(save_files + 'epoch_' + str(100) + '.pt', map_location="cuda:0")
+checkpoint = torch.load('/homes/aclyde11/imageVAE/mixed_im_im_small/model/' + 'epoch_' + str(100) + '.pt', map_location="cuda:0")
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
