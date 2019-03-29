@@ -23,7 +23,7 @@ seed = 42
 data_para = True
 log_interval = 50
 LR = 1e-4          ##adam rate
-rampDataSize = 0.15 ## data set size to use
+rampDataSize = 0.25 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
@@ -168,6 +168,8 @@ def train(epoch):
     binding_model.train()
     train_loss = 0
     loss = None
+    trues = []
+    preds = []
     for batch_idx, (data, _, aff) in enumerate(train_loader_food):
         data = data[0].cuda()
         aff = aff.float().cuda()
@@ -182,12 +184,20 @@ def train(epoch):
 
         #loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         #train_loss += loss.item()
-        loss =binding_loss
+        loss = binding_loss
         train_loss += binding_loss.item()
+
+
+
 
         binding_loss.backward()
         clip_gradient(binding_optimizer)
         binding_optimizer.step()
+
+        binding_pred = binding_pred.cpu().detach().numpy()
+        aff = aff.cpu().detach().numpy()
+        print(aff.shape)
+        print(binding_pred.shape)
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
