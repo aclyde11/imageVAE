@@ -212,6 +212,14 @@ def train(epoch):
         epoch, train_loss / len(train_loader_food.dataset)))
     train_losses.append(train_loss / len(train_loader_food.dataset))
 
+    trues = np.array(trues)
+    preds = np.array(preds)
+    trues = trues[~np.isnan(preds)]
+    preds = preds[~np.isnan(preds)]
+    trues = trues[~np.isnan(trues)]
+    preds = preds[~np.isnan(trues)]
+
+
     print("r2 score: {}, mae: {}, mse: {}".format(metrics.r2_score(trues, preds), metrics.mean_absolute_error(trues, preds), metrics.mean_squared_error(trues, preds)))
     return loss
 
