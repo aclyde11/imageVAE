@@ -13,7 +13,7 @@ import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
 from invert import Invert
-
+from sklearn import metrics
 import numpy as np
 import pandas as pd
 starting_epoch=63
@@ -194,10 +194,11 @@ def train(epoch):
         clip_gradient(binding_optimizer)
         binding_optimizer.step()
 
-        binding_pred = binding_pred.cpu().detach().numpy()
-        aff = aff.cpu().detach().numpy()
-        print(aff.shape)
-        print(binding_pred.shape)
+        binding_pred = binding_pred.cpu().detach().numpy().reshape(250)
+        aff = aff.cpu().detach().numpy().reshape(250)
+        trues.extend(aff)
+        preds.extend(binding_pred)
+
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
@@ -205,11 +206,13 @@ def train(epoch):
                        100. * batch_idx / len(train_loader_food),
                        loss.item() / len(data), datetime.datetime.now()))
             print("BINDING LOSS: mse {}, mae {}".format(binding_loss.item(), binding_mae.item()))
-            print(r2_keras(aff, binding_pred))
+             #print(r2_keras(aff, binding_pred))
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, train_loss / len(train_loader_food.dataset)))
     train_losses.append(train_loss / len(train_loader_food.dataset))
+
+    print("r2 score: {}, mae: {}, mse: {}".format(metrics.r2_score(trues, preds), metrics.mean_absolute_error(trues, preds), metrics.mean_squared_error(trues, preds)))
     return loss
 
 

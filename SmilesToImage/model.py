@@ -312,9 +312,9 @@ class BindingAffModel(nn.Module):
             nn.Linear(500, 128),
             nn.SELU(),
             nn.Linear(128, 64),
-            nn.SELU(),
+            nn.ReLU(),
             nn.Linear(64, 64),
-            nn.SELU(),
+            nn.ReLU(),
             nn.Linear(64, 1),
             nn.ReLU()
         )
@@ -324,7 +324,6 @@ class BindingAffModel(nn.Module):
     def forward(self, x):
         batch_size=x.shape[0]
         out = self.attention(x.view(-1, 1, self.rep_size), x.view(-1, 1, self.rep_size), x.view(-1, 1, self.rep_size))
-        print(out.shape)
         return self.model(out.view(batch_size, -1))
 
 class PictureDecoder(nn.Module):
