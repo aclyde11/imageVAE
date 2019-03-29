@@ -23,7 +23,7 @@ seed = 42
 data_para = True
 log_interval = 50
 LR = 1e-4          ##adam rate
-rampDataSize = 0.7 ## data set size to use
+rampDataSize = 0.05 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 embedding_size = len(vocab)
@@ -196,8 +196,12 @@ def train(epoch):
 
         binding_pred = binding_pred.cpu().detach().numpy().reshape(250)
         aff = aff.cpu().detach().numpy().reshape(250)
-        trues.extend(aff)
-        preds.extend(binding_pred)
+        for i, j in zip(aff, binding_pred):
+            if np.isnan(i) or np.isnan(j):
+                continue
+            else:
+                trues.append(i)
+                preds.append(j)
 
 
         if batch_idx % log_interval == 0:
@@ -214,10 +218,7 @@ def train(epoch):
 
     trues = np.array(trues)
     preds = np.array(preds)
-    trues = trues[~np.isnan(preds)]
-    preds = preds[~np.isnan(preds)]
-    trues = trues[~np.isnan(trues)]
-    preds = preds[~np.isnan(trues)]
+
 
 
     print("r2 score: {}, mae: {}, mse: {}".format(metrics.r2_score(trues, preds), metrics.mean_absolute_error(trues, preds), metrics.mean_squared_error(trues, preds)))
