@@ -377,9 +377,7 @@ class PictureDecoder(nn.Module):
         out = self.relu(out).view(-1, 125, 2, 2)
 
         for i, layer in enumerate(self.layers):
-            print("IN {}: {}".format(i, out.shape))
             out = layer(out)
-            print("OUT {}: {}".format(i, out.shape))
         return out
 
 

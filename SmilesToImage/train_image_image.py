@@ -1,6 +1,6 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '3,4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5,6,7'
 
 import datetime
 import torch
@@ -20,7 +20,7 @@ starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
-data_para = False
+data_para = True
 log_interval = 50
 LR = 1e-4          ##adam rate
 rampDataSize = 0.15 ## data set size to use
