@@ -355,7 +355,7 @@ class PictureDecoder(nn.Module):
         self.fc_bn4 = nn.BatchNorm1d(rep_size)
 
         # Decoder
-        self.conv1 = TranposeConvBlock(125, 128, kernel_size=[3, 2], stride=[1, 2], padding=[0,0])
+        self.conv1 = TranposeConvBlock(125, 128, kernel_size=[3, 2], stride=[1, 1], padding=[0,0])
         self.conv2 = TranposeConvBlock(128, 128, kernel_size=[3, 4], stride=[1, 2], padding=[1, 1])
         self.conv3 = TranposeConvBlock(128, 64, kernel_size=[3, 4],  stride=[1, 2], padding=[1, 1])
         self.conv4 = TranposeConvBlock(64,  64, kernel_size=[4, 4], stride=[1, 1], padding=[1, 1])
