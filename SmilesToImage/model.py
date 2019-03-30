@@ -326,6 +326,24 @@ class BindingAffModel(nn.Module):
         out = self.attention(x.view(-1, 1, self.rep_size), x.view(-1, 1, self.rep_size), x.view(-1, 1, self.rep_size))
         return self.model(out.view(batch_size, -1))
 
+
+
+class TranposeConvBlock(nn.Module):
+    def __init__(self, in_plane, out_plane, padding=(0,0), stride=(0,0), kernel_size=(0,0), dropout=None):
+        super(TranposeConvBlock).__init__()
+
+        self.conv1 = nn.ConvTranspose2d(in_plane, out_plane, kernel_size=kernel_size[0], padding=padding[0], stride=stride[0])
+        self.conv2 = nn.ConvTranspose2d(out_plane, out_plane, kernel_size=kernel_size[1], padding=padding[1], stride=stride[1], bias=False)
+        self.conv3 = nn.ConvTranspose2d(out_plane, out_plane, kernel_size=kernel_size[1], padding=padding[1], stride=stride[1], bias=False)
+        self.bn = nn.BatchNorm2d(out_plane)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = self.relu(self.conv1(x))
+        x = self.relu(self.bn(self.conv2(x) + self.conv3(x)))
+        return x
+
+
 class PictureDecoder(nn.Module):
     def __init__(self, rep_size=500):
         super(PictureDecoder, self).__init__()
@@ -337,49 +355,30 @@ class PictureDecoder(nn.Module):
         self.fc_bn4 = nn.BatchNorm1d(rep_size)
 
         # Decoder
-        self.preconv = nn.ConvTranspose2d(125, 128, kernel_size=3, stride=1, padding=0, bias=False)
-        self.conv15 = nn.ConvTranspose2d(128, 128, kernel_size=2, stride=2, padding=0,  bias=False)
-        self.conv15_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn15 = nn.BatchNorm2d(128)
-        self.conv16 = nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1, bias=False)
-        self.conv16_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn16 = nn.BatchNorm2d(128)
-        self.conv20 = nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1, bias=False)
-        self.conv20_ = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=1, padding=1, bias=False)
-        self.bn20 = nn.BatchNorm2d(64)
-        self.conv17 = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1, bias=False)
-        self.conv17_ = nn.ConvTranspose2d(64, 32, kernel_size=5, stride=1, padding=0, bias=False)
-        self.bn21 = nn.BatchNorm2d(32)
-        self.conv18 = nn.ConvTranspose2d(32, 16, kernel_size=40, stride=2, padding=0, bias=False)
-        self.conv18_ = nn.ConvTranspose2d(16, 3, kernel_size=40, stride=1, padding=0, bias=False)
-        self.bn22 = nn.BatchNorm2d(3)
-        self.conv19 = nn.ConvTranspose2d(3, 3, kernel_size=40, stride=1, padding=0, bias=False)
-        self.relu = nn.ReLU()
+        self.conv1 = TranposeConvBlock(125, 128, kernel_size=[3, 2], stride=[1, 2], padding=[0,0])
+        self.conv2 = TranposeConvBlock(128, 128, kernel_size=[3, 4], stride=[1, 2], padding=[1, 1])
+        self.conv3 = TranposeConvBlock(128, 64, kernel_size=[3, 4],  stride=[1, 2], padding=[1, 1])
+        self.conv4 = TranposeConvBlock(64,  64, kernel_size=[4, 4], stride=[1, 2], padding=[1, 1])
+        self.conv5 = TranposeConvBlock(64,  64, kernel_size=[4, 4], stride=[1, 1], padding=[1, 1])
+        self.conv6 = TranposeConvBlock(64, 32, kernel_size=[5, 40], stride=[1, 2], padding=[0,0])
+        self.conv7 = TranposeConvBlock(32, 16, kernel_size=[40, 40], stride=[1, 2], padding=[0,0])
+        self.conv8 = TranposeConvBlock(16, 3, kernel_size=[40, 40], stride=[1, 1], padding=[0,0])
+        self.conv9 = TranposeConvBlock(3, 3, kernel_size=[20, 20], stride=[1, 1,], padding=[0,0])
+        self.conv10 = TranposeConvBlock(3, 3, kernel_size=[20, 20], stride=[1, 1,], padding=[0,0])
+
+        layers = [self.conv1, self.conv2, self.conv3, self.conv4, self.conv5, self.conv6, self.conv7, self.conv8, self.conv9, self.conv10]
+
 
     def decode(self, z):
         out = self.fc_bn3(self.fc3(z))
         out = self.relu(out)
         out = self.fc_bn4(self.fc4(out))
         out = self.relu(out).view(-1, 125, 2, 2)
-        out = self.relu(self.preconv(out))
-        out = self.relu(self.conv15(out))
-        out = self.relu(self.conv15_(out))
-        out = self.bn15(out)
-        out = self.relu(self.conv16(out))
-        out = self.relu(self.conv16_(out))
-        out = self.bn16(out)
 
-        out = self.relu(self.conv20(out))
-        out = self.relu(self.conv20_(out))
-        out = self.bn20(out)
-        out = self.relu(self.conv17(out))
-        out = self.relu(self.conv17_(out))
-        out = self.bn21(out)
-
-        out = self.relu(self.conv18(out))
-        out = self.relu(self.conv18_(out))
-        out = self.bn22(out)
-        out = self.conv19(out)
+        for i, layer in enumerate(self.layers):
+            print("IN {}: {}".format(i, out.shape))
+            out = layer(out)
+            print("OUT {}: {}".format(i, out.shape))
         return out
 
 

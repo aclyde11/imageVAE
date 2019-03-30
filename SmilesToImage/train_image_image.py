@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import GeneralVae,  PictureDecoder, PictureEncoder, BindingAffModel
+from model import GeneralVae,  PictureDecoder, PictureEncoder,
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
@@ -116,7 +116,6 @@ decoder.load_state_dict(checkpoint['decoder_state_dict'])
 model = GeneralVae(encoder, decoder, rep_size=500)
 
 
-binding_model = BindingAffModel(rep_size=500).cuda(4)
 
 
 if data_para and torch.cuda.device_count() > 1:
@@ -128,13 +127,9 @@ model.to(device)
 optimizer = optim.Adam(model.parameters(), lr=LR)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-binding_optimizer = optim.SGD(binding_model.parameters(), lr=5e-5, momentum=0.9)
-#optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, nesterov=True)
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
-binding_sched = torch.optim.lr_scheduler.CosineAnnealingLR(binding_optimizer, 10, eta_min=5e-6, last_epoch=-1)
 loss_picture = customLoss()
-loss_mse = nn.MSELoss().cuda(4)
-loss_mae = nn.L1Loss().cuda(4)
+
 
 val_losses = []
 train_losses = []
@@ -157,39 +152,31 @@ def train(epoch):
     train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
-    binding_model.train()
     train_loss = 0
     loss = None
     for batch_idx, (data, _, aff) in enumerate(train_loader_food):
         data = data[0].cuda()
-        aff = aff.float().cuda(4)
+        #aff = aff.float().cuda(4)
 
         optimizer.zero_grad()
-        binding_optimizer.zero_grad()
 
         recon_batch, mu, logvar, z = model(data)
 
-        binding_pred = binding_model(z.cuda(4))
-        binding_loss = loss_mse(aff, binding_pred)
-        binding_mae = loss_mae(aff, binding_pred)
+
 
         loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         train_loss += loss.item()
 
-        loss.backward(retain_graph=True)
+        loss.backward()
         clip_gradient(optimizer)
         optimizer.step()
 
-        binding_loss.backward()
-        clip_gradient(binding_optimizer)
-        binding_optimizer.step()
 
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                 epoch, batch_idx * len(data), len(train_loader_food.dataset),
                        100. * batch_idx / len(train_loader_food),
                        loss.item() / len(data), datetime.datetime.now()))
-            print("BINDING LOSS: mse {}, mae {}".format(binding_loss.item(), binding_mae.item()))
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, train_loss / len(train_loader_food.dataset)))
@@ -210,10 +197,7 @@ def interpolate_points(x,y, sampling):
 def test(epoch):
     val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(5000))
     model.eval()
-    binding_model.eval()
     test_loss = 0
-    binding_loss = 0
-    binding_mae = 0
     with torch.no_grad():
         for i, (data, _, aff) in enumerate(val_loader_food):
             data = data[0].cuda()
@@ -221,9 +205,6 @@ def test(epoch):
 
             recon_batch, mu, logvar, z = model(data)
 
-            binding_pred = binding_model(z.cuda(4))
-            binding_loss += loss_mse(aff, binding_pred).item()
-            binding_mae += loss_mae(aff, binding_pred).item()
 
             loss = loss_picture(recon_batch, data, mu, logvar, epoch)
             test_loss += loss.item()
@@ -262,7 +243,6 @@ def test(epoch):
 
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
-    print("BINDING LOSS: mse {}, mae {}".format(binding_loss, binding_mae))
 
     val_losses.append(test_loss)
 
@@ -270,7 +250,6 @@ for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
 
-    binding_sched.step()
     sched.step()
 
     loss = train(epoch)
@@ -281,8 +260,6 @@ for epoch in range(starting_epoch, epochs):
         'encoder_state_dict': model.module.encoder.state_dict(),
         'decoder_state_dict' : model.module.decoder.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
-        'binding_state_dict' : binding_model.state_dict(),
-        'binding_optimizer_state_dict' : binding_optimizer.state_dict(),
         'loss': loss}, save_files + 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
