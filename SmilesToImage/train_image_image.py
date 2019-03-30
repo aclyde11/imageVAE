@@ -16,11 +16,11 @@ from invert import Invert
 
 import numpy as np
 import pandas as pd
-starting_epoch=30
+starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
-data_para = True
+data_para = False
 log_interval = 50
 LR = 1e-4          ##adam rate
 rampDataSize = 0.15 ## data set size to use
