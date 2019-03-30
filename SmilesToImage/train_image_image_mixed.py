@@ -137,7 +137,7 @@ model = GeneralVaeBinding(encoder, decoder, binding_model, rep_size=500).cuda()
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-model, optimizer = amp.initialize(model, optimizer, opt_level='O0')
+#model, optimizer = amp.initialize(model, optimizer, opt_level='O0')
 
 
 
@@ -159,7 +159,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(64  + 8 * epoch, 550 )
+    return min(64  + 8 * epoch, 450 )
 
 def clip_gradient(optimizer, grad_clip=5.0):
     """
@@ -197,9 +197,10 @@ def train(epoch):
 
         train_loss += loss.item()
 
-        with amp.scale_loss(loss, optimizer) as scaled_loss:
-            scaled_loss.backward()
-        torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), 5.0)
+        #with amp.scale_loss(loss, optimizer) as scaled_loss:
+        #    scaled_loss.backward()
+        #torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), 5.0)
+        loss.backward()
         optimizer.step()
 
         # binding_loss.backward()
