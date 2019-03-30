@@ -330,7 +330,7 @@ class BindingAffModel(nn.Module):
 
 class TranposeConvBlock(nn.Module):
     def __init__(self, in_plane, out_plane, padding=(0,0), stride=(0,0), kernel_size=(0,0), dropout=None):
-        super(TranposeConvBlock).__init__()
+        super(TranposeConvBlock, self).__init__()
 
         self.conv1 = nn.ConvTranspose2d(in_plane, out_plane, kernel_size=kernel_size[0], padding=padding[0], stride=stride[0])
         self.conv2 = nn.ConvTranspose2d(out_plane, out_plane, kernel_size=kernel_size[1], padding=padding[1], stride=stride[1], bias=False)
