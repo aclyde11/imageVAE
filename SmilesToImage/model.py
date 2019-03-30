@@ -453,6 +453,42 @@ class GeneralVae(nn.Module):
         z = self.reparameterize(mu, logvar)
         return self.decode(z), mu, logvar, z
 
+class GeneralVaeBinding(nn.Module):
+    def __init__(self, encoder_model, decoder_model, binding_model, rep_size=500):
+        super(GeneralVae, self).__init__()
+        self.rep_size = rep_size
+
+        self.encoder = encoder_model
+        self.decoder = decoder_model
+        self.binding = binding_model
+
+    def encode(self, x):
+        return self.encoder(x)
+
+    def reparameterize(self, mu, logvar):
+        if self.training:
+            std = torch.exp(logvar.mul(0.5))
+            eps = Variable(std.data.new(std.size()).normal_())
+            return eps.mul(std).add_(mu)
+        else:
+            return mu
+
+    def decode(self, z):
+        return self.decoder(z)
+
+    def calc_binding(self, z):
+        return self.binding(z)
+
+    def encode_latent_(self, x):
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu, logvar)
+        return z
+
+    def forward(self, x):
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu, logvar)
+        return self.decode(z), mu, logvar, self.calc_binding(z)
+
 class Lambda(nn.Module):
 
     def __init__(self, i=1000, o=500, scale=1E-2):

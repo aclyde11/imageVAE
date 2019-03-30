@@ -8,7 +8,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import GeneralVae,  PictureDecoder, PictureEncoder, BindingAffModel
+from model import GeneralVae,  PictureDecoder, PictureEncoder, BindingAffModel, GeneralVaeBinding
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
@@ -120,13 +120,13 @@ encoder = None
 decoder = None
 encoder = PictureEncoder()
 decoder = PictureDecoder()
+binding_model = BindingAffModel()
 
-
-checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/' + 'epoch_' + str(72) + '.pt', map_location="cuda:0")
+checkpoint = torch.load('/homes/aclyde11/imageVAE/mixed_im_im_small/model/' + 'mixed_epoch_' + str(120) + '.pt', map_location="cuda:0")
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
-model = GeneralVae(encoder, decoder, rep_size=500).cuda()
+model = GeneralVaeBinding(encoder, decoder, binding_model, rep_size=500).cuda()
 
 
 #binding_model = BindingAffModel(rep_size=500).cuda(4)
@@ -136,7 +136,7 @@ model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
 
 
@@ -153,8 +153,8 @@ if data_para and torch.cuda.device_count() > 1:
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-6, last_epoch=-1)
 #binding_sched = torch.optim.lr_scheduler.CosineAnnealingLR(binding_optimizer, 10, eta_min=5e-6, last_epoch=-1)
 loss_picture = customLoss()
-
-
+loss_mse = nn.MSELoss()
+loss_mae = nn.L1Loss()
 val_losses = []
 train_losses = []
 
@@ -181,22 +181,25 @@ def train(epoch):
     loss = None
     for batch_idx, (data, _, aff) in enumerate(train_loader_food):
         data = data[0].cuda(0)
-        #aff = aff.float().cuda(4)
+        aff = aff.float().cuda(0)
 
         optimizer.zero_grad()
         #binding_optimizer.zero_grad()
 
-        recon_batch, mu, logvar, z = model(data)
+        recon_batch, mu, logvar, binding_pred = model(data)
 
         #binding_pred = binding_model(z.cuda(4))
-        #binding_loss = loss_mse(aff, binding_pred)
-        #binding_mae = loss_mae(aff, binding_pred)
+        binding_loss = loss_mse(aff, binding_pred)
+        binding_mae = loss_mae(aff, binding_pred)
 
-        loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+        picture_loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+        loss = 1000.0 * binding_loss + picture_loss
+
         train_loss += loss.item()
 
         with amp.scale_loss(loss, optimizer) as scaled_loss:
             scaled_loss.backward()
+        torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), 5.0)
         optimizer.step()
 
         # binding_loss.backward()
@@ -208,7 +211,7 @@ def train(epoch):
                 epoch, batch_idx * len(data), len(train_loader_food.dataset),
                        100. * batch_idx / len(train_loader_food),
                        loss.item() / len(data), datetime.datetime.now()))
-            #print("BINDING LOSS: mse {}, mae {}".format(binding_loss.item(), binding_mae.item()))
+            print("BINDING LOSS: mse {}, mae {}, pictureLoss: {}".format(binding_loss.item(), binding_mae.item(), picture_loss.item()))
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
         epoch, train_loss / len(train_loader_food.dataset)))
@@ -235,16 +238,21 @@ def test(epoch):
     #binding_mae = 0
     with torch.no_grad():
         for i, (data, _, aff) in enumerate(val_loader_food):
-            data = data[0].cuda()
-            #aff = aff.float().cuda(4)
+            data = data[0].cuda(0)
+            aff = aff.float().cuda(0)
 
-            recon_batch, mu, logvar, z = model(data)
+            optimizer.zero_grad()
+            # binding_optimizer.zero_grad()
 
-           #binding_pred = binding_model(z.cuda(4))
-            #binding_loss += loss_mse(aff, binding_pred).item()
-           #binding_mae += loss_mae(aff, binding_pred).item()
+            recon_batch, mu, logvar, binding_pred = model(data)
 
-            loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+            # binding_pred = binding_model(z.cuda(4))
+            binding_loss = loss_mse(aff, binding_pred)
+            binding_mae = loss_mae(aff, binding_pred)
+
+            picture_loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+            loss = 1000.0 * binding_loss + picture_loss
+
             test_loss += loss.item()
             if i == 0:
                 n_image_gen = 8
@@ -281,7 +289,8 @@ def test(epoch):
 
     test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
-    #print("BINDING LOSS: mse {}, mae {}".format(binding_loss, binding_mae))
+    print("BINDING LOSS: mse {}, mae {}, pictureLoss: {}".format(binding_loss.item(), binding_mae.item(),
+                                                                 picture_loss.item()))
 
     val_losses.append(test_loss)
 
