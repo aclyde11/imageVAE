@@ -201,10 +201,10 @@ def train(epoch):
         #    scaled_loss.backward()
         #torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), 5.0)
         loss.backward()
+        clip_gradient(optimizer)
         optimizer.step()
 
         # binding_loss.backward()
-        # clip_gradient(binding_optimizer)
         # binding_optimizer.step()
 
         if batch_idx % log_interval == 0:
