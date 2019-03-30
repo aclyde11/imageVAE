@@ -11,6 +11,14 @@ import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
 from invert import Invert
+try:
+    from apex.parallel import DistributedDataParallel as DDP
+    from apex.fp16_utils import *
+    from apex import amp, optimizers
+    from apex.multi_tensor_apply import multi_tensor_applier
+except ImportError:
+    raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
+
 
 import numpy as np
 import pandas as pd
@@ -112,7 +120,13 @@ decoder = PictureDecoder().cuda()
 # decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
+# optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+optimizer = optim.Adam(model.parameters(), lr=LR)
 
+
+
+
+model, optimizer = amp.initialize(model, optimizer, opt_level='O0')
 
 
 
@@ -122,8 +136,6 @@ if data_para and torch.cuda.device_count() > 1:
 
 model.to(device)
 
-optimizer = optim.Adam(model.parameters(), lr=LR)
-# optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
 loss_picture = customLoss()
@@ -165,9 +177,12 @@ def train(epoch):
         loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         train_loss += loss.item()
 
-        loss.backward()
-        clip_gradient(optimizer)
+        with amp.scale_loss(loss, optimizer) as scaled_loss:
+           scaled_loss.backward()
+        torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), 5.0)
+
         optimizer.step()
+
 
 
         if batch_idx % log_interval == 0:
