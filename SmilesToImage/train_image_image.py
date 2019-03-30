@@ -11,14 +11,6 @@ import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM
 from invert import Invert
-try:
-    from apex.parallel import DistributedDataParallel as DDP
-    from apex.fp16_utils import *
-    from apex import amp, optimizers
-    from apex.multi_tensor_apply import multi_tensor_applier
-except ImportError:
-    raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
-
 
 import numpy as np
 import pandas as pd
@@ -120,13 +112,12 @@ decoder = PictureDecoder().cuda()
 # decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
-# optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
 optimizer = optim.Adam(model.parameters(), lr=LR)
 
 
 
 
-model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
 
 
 
@@ -177,10 +168,8 @@ def train(epoch):
         loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         train_loss += loss.item()
 
-        with amp.scale_loss(loss, optimizer) as scaled_loss:
-           scaled_loss.backward()
-        torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), 5.0)
-
+        loss.backward()
+        clip_gradient(optimizer)
         optimizer.step()
 
 
