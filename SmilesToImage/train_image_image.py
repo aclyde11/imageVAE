@@ -109,9 +109,9 @@ encoder = PictureEncoder()
 decoder = PictureDecoder()
 
 
-checkpoint = torch.load(save_files + 'epoch_' + str(29) + '.pt')
-encoder.load_state_dict(checkpoint['encoder_state_dict'])
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
+# checkpoint = torch.load(save_files + 'epoch_' + str(29) + '.pt')
+# encoder.load_state_dict(checkpoint['encoder_state_dict'])
+# decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500)
 
@@ -125,7 +125,7 @@ if data_para and torch.cuda.device_count() > 1:
 model.to(device)
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+# optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
 loss_picture = customLoss()
