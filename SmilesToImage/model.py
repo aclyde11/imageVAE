@@ -360,7 +360,7 @@ class PictureDecoder(nn.Module):
         self.conv3 = TranposeConvBlock(128, 64, kernel_size=[3, 4],  stride=[1, 1], padding=[1, 1])
         self.conv4 = TranposeConvBlock(64,  64, kernel_size=[4, 4], stride=[1, 1], padding=[1, 1])
         self.conv5 = TranposeConvBlock(64,  64, kernel_size=[4, 4], stride=[1, 1], padding=[1, 1])
-        self.conv6 = TranposeConvBlock(64, 32, kernel_size=[5, 40], stride=[1, 1], padding=[1,1])
+        self.conv6 = TranposeConvBlock(64, 32, kernel_size=[5, 20], stride=[1, 1], padding=[1,1])
         self.conv7 = TranposeConvBlock(32, 16, kernel_size=[40, 40], stride=[1, 1], padding=[1,1])
         self.conv8 = TranposeConvBlock(16, 3, kernel_size=[40, 40], stride=[1, 1], padding=[1,1])
         self.conv9 = TranposeConvBlock(3, 3, kernel_size=[20, 20], stride=[1, 1,], padding=[1,1])
