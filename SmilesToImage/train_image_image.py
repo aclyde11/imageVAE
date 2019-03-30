@@ -103,15 +103,15 @@ class customLoss(nn.Module):
 model = None
 encoder = None
 decoder = None
-encoder = PictureEncoder()
-decoder = PictureDecoder()
+encoder = PictureEncoder().cuda()
+decoder = PictureDecoder().cuda()
 
 
 # checkpoint = torch.load(save_files + 'epoch_' + str(29) + '.pt')
 # encoder.load_state_dict(checkpoint['encoder_state_dict'])
 # decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
-model = GeneralVae(encoder, decoder, rep_size=500)
+model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
 
 
