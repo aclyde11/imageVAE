@@ -126,7 +126,7 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 
 
 
-model, optimizer = amp.initialize(model, optimizer, opt_level='O0')
+model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
 
 
 
@@ -182,7 +182,6 @@ def train(epoch):
         torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), 5.0)
 
         optimizer.step()
-
 
 
         if batch_idx % log_interval == 0:
