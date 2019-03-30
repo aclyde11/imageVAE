@@ -455,7 +455,7 @@ class GeneralVae(nn.Module):
 
 class GeneralVaeBinding(nn.Module):
     def __init__(self, encoder_model, decoder_model, binding_model, rep_size=500):
-        super(GeneralVae, self).__init__()
+        super(GeneralVaeBinding, self).__init__()
         self.rep_size = rep_size
 
         self.encoder = encoder_model
