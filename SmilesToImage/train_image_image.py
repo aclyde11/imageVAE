@@ -128,7 +128,7 @@ if data_para and torch.cuda.device_count() > 1:
 model.to(device)
 
 
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
+#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
 loss_picture = customLoss()
 
 
@@ -251,7 +251,7 @@ for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
 
-    sched.step()
+    #sched.step()
 
     loss = train(epoch)
     test(epoch)
