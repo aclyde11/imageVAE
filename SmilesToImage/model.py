@@ -372,7 +372,7 @@ class PictureDecoder(nn.Module):
 
 
         self.model = nn.Sequential(
-            conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv8, conv9, conv10, conv11)
+            conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv8)#, conv9, conv10, conv11)
 
 
     def decode(self, z):
@@ -381,6 +381,7 @@ class PictureDecoder(nn.Module):
         out = self.fc_bn4(self.fc4(out))
         out = self.relu(out).view(-1, 125, 2, 2)
         out = self.model(out)
+        print(out.shape)
         return out
 
 
