@@ -381,7 +381,6 @@ class PictureDecoder(nn.Module):
         out = self.fc_bn4(self.fc4(out))
         out = self.relu(out).view(-1, 125, 2, 2)
         out = self.model(out)
-        print(out.shape)
         return out
 
 
