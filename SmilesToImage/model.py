@@ -341,7 +341,7 @@ class TranposeConvBlock(nn.Module):
 
     def forward(self, x):
         x = self.relu(self.conv1(x))
-        x = self.sigmoid(self.bn(self.conv2(x)))
+        x = self.relu(self.bn(self.conv2(x)))
         return x
 
 
@@ -365,9 +365,9 @@ class PictureDecoder(nn.Module):
         conv6 = TranposeConvBlock(64, 32, kernel_size=[5, 20], stride=[1, 1], padding=[1,1])
         conv7 = TranposeConvBlock(32, 16, kernel_size=[40, 40], stride=[1, 1], padding=[1,1])
         conv8 = TranposeConvBlock(16, 3, kernel_size=[40, 40], stride=[1, 1], padding=[1,1])
-        conv9 = TranposeConvBlock(3, 3, kernel_size=[20, 20], stride=[1, 1,], padding=[1,1])
-        conv10 = TranposeConvBlock(3, 3, kernel_size=[20, 20], stride=[1, 1,], padding=[0,0])
-        conv11 = TranposeConvBlock(3, 3, kernel_size=[10, 2], stride=[1,1], padding=[0,0])
+        # conv9 = TranposeConvBlock(3, 3, kernel_size=[20, 20], stride=[1, 1,], padding=[1,1])
+        # conv10 = TranposeConvBlock(3, 3, kernel_size=[20, 20], stride=[1, 1,], padding=[0,0])
+        # conv11 = TranposeConvBlock(3, 3, kernel_size=[10, 2], stride=[1,1], padding=[0,0])
         relu = nn.ReLU()
 
 
