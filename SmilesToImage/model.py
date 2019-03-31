@@ -367,7 +367,7 @@ class PictureDecoder(nn.Module):
         conv7 = TranposeConvBlock(64, 64, kernel_size=[36, 36], stride=[1, 1], padding=[0,0])
         conv8 = TranposeConvBlock(64, 64, kernel_size=[40, 30], stride=[1, 1], padding=[0,0])
         conv9 = TranposeConvBlock(64, 32, kernel_size=[20, 5], stride=[1, 1,], padding=[1,1])
-        conv10 = TranposeConvBlock(16, 3, kernel_size=[5, 5], stride=[1, 1,], padding=[0,0])
+        conv10 = TranposeConvBlock(32, 3, kernel_size=[5, 5], stride=[1, 1,], padding=[0,0])
         conv11 = TranposeConvBlock(3, 3, kernel_size=[5, 2], stride=[1,1], padding=[0,0])
         relu = nn.ReLU()
 
