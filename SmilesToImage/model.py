@@ -355,37 +355,97 @@ class PictureDecoder(nn.Module):
         self.fc_bn3 = nn.BatchNorm1d(rep_size)
         self.fc4 = nn.Linear(rep_size, rep_size)
         self.fc_bn4 = nn.BatchNorm1d(rep_size)
-        self.relu = nn.ReLU()
-        self.tanh = nn.Tanh()
+
         # Decoder
-        conv1 = TranposeConvBlock(125, 128, kernel_size=[5, 5], stride=[1, 1], padding=[1,1])
-        conv2 = TranposeConvBlock(128, 128, kernel_size=[5, 5], stride=[1, 1], padding=[1, 1])
-        conv3 = TranposeConvBlock(128, 128, kernel_size=[5, 5],  stride=[1, 1], padding=[1, 1])
-        conv4 = TranposeConvBlock(128, 128, kernel_size=[5, 5], stride=[1, 1], padding=[1, 1])
-        conv5 = TranposeConvBlock(128,  64, kernel_size=[5, 5], stride=[1, 1], padding=[1, 1])
-        conv6 = TranposeConvBlock(64, 64, kernel_size=[30, 40], stride=[1, 1], padding=[1,1])
-        conv7 = TranposeConvBlock(64, 64, kernel_size=[36, 36], stride=[1, 1], padding=[0,0])
-        conv8 = TranposeConvBlock(64, 64, kernel_size=[40, 30], stride=[1, 1], padding=[0,0])
-        conv9 = TranposeConvBlock(64, 32, kernel_size=[20, 5], stride=[1, 1,], padding=[1,1])
-        conv10 = TranposeConvBlock(32, 3, kernel_size=[5, 5], stride=[1, 1,], padding=[0,0])
-        conv11 = TranposeConvBlock(3, 3, kernel_size=[5, 2], stride=[1,1], padding=[0,0])
-        relu = nn.ReLU()
-
-
-        self.model = nn.Sequential(
-            conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv8, conv9, conv10, conv11)
-
+        self.preconv = nn.ConvTranspose2d(125, 128, kernel_size=3, stride=1, padding=0, bias=False)
+        self.conv15 = nn.ConvTranspose2d(128, 128, kernel_size=2, stride=2, padding=0,  bias=False)
+        self.conv15_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn15 = nn.BatchNorm2d(128)
+        self.conv16 = nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1, bias=False)
+        self.conv16_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn16 = nn.BatchNorm2d(128)
+        self.conv20 = nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1, bias=False)
+        self.conv20_ = nn.ConvTranspose2d(128, 64, kernel_size=4, stride=1, padding=1, bias=False)
+        self.bn20 = nn.BatchNorm2d(64)
+        self.conv17 = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1, bias=False)
+        self.conv17_ = nn.ConvTranspose2d(64, 64, kernel_size=5, stride=1, padding=0, bias=False)
+        self.bn21 = nn.BatchNorm2d(64)
+        self.conv18 = nn.ConvTranspose2d(64, 32, kernel_size=40, stride=2, padding=0, bias=False)
+        self.conv18_ = nn.ConvTranspose2d(32, 3, kernel_size=40, stride=1, padding=0, bias=False)
+        self.bn22 = nn.BatchNorm2d(3)
+        self.conv19 = nn.ConvTranspose2d(3, 3, kernel_size=40, stride=1, padding=0, bias=False)
+        self.relu = nn.ReLU()
 
     def decode(self, z):
         out = self.fc_bn3(self.fc3(z))
-        out = self.tanh(out)
-        out = out.view(-1, 125, 2, 2)
-        out = self.model(out)
+        out = self.relu(out)
+        out = self.fc_bn4(self.fc4(out))
+        out = self.relu(out).view(-1, 125, 2, 2)
+        out = self.relu(self.preconv(out))
+        out = self.relu(self.conv15(out))
+        out = self.relu(self.conv15_(out))
+        out = self.bn15(out)
+        out = self.relu(self.conv16(out))
+        out = self.relu(self.conv16_(out))
+        out = self.bn16(out)
+
+        out = self.relu(self.conv20(out))
+        out = self.relu(self.conv20_(out))
+        out = self.bn20(out)
+        out = self.relu(self.conv17(out))
+        out = self.relu(self.conv17_(out))
+        out = self.bn21(out)
+
+
+
+        out = self.relu(self.conv18(out))
+        out = self.relu(self.conv18_(out))
+        out = self.bn22(out)
+        out = self.conv19(out)
         return out
 
 
-    def forward(self, z):
-        return self.decode(z)
+
+# class PictureDecoder(nn.Module):
+#     def __init__(self, rep_size=500):
+#         super(PictureDecoder, self).__init__()
+#         self.rep_size = rep_size
+#         # Sampling vector
+#         self.fc3 = nn.Linear(rep_size, rep_size)
+#         self.fc_bn3 = nn.BatchNorm1d(rep_size)
+#         self.fc4 = nn.Linear(rep_size, rep_size)
+#         self.fc_bn4 = nn.BatchNorm1d(rep_size)
+#         self.relu = nn.ReLU()
+#         self.tanh = nn.Tanh()
+#         # Decoder
+#         conv1 = TranposeConvBlock(125, 128, kernel_size=[5, 5], stride=[1, 1], padding=[1,1])
+#         conv2 = TranposeConvBlock(128, 128, kernel_size=[5, 5], stride=[1, 1], padding=[1, 1])
+#         conv3 = TranposeConvBlock(128, 128, kernel_size=[5, 5],  stride=[1, 1], padding=[1, 1])
+#         conv4 = TranposeConvBlock(128, 128, kernel_size=[5, 5], stride=[1, 1], padding=[1, 1])
+#         conv5 = TranposeConvBlock(128,  64, kernel_size=[5, 5], stride=[1, 1], padding=[1, 1])
+#         conv6 = TranposeConvBlock(64, 64, kernel_size=[30, 40], stride=[1, 1], padding=[1,1])
+#         conv7 = TranposeConvBlock(64, 64, kernel_size=[36, 36], stride=[1, 1], padding=[0,0])
+#         conv8 = TranposeConvBlock(64, 64, kernel_size=[40, 30], stride=[1, 1], padding=[0,0])
+#         conv9 = TranposeConvBlock(64, 32, kernel_size=[20, 5], stride=[1, 1,], padding=[1,1])
+#         conv10 = TranposeConvBlock(32, 3, kernel_size=[5, 5], stride=[1, 1,], padding=[0,0])
+#         conv11 = TranposeConvBlock(3, 3, kernel_size=[5, 2], stride=[1,1], padding=[0,0])
+#         relu = nn.ReLU()
+#
+#
+#         self.model = nn.Sequential(
+#             conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv8, conv9, conv10, conv11)
+#
+#
+#     def decode(self, z):
+#         out = self.fc_bn3(self.fc3(z))
+#         out = self.tanh(out)
+#         out = out.view(-1, 125, 2, 2)
+#         out = self.model(out)
+#         return out
+#
+#
+#     def forward(self, z):
+#         return self.decode(z)
 
 #
 # class PictureDecoder(nn.Module):
