@@ -332,15 +332,15 @@ class TranposeConvBlock(nn.Module):
     def __init__(self, in_plane, out_plane, padding=(0,0), stride=(0,0), kernel_size=(0,0), dropout=None):
         super(TranposeConvBlock, self).__init__()
 
-        self.conv1 = nn.ConvTranspose2d(in_plane, out_plane, kernel_size=kernel_size[0], padding=padding[0], stride=stride[0])
+        self.conv1 = nn.ConvTranspose2d(in_plane, out_plane, kernel_size=kernel_size[0], padding=padding[0], stride=stride[0], bias=False)
         self.conv2 = nn.ConvTranspose2d(out_plane, out_plane, kernel_size=kernel_size[1], padding=padding[1], stride=stride[1], bias=False)
-        self.conv3 = nn.ConvTranspose2d(out_plane, out_plane, kernel_size=kernel_size[1], padding=padding[1], stride=stride[1], bias=False)
+        #self.conv3 = nn.ConvTranspose2d(out_plane, out_plane, kernel_size=kernel_size[1], padding=padding[1], stride=stride[1], bias=False)
         self.bn = nn.BatchNorm2d(out_plane)
         self.relu = nn.ReLU()
 
     def forward(self, x):
         x = self.relu(self.conv1(x))
-        x = self.relu(self.bn(self.conv2(x) + self.conv3(x)))
+        x = self.relu(self.bn(self.conv2(x)))
         return x
 
 
