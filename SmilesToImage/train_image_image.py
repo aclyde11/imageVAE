@@ -136,7 +136,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return min(64  + 2 * epoch, 322 )
+    return min(64  + 64 * epoch, 280 )
 
 def clip_gradient(optimizer, grad_clip=5.0):
     """
