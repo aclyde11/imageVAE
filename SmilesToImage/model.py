@@ -364,15 +364,15 @@ class PictureDecoder(nn.Module):
         conv5 = TranposeConvBlock(64,  64, kernel_size=[4, 4], stride=[1, 1], padding=[1, 1])
         conv6 = TranposeConvBlock(64, 32, kernel_size=[40, 40], stride=[1, 1], padding=[1,1])
         conv7 = TranposeConvBlock(32, 16, kernel_size=[40, 40], stride=[1, 1], padding=[0,0])
-        conv8 = TranposeConvBlock(16, 3, kernel_size=[40, 40], stride=[1, 1], padding=[0,0])
-        # conv9 = TranposeConvBlock(3, 3, kernel_size=[20, 20], stride=[1, 1,], padding=[1,1])
-        # conv10 = TranposeConvBlock(3, 3, kernel_size=[20, 20], stride=[1, 1,], padding=[0,0])
-        # conv11 = TranposeConvBlock(3, 3, kernel_size=[10, 2], stride=[1,1], padding=[0,0])
+        conv8 = TranposeConvBlock(16, 12, kernel_size=[40, 40], stride=[1, 1], padding=[0,0])
+        conv9 = TranposeConvBlock(12, 9, kernel_size=[20, 5], stride=[1, 1,], padding=[1,1])
+        conv10 = TranposeConvBlock(9, 3, kernel_size=[5, 5], stride=[1, 1,], padding=[0,0])
+        conv11 = TranposeConvBlock(3, 3, kernel_size=[2, 2], stride=[1,1], padding=[0,0])
         relu = nn.ReLU()
 
 
         self.model = nn.Sequential(
-            conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv8)#, conv9, conv10, conv11)
+            conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv8, conv9, conv10, conv11)
 
 
     def decode(self, z):
