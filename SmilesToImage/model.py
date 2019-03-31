@@ -376,7 +376,7 @@ class PictureDecoder(nn.Module):
         self.conv19 = nn.ConvTranspose2d(16, 3, kernel_size=40, stride=1, padding=0, bias=False)
         self.relu = nn.ReLU()
 
-    def decode(self, z):
+    def forward(self, z):
         out = self.fc_bn3(self.fc3(z))
         out = self.relu(out)
         out = self.fc_bn4(self.fc4(out))
