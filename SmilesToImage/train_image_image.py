@@ -193,7 +193,8 @@ def train(epoch):
     model.train()
     train_loss = 0
     loss = None
-    for batch_idx, (data, _, aff) in enumerate(train_loader_food):
+    for batch_idx, (_, data) in enumerate(train_loader_food):
+        print(data.shape)
         data = data[0].cuda()
         #aff = aff.float().cuda(4)
 
