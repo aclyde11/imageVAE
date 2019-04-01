@@ -8,16 +8,16 @@ from PIL import Image
 import io
 import cairosvg
 
-
-
-
-
 class MoleLoader(torch.utils.data.Dataset):
-    def __init__(self, df, sample=0.05):
+    def __init__(self, df, sample=0.05, num=None):
         super(MoleLoader, self).__init__()
 
         if sample is not None:
             self.df = df.sample(frac=sample)
+        elif sample is not None:
+            self.df = df.sample(num=num)
+        else:
+            self.df = df
 
     def __len__(self):
         return self.df.shape[0]
