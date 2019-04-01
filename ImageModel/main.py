@@ -127,9 +127,11 @@ def main():
     model = model.cuda()
 
     args.lr = args.lr * float(args.batch_size * args.world_size) / 256.
-    optimizer = torch.optim.SGD(model.parameters(), args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay)
+    # optimizer = torch.optim.SGD(model.parameters(), args.lr,
+    #                             momentum=args.momentum,
+    #                             weight_decay=args.weight_decay)
+    print(args.lr)
+    optimizer = torch.optim.Adam(model.parameters(), args.lr)
 
     model, optimizer = amp.initialize(model, optimizer,
                                       opt_level=args.opt_level,
