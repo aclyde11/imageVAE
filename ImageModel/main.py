@@ -110,10 +110,10 @@ def main():
 
     model = None
     if args.pretrained:
-        print("=> using pre-trained model '{}'".format(args.arch))
+        print("=> using pre-trained model")
         # model = models.__dict__[args.arch](pretrained=True)
     else:
-        print("=> creating model '{}'".format(args.arch))
+        print("=> creating model")
         # model = models.__dict__[args.arch]()
         encoder = PictureEncoder()
         decoder = PictureDecoder()
