@@ -128,7 +128,7 @@ checkpoint = torch.load('/homes/aclyde11/imageVAE/mixed_im_im_small/model/' + 'm
 
 model = GeneralVaeBinding(encoder, decoder, binding_model, rep_size=500).cuda()
 optimizer = optim.Adam(model.parameters(), lr=LR)
-model, optimizer = amp.initialize(model, optimizer, opt_level='O0')
+model, optimizer = amp.initialize(model, optimizer, opt_level='O2')
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = nn.DataParallel(model)
