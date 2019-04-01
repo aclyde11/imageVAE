@@ -267,7 +267,7 @@ def validate(val_loader, model, criterion):
 
 
     for i, (_, data) in enumerate(val_loader):
-
+        data = data.cuda()
         # compute output
         with torch.no_grad():
             recon_batch, mu, logvar, _ = model(data)
