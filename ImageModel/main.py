@@ -300,3 +300,7 @@ def validate(val_loader, model, criterion):
 
 
     return losses.avg
+
+
+if __name__ == '__main__':
+    main()
