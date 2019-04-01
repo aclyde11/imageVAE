@@ -13,9 +13,11 @@ import cairosvg
 
 
 class MoleLoader(torch.utils.data.Dataset):
-    def __init__(self, df):
+    def __init__(self, df, sample=0.05):
         super(MoleLoader, self).__init__()
-        self.df = df
+
+        if sample is not None:
+            self.df = df.sample(frac=sample)
 
     def __len__(self):
         return self.df.shape[0]

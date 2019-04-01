@@ -236,7 +236,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
                 reduced_loss = loss.data
 
             # to_python_float incurs a host<->device sync
-            losses.update(to_python_float(reduced_loss), input.size(0))
+            losses.update(to_python_float(reduced_loss), data.size(0))
 
             torch.cuda.synchronize()
             batch_time.update((time.time() - end) / args.print_freq)
@@ -278,7 +278,7 @@ def validate(val_loader, model, criterion):
         else:
             reduced_loss = loss.data
 
-        losses.update(to_python_float(reduced_loss), input.size(0))
+        losses.update(to_python_float(reduced_loss), data.size(0))
 
         # measure elapsed time
         batch_time.update(time.time() - end)
