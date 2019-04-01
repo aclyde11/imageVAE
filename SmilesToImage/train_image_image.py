@@ -107,7 +107,7 @@ class MoleLoader(torch.utils.data.Dataset):
         image = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg,  parent_width=100, parent_height=100,
                          scale=1)))
         image.convert('RGB')
-        return Invert(image)
+        return Invert()(image)
 
     def __getitem__(self, item):
         smile = self.df.iloc[item, 0]
