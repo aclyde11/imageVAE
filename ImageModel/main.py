@@ -148,8 +148,8 @@ def main():
 
     criterion = customLoss()
 
-    train_dataset = MoleLoader(smiles_lookup, num=1000000, frac=None)
-    val_dataset = MoleLoader(smiles_lookup,   num=5000, frac=None)
+    train_dataset = MoleLoader(smiles_lookup, num=1000000)
+    val_dataset = MoleLoader(smiles_lookup,   num=5000)
 
     train_sampler = None
     val_sampler = None
