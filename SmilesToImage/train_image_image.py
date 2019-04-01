@@ -19,6 +19,17 @@ import pandas as pd
 from PIL import Image
 import io
 import cairosvg
+
+
+
+try:
+    from apex.parallel import DistributedDataParallel as DDP
+    from apex.fp16_utils import *
+    from apex import amp, optimizers
+    from apex.multi_tensor_apply import multi_tensor_applier
+except ImportError:
+    raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
+
 starting_epoch=1
 epochs = 200
 no_cuda = False
@@ -155,6 +166,7 @@ optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 
 
+model, optimizer = amp.initialize(model, optimizer, opt_level="O1")
 
 
 
@@ -199,15 +211,16 @@ def train(epoch):
 
         optimizer.zero_grad()
 
-        recon_batch, mu, logvar, z = model(data)
+        recon_batch, mu, logvar, _ = model(data)
 
 
 
         loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         train_loss += loss.item()
 
-        loss.backward()
-        clip_gradient(optimizer)
+        with amp.scale_loss(loss, optimizer) as scaled_loss:
+            scaled_loss.backward()
+        torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), 5.0)
         optimizer.step()
 
 
@@ -246,6 +259,8 @@ def test(epoch):
 
 
             loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+
+
             test_loss += loss.item()
             if i == 0:
                 n_image_gen = 8
