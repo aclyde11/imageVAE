@@ -113,7 +113,7 @@ class MoleLoader(torch.utils.data.Dataset):
         smile = self.df.iloc[item, 0]
         image = self.make_image(smile)
 
-        return smile, transforms.ToTensor(image)
+        return smile, transforms.ToTensor()(image)
 
 
 
