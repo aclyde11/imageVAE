@@ -167,6 +167,7 @@ def main():
         num_workers=args.workers, pin_memory=True,
         sampler=val_sampler)
 
+    best_prec1 = 100000
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
