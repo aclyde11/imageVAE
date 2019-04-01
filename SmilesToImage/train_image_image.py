@@ -91,6 +91,7 @@ class MoleLoader(torch.utils.data.Dataset):
         return self.df.shape[0]
 
     def make_image(self,mol, molSize=(256, 256), kekulize=True, mol_name=''):
+        mol = Chem.MolFromSmiles(mol)
         mc = Chem.Mol(mol.ToBinary())
         if kekulize:
             try:
