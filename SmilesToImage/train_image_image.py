@@ -83,7 +83,7 @@ class ImageFolderWithFile(datasets.ImageFolder):
         return  im, 0, aff
 
 class MoleLoader(torch.utils.data.Dataset):
-    def __init__(self, df, subsample):
+    def __init__(self, df):
         super(MoleLoader, self).__init__()
         self.df = df
 
