@@ -1,9 +1,5 @@
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--local_rank", type=int)
-args = parser.parse_args()
-
 import os
 import time
 import torch.distributed as dist
@@ -17,7 +13,7 @@ import torch.backends.cudnn as cudnn
 
 from model import GeneralVae, PictureDecoder, PictureEncoder
 import pickle
-from loss import CustomLoss
+from loss import customLoss
 from DataLoader import MoleLoader
 from invert import *
 import numpy as np
@@ -148,7 +144,7 @@ def main():
         # delay_allreduce delays all communication to the end of the backward pass.
         model = DDP(model, delay_allreduce=True)
 
-    criterion = nn.CrossEntropyLoss().cuda()
+    criterion = customLoss()
 
     train_dataset = MoleLoader(smiles_lookup)
     val_dataset = MoleLoader(smiles_lookup)
