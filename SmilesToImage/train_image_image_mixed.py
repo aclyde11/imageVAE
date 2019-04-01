@@ -123,28 +123,15 @@ decoder = PictureDecoder()
 binding_model = BindingAffModel()
 
 checkpoint = torch.load('/homes/aclyde11/imageVAE/mixed_im_im_small/model/' + 'mixed_epoch_' + str(120) + '.pt', map_location="cuda:0")
-encoder.load_state_dict(checkpoint['encoder_state_dict'])
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
+#encoder.load_state_dict(checkpoint['encoder_state_dict'])
+#decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVaeBinding(encoder, decoder, binding_model, rep_size=500).cuda()
-
-
-#binding_model = BindingAffModel(rep_size=500).cuda(4)
-
-
-
-
-
 optimizer = optim.Adam(model.parameters(), lr=LR)
-#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 model, optimizer = amp.initialize(model, optimizer, opt_level='O0')
-
-
-
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = nn.DataParallel(model)
-    model = model.cuda()
 
 
 

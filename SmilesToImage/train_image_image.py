@@ -121,11 +121,11 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 
 
 
+
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = nn.DataParallel(model)
 
-model.to(device)
 
 
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
