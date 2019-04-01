@@ -184,12 +184,10 @@ def train(epoch):
 
         train_loss += loss.item()
 
-        #with amp.scale_loss(loss, optimizer) as scaled_loss:
-        #    scaled_loss.backward()
-        #torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), 5.0)
-        loss.backward()
-        clip_gradient(optimizer)
-        optimizer.step()
+        with amp.scale_loss(loss, optimizer) as scaled_loss:
+           scaled_loss.backward()
+        torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), 5.0)
+
 
         # binding_loss.backward()
         # binding_optimizer.step()
