@@ -14,7 +14,7 @@ class MoleLoader(torch.utils.data.Dataset):
 
 
         if num is not None:
-            self.df = df.sample(num=num)
+            self.df = df.sample(n=num)
         else:
             self.df = df
 
