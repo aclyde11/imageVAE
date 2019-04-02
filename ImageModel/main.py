@@ -84,8 +84,7 @@ print("\nCUDNN VERSION: {}\n".format(torch.backends.cudnn.version()))
 # binding_aff = binding_aff.set_index('id')
 # print(binding_aff.head())
 
-smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab", names=['id', 'smiles'])
-smiles_lookup = smiles_lookup.set_index('id')
+smiles_lookup = pd.read_table("/homes/aclyde11//moses/data/train.csv", names=['smiles', 'split'])
 print(smiles_lookup.head())
 
 
