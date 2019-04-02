@@ -20,6 +20,17 @@ import pandas as pd
 from PIL import Image
 import io
 import cairosvg
+import argparse
+
+
+parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
+
+parser.add_argument('-b', '--batch-size', default=256, type=int,
+                    metavar='N', help='mini-batch size per process (default: 256)')
+
+
+args = parser.parse_args()
+
 
 from DataLoader import MoleLoader
 experiment = Experiment(project_name="pytorch")
@@ -80,11 +91,11 @@ print(smiles_lookup_test.head())
 
 train_loader_food = torch.utils.data.DataLoader(
         MoleLoader(smiles_lookup_train),
-        batch_size=256, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
+        batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
 val_loader_food = torch.utils.data.DataLoader(
         MoleLoader(smiles_lookup_test),
-        batch_size=256, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
+        batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
 
 class customLoss(nn.Module):
@@ -136,7 +147,7 @@ val_losses = []
 train_losses = []
 
 def get_batch_size(epoch):
-    return 350
+    return args.batch_size
 
 def clip_gradient(optimizer, grad_clip=5.0):
     """
