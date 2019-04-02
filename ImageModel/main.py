@@ -84,7 +84,7 @@ print("\nCUDNN VERSION: {}\n".format(torch.backends.cudnn.version()))
 # binding_aff = binding_aff.set_index('id')
 # print(binding_aff.head())
 
-smiles_lookup = pd.read_table("/homes/aclyde11//moses/data/train.csv")
+smiles_lookup = pd.read_csv("/homes/aclyde11//moses/data/train.csv")
 print(smiles_lookup.head())
 
 
