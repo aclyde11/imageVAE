@@ -1,4 +1,5 @@
 import os
+from comet_ml import Experiment
 
 import datetime
 import torch
@@ -21,6 +22,7 @@ import io
 import cairosvg
 
 from DataLoader import MoleLoader
+experiment = Experiment(project_name="pytorch")
 
 try:
     from apex.parallel import DistributedDataParallel as DDP
@@ -70,13 +72,19 @@ one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(voc
 def apply_one_hot(ch):
     return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=0), ch))
 
+smiles_lookup_train = pd.read_csv("/homes/aclyde11/moses/data/train.csv")
+print(smiles_lookup_train.head())
+smiles_lookup_test = pd.read_csv("/homes/aclyde11/moses/data/test.csv")
+print(smiles_lookup_test.head())
 
 
+train_loader_food = torch.utils.data.DataLoader(
+        MoleLoader(smiles_lookup_train),
+        batch_size=256, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
-def generate_data_loader(batch_size, data_size):
-    return torch.utils.data.DataLoader(
-        MoleLoader(smiles_lookup),
-        batch_size=batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
+val_loader_food = torch.utils.data.DataLoader(
+        MoleLoader(smiles_lookup_test),
+        batch_size=256, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
 
 class customLoss(nn.Module):
@@ -120,7 +128,7 @@ model.load_state_dict(checkpoint['state_dict'])
 
 
 
-#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
 loss_picture = customLoss()
 
 
@@ -142,37 +150,37 @@ def clip_gradient(optimizer, grad_clip=5.0):
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
 def train(epoch):
-    train_loader_food = generate_data_loader(get_batch_size(epoch), int(70000))
-    print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
-    model.train()
-    train_loss = 0
-    loss = None
-    for batch_idx, (_, data) in enumerate(train_loader_food):
-        data = data.cuda()
-        #aff = aff.float().cuda(4)
+    with experiment.train():
+        experiment.log_current_epoch(epoch)
+        print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
+        model.train()
+        train_loss = 0
+        loss = None
+        for batch_idx, (_, data) in enumerate(train_loader_food):
+            data = data.cuda()
+            #aff = aff.float().cuda(4)
 
-        optimizer.zero_grad()
+            optimizer.zero_grad()
 
-        recon_batch, mu, logvar, _ = model(data)
+            recon_batch, mu, logvar, _ = model(data)
+
+            loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+            train_loss += loss.item()
+            experiment.log_metric('loss', loss.item())
+
+            loss.backward()
+            optimizer.step()
 
 
+            if batch_idx % log_interval == 0:
+                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
+                    epoch, batch_idx * len(data), len(train_loader_food.dataset),
+                           100. * batch_idx / len(train_loader_food),
+                           loss.item() / len(data), datetime.datetime.now()))
 
-        loss = loss_picture(recon_batch, data, mu, logvar, epoch)
-        train_loss += loss.item()
-
-        loss.backward()
-        optimizer.step()
-
-
-        if batch_idx % log_interval == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
-                epoch, batch_idx * len(data), len(train_loader_food.dataset),
-                       100. * batch_idx / len(train_loader_food),
-                       loss.item() / len(data), datetime.datetime.now()))
-
-    print('====> Epoch: {} Average loss: {:.4f}'.format(
-        epoch, train_loss / len(train_loader_food.dataset)))
-    train_losses.append(train_loss / len(train_loader_food.dataset))
+        print('====> Epoch: {} Average loss: {:.4f}'.format(
+            epoch, train_loss / len(train_loader_food.dataset)))
+        train_losses.append(train_loss / len(train_loader_food.dataset))
     return loss
 
 
@@ -187,55 +195,56 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    val_loader_food = generate_data_loader(get_batch_size(epoch), int(1000))
-    model.eval()
-    test_loss = 0
-    with torch.no_grad():
-        for i, (_, data) in enumerate(val_loader_food):
-            data = data.cuda()
-            #aff = aff.float().cuda(4)
+    with experiment.test():
 
-            recon_batch, mu, logvar, z = model(data)
+        model.eval()
+        test_loss = 0
+        with torch.no_grad():
+            for i, (_, data) in enumerate(val_loader_food):
+                data = data.cuda()
+                #aff = aff.float().cuda(4)
 
-
-            loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+                recon_batch, mu, logvar, z = model(data)
 
 
-            test_loss += loss.item()
-            if i == 0:
-                # n_image_gen = 8
-                # images = []
-                # n_samples_linspace = 16
-                # for i in range(n_image_gen):
-                #     data_latent = model.module.encode_latent_(data)
-                #     pt_1 = data_latent[i * 2, ...].cpu().numpy()
-                #     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
-                #     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                #     sample_vec = torch.from_numpy(sample_vec).to(device)
-                #     images.append(model.module.decode(sample_vec).cpu())
-                # save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
+                loss = loss_picture(recon_batch, data, mu, logvar, epoch)
 
-                n_image_gen = 8
-                images = []
-                n_samples_linspace = 16
-                for i in range(n_image_gen):
-                    data_latent = model.module.encode_latent_(data)
-                    pt_1 = data_latent[i, ...].cpu().numpy()
-                    pt_2 = data_latent[i + 1, ...].cpu().numpy()
-                    sample_vec = interpolate_points(pt_1, pt_2,
-                                                    np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                    sample_vec = torch.from_numpy(sample_vec).to(device)
-                    images.append(model.module.decode(sample_vec).cpu())
-                save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
+                experiment.log_metric('loss', loss.item())
+                test_loss += loss.item()
+                if i == 0:
+                    # n_image_gen = 8
+                    # images = []
+                    # n_samples_linspace = 16
+                    # for i in range(n_image_gen):
+                    #     data_latent = model.module.encode_latent_(data)
+                    #     pt_1 = data_latent[i * 2, ...].cpu().numpy()
+                    #     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
+                    #     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                    #     sample_vec = torch.from_numpy(sample_vec).to(device)
+                    #     images.append(model.module.decode(sample_vec).cpu())
+                    # save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
-                ##
-                n = min(data.size(0), 8)
-                comparison = torch.cat([data[:n],
-                                        recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
-                save_image(comparison.cpu(),
-                           output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
+                    n_image_gen = 8
+                    images = []
+                    n_samples_linspace = 16
+                    for i in range(n_image_gen):
+                        data_latent = model.module.encode_latent_(data)
+                        pt_1 = data_latent[i, ...].cpu().numpy()
+                        pt_2 = data_latent[i + 1, ...].cpu().numpy()
+                        sample_vec = interpolate_points(pt_1, pt_2,
+                                                        np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                        sample_vec = torch.from_numpy(sample_vec).to(device)
+                        images.append(model.module.decode(sample_vec).cpu())
+                    save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
-    test_loss /= len(val_loader_food.dataset)
+                    ##
+                    n = min(data.size(0), 8)
+                    comparison = torch.cat([data[:n],
+                                            recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
+                    save_image(comparison.cpu(),
+                               output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
+
+        test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
 
     val_losses.append(test_loss)
@@ -243,8 +252,9 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
+        experiment.log_metric('lr', param_group['lr'])
 
-    #sched.step()
+    sched.step()
 
     loss = train(epoch)
     test(epoch)
@@ -254,7 +264,7 @@ for epoch in range(starting_epoch, epochs):
         'encoder_state_dict': model.module.encoder.state_dict(),
         'decoder_state_dict' : model.module.decoder.state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
-         }, save_files + 'epoch_' + str(epoch) + '.pt')
+         }, save_files + 'epoch_' + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
         sample = model.module.decode(sample).cpu()
