@@ -738,189 +738,266 @@ class Lambda(nn.Module):
     #                                 ).type_as(self.log_v)
     #     return self.mu + torch.exp(self.log_v / 2.) * eps
 
+class Attention(nn.Module):
+    """
+    Attention Network.
+    """
 
-class MolEncoder(nn.Module):
+    def __init__(self, encoder_dim, decoder_dim, attention_dim):
+        """
+        :param encoder_dim: feature size of encoded images
+        :param decoder_dim: size of decoder's RNN
+        :param attention_dim: size of the attention network
+        """
+        super(Attention, self).__init__()
+        self.encoder_att = nn.Linear(encoder_dim, attention_dim)  # linear layer to transform encoded image
+        self.decoder_att = nn.Linear(decoder_dim, attention_dim)  # linear layer to transform decoder's output
+        self.full_att = nn.Linear(attention_dim, 1)  # linear layer to calculate values to be softmax-ed
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax(dim=1)  # softmax layer to calculate weights
 
-    def __init__(self, i=60, o=500, c=27):
-        super(MolEncoder, self).__init__()
+    def forward(self, encoder_out, decoder_hidden):
+        """
+        Forward propagation.
+        :param encoder_out: encoded images, a tensor of dimension (batch_size, num_pixels, encoder_dim)
+        :param decoder_hidden: previous decoder output, a tensor of dimension (batch_size, decoder_dim)
+        :return: attention weighted encoding, weights
+        """
+        att1 = self.encoder_att(encoder_out)  # (batch_size, num_pixels, attention_dim)
+        att2 = self.decoder_att(decoder_hidden)  # (batch_size, attention_dim)
+        att = self.full_att(self.relu(att1 + att2.unsqueeze(1))).squeeze(2)  # (batch_size, num_pixels)
+        alpha = self.softmax(att)  # (batch_size, num_pixels)
+        attention_weighted_encoding = (encoder_out * alpha.unsqueeze(2)).sum(dim=1)  # (batch_size, encoder_dim)
 
-        self.i = i
-
-        self.conv_1 = ConvSELU(i, 9, kernel_size=9)
-        self.conv_2 = ConvSELU(9, 9, kernel_size=9)
-        self.conv_3 = ConvSELU(9, 10, kernel_size=11)
-        self.dense_1 = nn.Sequential(nn.Linear((c - 29 + 3) * 10, 435),
-                                     SELU(inplace=True))
-
-        #self.lmbd = Lambda(435, o)
-        self.z_mean = nn.Linear(435, o)
-        self.z_log_var = nn.Linear(435, o)
-
-
-    def forward(self, x):
-        out = self.conv_1(x)
-        out = self.conv_2(out)
-        out = self.conv_3(out)
-        out = Flatten()(out)
-        out = self.dense_1(out)
-
-        return out
-
-    def vae_loss(self, x_decoded_mean, x):
-        z_mean, z_log_var = self.lmbd.mu, self.lmbd.log_v
-
-        bce = nn.BCELoss(size_average=True)
-        xent_loss = self.i * bce(x_decoded_mean, x.detach())
-        kl_loss = -0.5 * torch.mean(1. + z_log_var - z_mean ** 2. -
-                                    torch.exp(z_log_var))
-
-        return kl_loss + xent_loss
+        return attention_weighted_encoding, alpha
 
 
-class DenseMolEncoder(nn.Module):
+class GridLSTMCell2d(nn.Module):
+    """
+    Decoder.
+    """
 
-    def __init__(self, i=60, o=500, c=27):
-        super(DenseMolEncoder, self).__init__()
+    def __init__(self, attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim=2048, dropout=0.5):
+        """
+        :param attention_dim: size of attention network
+        :param embed_dim: embedding size
+        :param decoder_dim: size of decoder's RNN
+        :param vocab_size: size of vocabulary
+        :param encoder_dim: feature size of encoded images
+        :param dropout: dropout
+        """
+        super(GridLSTMCell2d, self).__init__()
 
-        self.i = i
+        self.encoder_dim = encoder_dim
+        self.attention_dim = attention_dim
+        self.embed_dim = embed_dim
+        self.decoder_dim = decoder_dim
+        self.vocab_size = vocab_size
+        self.dropout = dropout
 
-        self.conv_1 = ConvSELU(i, 9, kernel_size=9)
-        self.conv_2 = ConvSELU(9, 9, kernel_size=9)
-        self.conv_3 = ConvSELU(9, 10, kernel_size=11)
-
-        self.dense_0 = nn.Sequential(Flatten(),
-                                     nn.Linear(60 * 27, 500),
-                                     SELU(inplace=True),
-                                     nn.Linear(500, 500),
-                                     SELU(inplace=True),
-                                     nn.Linear(500, 500),
-                                     SELU(inplace=True))
-        self.dense_1 = nn.Sequential(nn.Linear((c - 29 + 3) * 10, 500),
-                                     SELU(inplace=True))
-
-        self.z_mean = nn.Linear(500, o)
-        self.z_log_var = nn.Linear(500, o)
-
-
-    def forward(self, x):
-        out = self.conv_1(x)
-        out = self.conv_2(out)
-        out = self.conv_3(out)
-        out = Flatten()(out)
-        out = self.dense_1(out) + self.dense_0(x)
-
-        return out
-
-    def vae_loss(self, x_decoded_mean, x):
-        z_mean, z_log_var = self.lmbd.mu, self.lmbd.log_v
-
-        bce = nn.BCELoss(size_average=True)
-        xent_loss = self.i * bce(x_decoded_mean, x.detach())
-        kl_loss = -0.5 * torch.mean(1. + z_log_var - z_mean ** 2. -
-                                    torch.exp(z_log_var))
-
-        return kl_loss + xent_loss
+        print(embed_dim + encoder_dim)
+        print(decoder_dim)
+        self.lstm1 = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)
+        self.lstm2 = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)
 
 
-class MolDecoder(nn.Module):
+    def forward(self, x, hs, ms): # x : (batch, embedded), H : (batch, 2, h), M : (batch, 2, m)
+        H = hs[0] +hs[1]
+        m1 = ms[0]
+        m2 = ms[1]
 
-    def __init__(self, i=500, o=60, c=27):
-        super(MolDecoder, self).__init__()
+        h1, m1 = self.lstm1(x, (H, m1))
+        h2, m2 = self.lstm2(x, (H, m2))
 
-        self.latent_input = nn.Sequential(nn.Linear(i, i),
-                                          SELU(inplace=True))
-        self.repeat_vector = Repeat(o)
-        self.gru = nn.GRU(i, 501, 3, batch_first=True)
-        self.decoded_mean = TimeDistributed(nn.Sequential(nn.Linear(501, c),
-                                                          nn.Softmax())
-                                            )
+        return h1, h2, m1, m2
 
-    def forward(self, x):
-        out = self.latent_input(x)
-        out = self.repeat_vector(out)
-        out, h = self.gru(out)
-        return self.decoded_mean(out)
 
-class ZSpaceTransform(nn.Module):
-    def __init__(self, i=500, o=60, ):
-        super(ZSpaceTransform, self).__init__()
+class StackGridLSTMCell2d(nn.Module):
+    """
+    Decoder.
+    """
 
-        self.mu = nn.Sequential(nn.Linear(i, i),
-                                  SELU(inplace=True),
-                                nn.Linear(i, i), SELU(inplace=True),
-                                nn.Linear(i,i), SELU(inplace=True), nn.Linear(i,i))
+    def __init__(self,  attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim=2048, dropout=0.5):
+        """
+        :param attention_dim: size of attention network
+        :param embed_dim: embedding size
+        :param decoder_dim: size of decoder's RNN
+        :param vocab_size: size of vocabulary
+        :param encoder_dim: feature size of encoded images
+        :param dropout: dropout
+        """
+        super(StackGridLSTMCell2d, self).__init__()
 
-        self.logvar = nn.Sequential(nn.Linear(i, i),
-                                  SELU(inplace=True),
-                                nn.Linear(i, i), SELU(inplace=True),
-                                nn.Linear(i,i), SELU(inplace=True), nn.Linear(i,i))
+        self.encoder_dim = encoder_dim
+        self.attention_dim = attention_dim
+        self.embed_dim = embed_dim
+        self.decoder_dim = decoder_dim
+        self.vocab_size = vocab_size
+        self.dropout = dropout
 
-    def forward(self, mu, log):
-        mu = self.mu(mu)
-        log = self.logvar(log)
-        return mu, log
+        self.lstm1 = GridLSTMCell2d(attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim, dropout)
+        self.lstm2 = GridLSTMCell2d(attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim, dropout)
+        self.lstm3 = GridLSTMCell2d(attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim, dropout)
 
 
 
-class TestVAE(nn.Module):
+    def forward(self, x, hs, ms): # x : (batch, embedded), H : (batch, 2, h), M : (batch, 2, m)
+        hsA1, hsB1, hsB2, hsB3 = hs
+        msA1, msB1, msB2, msB3 = ms
 
-    def __init__(self, encoder, transformer, decoder):
-        super(TestVAE, self).__init__()
-        self.encoder = encoder
-        self.decoder = decoder
-        self.transformer = transformer
+        hsA2, hsB1prime, msA2, msB1prime = self.lstm1(x, [hsA1, hsB1], [msA1, msB1])
+        hsA3, hsB2prime, msA3, msB2prime = self.lstm2(x,  [hsA2, hsB2], [msA2, msB2])
+        hsA4, hsB3prime, msA4, msB3prime = self.lstm3(x, [hsA3, hsB3], [msA3, msB3])
 
-    def encode(self, x):
-        self.mu, self.log_v = self.encoder(x)
-        self.mu, self.log_v = self.transformer(self.mu, self.log_v)
-
-        std = self.log_v.mul(0.5).exp_()
-        eps = Variable(std.data.new(std.size()).normal_())
-        y =  eps.mul(std).add_(self.mu)
-        return y
-
-    def decode(self,x):
-        return self.decoder(x)
-
-
-    def forward(self, x, return_y = False):
-        self.mu, self.log_v = self.encoder(x)
-        self.mu, self.log_v = self.transformer(self.mu, self.log_v)
-        std = self.log_v.mul(0.5).exp_()
-        eps = Variable(std.data.new(std.size()).normal_())
-        y =  eps.mul(std).add_(self.mu)
-        if return_y:
-            return y, self.decoder(y)
-        return self.decoder(y)
-
-    def vae_loss(self, x_decoded_mean, x):
-        z_mean, z_log_var = self.mu, self.log_v
-
-        #bce = nn.BCELoss(size_average=True)
-        bce = nn.MSELoss(reduction="sum")
-
-        xent_loss =  bce(x_decoded_mean, x.detach())
-        kl_loss = -0.5 * torch.mean(1. + z_log_var - z_mean ** 2. -
-                                    torch.exp(z_log_var))
-
-        return kl_loss + xent_loss
+        #need
+        return hsA4, msA4, [hsB1prime, hsB2prime, hsB3prime], [msB1prime, msB2prime, msB3prime]
 
 
 
-class AutoModel(nn.Module):
 
-    def __init__(self, encoder, decoder):
-        super(AutoModel, self).__init__()
-        self.encoder = ResNet(Bottleneck, [3, 4, 23, 3], num_classes=500)
-        self.attention = nn.Linear(500, 500)
-        self.reduce = nn.Linear(500, 292)
-        self.decoder = decoder
+class GridLSTMDecoderWithAttention(nn.Module):
+    """
+    Decoder.
+    """
+
+    def __init__(self, attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim=512, dropout=0.5):
+        """
+        :param attention_dim: size of attention network
+        :param embed_dim: embedding size
+        :param decoder_dim: size of decoder's RNN
+        :param vocab_size: size of vocabulary
+        :param encoder_dim: feature size of encoded images
+        :param dropout: dropout
+        """
+        super(GridLSTMDecoderWithAttention, self).__init__()
+
+        self.encoder_dim = encoder_dim
+        self.attention_dim = attention_dim
+        self.embed_dim = embed_dim
+        self.decoder_dim = decoder_dim
+        self.vocab_size = vocab_size
+        self.dropout = dropout
+
+        self.attention = Attention(encoder_dim, decoder_dim, attention_dim)  # attention network
+
+        self.embedding = nn.Embedding(vocab_size, embed_dim)  # embedding layer
+        self.dropout = nn.Dropout(p=self.dropout)
+        self.decode_step1 = StackGridLSTMCell2d(attention_dim, embed_dim, decoder_dim, vocab_size, encoder_dim, dropout)
+
+        self.init_h = nn.Linear(encoder_dim, decoder_dim)  # linear layer to find initial hidden state of LSTMCell
+        self.init_c = nn.Linear(encoder_dim, decoder_dim)  # linear layer to find initial cell state of LSTMCell
+        self.f_beta = nn.Linear(decoder_dim, encoder_dim)  # linear layer to create a sigmoid-activated gate
+        self.sigmoid = nn.Sigmoid()
+        self.fc = nn.Linear(decoder_dim, vocab_size)  # linear layer to find scores over vocabulary
+        self.init_weights()  # initialize some layers with the uniform distribution
+
+    def init_weights(self):
+        """
+        Initializes some parameters with values from the uniform distribution, for easier convergence.
+        """
+        self.embedding.weight.data.uniform_(-0.1, 0.1)
+        self.fc.bias.data.fill_(0)
+        self.fc.weight.data.uniform_(-0.1, 0.1)
+
+    def load_pretrained_embeddings(self, embeddings):
+        """
+        Loads embedding layer with pre-trained embeddings.
+        :param embeddings: pre-trained embeddings
+        """
+        self.embedding.weight = nn.Parameter(embeddings)
+
+    def fine_tune_embeddings(self, fine_tune=True):
+        """
+        Allow fine-tuning of embedding layer? (Only makes sense to not-allow if using pre-trained embeddings).
+        :param fine_tune: Allow?
+        """
+        for p in self.embedding.parameters():
+            p.requires_grad = fine_tune
+
+    def init_hidden_state(self, encoder_out):
+        """
+        Creates the initial hidden and cell states for the decoder's LSTM based on the encoded images.
+        :param encoder_out: encoded images, a tensor of dimension (batch_size, num_pixels, encoder_dim)
+        :return: hidden state, cell state
+        """
+        mean_encoder_out = encoder_out.mean(dim=1)
+        h = self.init_h(mean_encoder_out)  # (batch_size, decoder_dim)
+        c = self.init_c(mean_encoder_out)
+        return h, c
 
 
-    def forward(self, x):
-        x = self.encoder(x)
-        atten = nn.Softmax()(self.attention(x))
-        x = nn.ReLU()(self.reduce(atten * x))
-        x = self.decoder(x)
-        return x
+    def forward(self, encoder_out, encoded_captions, caption_lengths, teacher_forcing=True, use_first_state=False):
+        """
+        Forward propagation.
+        :param encoder_out: encoded images, a tensor of dimension (batch_size, enc_image_size, enc_image_size, encoder_dim)
+        :param encoded_captions: encoded captions, a tensor of dimension (batch_size, max_caption_length)
+        :param caption_lengths: caption lengths, a tensor of dimension (batch_size, 1)
+        :return: scores for vocabulary, sorted encoded captions, decode lengths, weights, sort indices
+        """
 
+        batch_size = encoder_out.size(0)
+        encoder_dim = encoder_out.size(-1)
+        vocab_size = self.vocab_size
+
+        # Flatten image
+        encoder_out = encoder_out.view(batch_size, -1, encoder_dim)  # (batch_size, num_pixels, encoder_dim)
+        num_pixels = encoder_out.size(1)
+
+        # Sort input data by decreasing lengths; why? apparent below
+        caption_lengths, sort_ind = caption_lengths.squeeze(1).sort(dim=0, descending=True)
+        encoder_out = encoder_out[sort_ind]
+        encoded_captions = encoded_captions[sort_ind]
+
+        # Embedding
+        embeddings = self.embedding(encoded_captions)  # (batch_size, max_caption_length, embed_dim)
+
+        # Initialize LSTM state
+        h, m = self.init_hidden_state(encoder_out)  # (batch_size, decoder_dim)
+        newhs = [h, h, h]
+        newms = [m, m, m]
+        # We won't decode at the <end> position, since we've finished generating as soon as we generate <end>
+        # So, decoding lengths are actual lengths - 1
+        decode_lengths = (caption_lengths - 1).tolist()
+
+        # Create tensors to hold word predicion scores and alphas
+        predictions = torch.zeros(batch_size, max(decode_lengths), vocab_size).cuda()
+        alphas = torch.zeros(batch_size, max(decode_lengths), num_pixels).cuda()
+
+        # At each time-step, decode by
+        # attention-weighing the encoder's output based on the decoder's previous hidden state output
+        # then generate a new word in the decoder with the previous word and the attention weighted encoding
+        for t in range(max(decode_lengths)):
+
+            batch_size_t = sum([l > t for l in decode_lengths])
+
+
+            attention_weighted_encoding, alpha = self.attention(encoder_out[:batch_size_t],
+                                                                h[:batch_size_t])
+            gate = self.sigmoid(self.f_beta(h[:batch_size_t]))  # gating scalar, (batch_size_t, encoder_dim)
+            attention_weighted_encoding = gate * attention_weighted_encoding
+
+            lstm_input = None
+            #print("embedding size", embeddings.shape, attention_weighted_encoding.shape)
+
+            if teacher_forcing and t > 0:
+                lstm_input = torch.cat([self.embedding(torch.max(predictions[:batch_size_t, t, :], dim=1)[1].long()), attention_weighted_encoding], dim=1)
+            else:
+                lstm_input = torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1)
+
+            if use_first_state and t == 0:
+                lstm_input = torch.cat([embeddings[:batch_size_t, t, :], encoder_out[:batch_size_t]], dim=1)
+
+            newhs.insert(0, h)
+            newms.insert(0, m)
+            newhs = map(lambda x : x[:batch_size_t, ...], newhs)
+            newms = map(lambda x : x[:batch_size_t, ...], newms)
+
+            #print("input shape", lstm_input.shape)
+            #print('running grid ', t)
+            h, m, newhs, newms = self.decode_step1(lstm_input, newhs, newms)
+
+            preds = self.fc(self.dropout(h))  # (batch_size_t, vocab_size)
+            predictions[:batch_size_t, t, :] = preds
+            alphas[:batch_size_t, t, :] = alpha
+
+        return predictions, encoded_captions, decode_lengths, alphas, sort_ind

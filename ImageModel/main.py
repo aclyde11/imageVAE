@@ -200,7 +200,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     model.train()
     end = time.time()
 
-    for i, (_, data) in enumerate(train_loader):
+    for i, (_, data, _) in enumerate(train_loader):
         adjust_learning_rate(args, optimizer, epoch, i, len(train_loader))
         data = data.cuda()
         if args.prof:
@@ -267,7 +267,7 @@ def validate(val_loader, model, criterion):
     end = time.time()
 
 
-    for i, (_, data) in enumerate(val_loader):
+    for i, (_, data, _) in enumerate(val_loader):
         data = data.cuda()
         # compute output
         with torch.no_grad():

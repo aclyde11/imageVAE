@@ -7,11 +7,12 @@ from rdkit.Chem.Draw import rdMolDraw2D
 from PIL import Image
 import io
 import cairosvg
+import numpy as np
+
 
 class MoleLoader(torch.utils.data.Dataset):
     def __init__(self, df, num=None):
         super(MoleLoader, self).__init__()
-
 
         if num is not None:
             self.df = df.sample(n=num)
@@ -40,8 +41,39 @@ class MoleLoader(torch.utils.data.Dataset):
         image.convert('RGB')
         return Invert()(image)
 
+    def from_one_hot_array(self, vec):
+        oh = np.where(vec == 1)
+        if oh[0].shape == (0,):
+            return None
+        return int(oh[0][0])
+
+    def decode_smiles_from_indexes(self, vec):
+        return "".join(map(lambda x: self.charset[x], vec)).strip()
+
+    def one_hot_array(self, i, n):
+        return map(int, [ix == i for ix in range(n)])
+
+    def one_hot_index(self, vec, charset):
+        return map(charset.index, vec)
+
+    def one_hot_encoded_fn(self, row):
+        return np.array(map(lambda x: self.one_hot_array(x, self.vocab)),
+                                                  self.one_hot_index(row, self.vocab))
+
+    def apply_t(self, x):
+        x = x + list((''.join([char * (self.embedding_width - len(x)) for char in [' ']])))
+        smi = self.one_hot_encoded_fn(x)
+        return smi
+
+    def apply_one_hot(self, ch):
+        return np.array(map(self.apply_t, ch))
+
     def __getitem__(self, item):
         smile = self.df.iloc[item, 0]
+
+        embedding = self.apply_one_hot(smile)
+        embedding = torch.LongTensor(embedding)
+        smile_len = len(str(smile))
         image = self.make_image(smile)
 
-        return smile, transforms.ToTensor()(image)
+        return embedding, transforms.ToTensor()(image), smile_len
