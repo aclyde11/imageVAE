@@ -23,12 +23,14 @@ def interpolate_points(x, y, sampling):
 
 def adjust_learning_rate(args, optimizer, epoch, step, len_epoch):
     """LR schedule that should yield 76% converged accuracy with batch size 256"""
-    factor = epoch // 30
+    # factor = epoch // 30
+    #
+    # if epoch >= 80:
 
-    if epoch >= 80:
-        factor = factor + 1
-
-    lr = args.lr * (0.1 ** factor)
+        #     factor = factor + 1
+    lr = None
+    if epoch > 5 and epoch % 10 == 0:
+        lr = args.lr * 0.66
 
     """Warmup"""
     if epoch < 5:
