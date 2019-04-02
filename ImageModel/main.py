@@ -119,7 +119,7 @@ def main():
         encoder = PictureEncoder()
         encoder.load_state_dict(checkpoint['encoder_state_dict'])
         decoder = PictureDecoder()
-        decoder.load_state_dict(checkpoint['decoder_state_dict'], strict=False)
+        decoder.load_state_dict(checkpoint['decoder_state_dict'])
         model = GeneralVae(encoder, decoder)
 
     if args.sync_bn:
@@ -203,7 +203,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
     end = time.time()
 
     for i, (_, data, _) in enumerate(train_loader):
-        print(torch.max(data))
         adjust_learning_rate(args, optimizer, epoch, i, len(train_loader))
         data = data.cuda()
         if args.prof:
