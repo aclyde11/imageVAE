@@ -167,11 +167,6 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 
 
 
-model, optimizer = amp.initialize(model, optimizer, opt_level="O1")
-
-
-
-
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = nn.DataParallel(model)
@@ -220,9 +215,7 @@ def train(epoch):
         loss = loss_picture(recon_batch, data, mu, logvar, epoch)
         train_loss += loss.item()
 
-        with amp.scale_loss(loss, optimizer) as scaled_loss:
-            scaled_loss.backward()
-        torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), 5.0)
+        loss.backward()
         optimizer.step()
 
 
@@ -308,7 +301,7 @@ for epoch in range(starting_epoch, epochs):
 
     #sched.step()
 
-    #loss = train(epoch)
+    loss = train(epoch)
     test(epoch)
 
     torch.save({
