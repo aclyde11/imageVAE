@@ -115,7 +115,7 @@ def main():
     else:
         print("=> creating model")
         # model = models.__dict__[args.arch]()
-        checkpoint = torch.load('/home/aclyde11/imageVAE/im_im_small/model/epoch_100.pt', map_location=torch.device('cpu'))
+        checkpoint = torch.load('/home/aclyde11/imageVAE/im_im_small/model/epoch_67.pt', map_location=torch.device('cpu'))
         encoder = PictureEncoder()
         encoder.load_state_dict(checkpoint['encoder_state_dict'])
         decoder = PictureDecoder()
