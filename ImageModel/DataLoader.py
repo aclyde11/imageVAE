@@ -76,4 +76,4 @@ class MoleLoader(torch.utils.data.Dataset):
         smile_len = len(str(smile))
         image = self.make_image(smile)
 
-        return embedding, transforms.ToTensor()(image), smile_len
+        return 0, transforms.ToTensor()(image), smile_len
