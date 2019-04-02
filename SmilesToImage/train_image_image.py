@@ -160,10 +160,9 @@ checkpoint = torch.load('/homes/aclyde11/imageVAE/ImageModel/checkpoint.pth.tar'
 #decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
-model.load_state_dict(checkpoint['state_dict'])
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 
 
@@ -176,6 +175,8 @@ model, optimizer = amp.initialize(model, optimizer, opt_level="O1")
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = nn.DataParallel(model)
+
+model.load_state_dict(checkpoint['state_dict'])
 
 
 
