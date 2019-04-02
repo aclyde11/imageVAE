@@ -115,8 +115,11 @@ def main():
     else:
         print("=> creating model")
         # model = models.__dict__[args.arch]()
+        checkpoint = torch.load('/home/aclyde11/imageVAE/im_im_small/model/epoch_100.pt')
         encoder = PictureEncoder()
+        encoder.load_state_dict(checkpoint['encoder_state_dict'])
         decoder = PictureDecoder()
+        decoder.load_state_dict(checkpoint['decoder_state_dict'])
         model = GeneralVae(encoder, decoder)
 
     if args.sync_bn:
