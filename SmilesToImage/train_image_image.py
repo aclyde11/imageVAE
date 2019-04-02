@@ -156,9 +156,8 @@ def train(epoch):
         model.train()
         train_loss = 0
         loss = None
-        for batch_idx, (_, data) in enumerate(train_loader_food):
+        for batch_idx, (_, data, ) in enumerate(train_loader_food):
             data = data.cuda()
-            #aff = aff.float().cuda(4)
 
             optimizer.zero_grad()
 
@@ -200,7 +199,7 @@ def test(epoch):
         model.eval()
         test_loss = 0
         with torch.no_grad():
-            for i, (_, data) in enumerate(val_loader_food):
+            for i, (_, data, ) in enumerate(val_loader_food):
                 data = data.cuda()
                 #aff = aff.float().cuda(4)
 
