@@ -315,8 +315,8 @@ for epoch in range(starting_epoch, epochs):
         'epoch': epoch,
         'encoder_state_dict': model.module.encoder.state_dict(),
         'decoder_state_dict' : model.module.decoder.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'loss': loss}, save_files + 'epoch_' + str(epoch) + '.pt')
+        'optimizer_state_dict': optimizer.state_dict()
+         }, save_files + 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
         sample = model.module.decode(sample).cpu()
