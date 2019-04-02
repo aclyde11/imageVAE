@@ -415,26 +415,26 @@ class PictureDecoder(nn.Module):
         self.fc_bn4 = nn.BatchNorm1d(rep_size)
 
         # Decoder
-        self.preconv = nn.ConvTranspose2d(125, 125, kernel_size=3, stride=1, padding=0, bias=False)
-        self.conv15 = nn.ConvTranspose2d(125, 128, kernel_size=2, stride=2, padding=0,  bias=False)
+        self.preconv = nn.ConvTranspose2d(125, 128, kernel_size=3, stride=1, padding=0, bias=False)
+        self.conv15 = nn.ConvTranspose2d(128, 128, kernel_size=2, stride=2, padding=0,  bias=False)
         self.conv15_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn15 = nn.BatchNorm2d(128)
         self.conv16 = nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1, bias=False)
         self.conv16_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn16 = nn.BatchNorm2d(128)
-        self.conv20 = nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1, bias=False)
-        self.conv20_ = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=1, padding=1, bias=False)
+        self.conv20 = nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1, bias=False)
+        self.conv20_ = nn.ConvTranspose2d(128, 64, kernel_size=4, stride=1, padding=1, bias=False)
         self.bn20 = nn.BatchNorm2d(64)
         self.conv17 = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1, bias=False)
-        self.conv17_ = nn.ConvTranspose2d(64, 32, kernel_size=5, stride=1, padding=0, bias=False)
-        self.bn21 = nn.BatchNorm2d(32)
-        self.conv18 = nn.ConvTranspose2d(32, 16, kernel_size=40, stride=2, padding=0, bias=False)
-        self.conv18_ = nn.ConvTranspose2d(16, 3, kernel_size=40, stride=1, padding=0, bias=False)
-        self.bn22 = nn.BatchNorm2d(3)
-        self.conv19 = nn.ConvTranspose2d(3, 3, kernel_size=40, stride=1, padding=0, bias=False)
+        self.conv17_ = nn.ConvTranspose2d(64, 64, kernel_size=5, stride=1, padding=0, bias=False)
+        self.bn21 = nn.BatchNorm2d(64)
+        self.conv18 = nn.ConvTranspose2d(64, 32, kernel_size=40, stride=2, padding=0, bias=False)
+        self.conv18_ = nn.ConvTranspose2d(32, 16, kernel_size=40, stride=1, padding=0, bias=False)
+        self.bn22 = nn.BatchNorm2d(16)
+        self.conv19 = nn.ConvTranspose2d(16, 3, kernel_size=40, stride=1, padding=0, bias=False)
         self.relu = nn.ReLU()
 
-    def decode(self, z):
+    def forward(self, z):
         out = self.fc_bn3(self.fc3(z))
         out = self.relu(out)
         out = self.fc_bn4(self.fc4(out))
@@ -454,15 +454,14 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv17_(out))
         out = self.bn21(out)
 
+
+
         out = self.relu(self.conv18(out))
         out = self.relu(self.conv18_(out))
         out = self.bn22(out)
         out = self.conv19(out)
         return out
 
-
-    def forward(self, z):
-        return self.decode(z)
 
 
 # class PictureDecoder(nn.Module):
