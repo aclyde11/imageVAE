@@ -154,11 +154,13 @@ encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
 
-checkpoint = torch.load(save_files + 'epoch_' + str(79) + '.pt')
-encoder.load_state_dict(checkpoint['encoder_state_dict'])
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
+#checkpoint = torch.load(save_files + 'epoch_' + str(79) + '.pt')
+checkpoint = torch.load('/homes/aclyde11/imageVAE/ImageModel/checkpoint.pth.tar')
+#encoder.load_state_dict(checkpoint['encoder_state_dict'])
+#decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
+model.load_state_dict(checkpoint['state_dict'])
 
 optimizer = optim.Adam(model.parameters(), lr=LR)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -167,7 +169,6 @@ optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 
 model, optimizer = amp.initialize(model, optimizer, opt_level="O1")
-
 
 
 
@@ -306,7 +307,7 @@ for epoch in range(starting_epoch, epochs):
 
     #sched.step()
 
-    loss = train(epoch)
+    #loss = train(epoch)
     test(epoch)
 
     torch.save({

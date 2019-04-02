@@ -19,6 +19,10 @@ class MoleLoader(torch.utils.data.Dataset):
         else:
             self.df = df
 
+        self.generate_vocab()
+        self.start_char = '!'
+        self.end_char = '?'
+
     def __len__(self):
         return self.df.shape[0]
 
@@ -40,6 +44,17 @@ class MoleLoader(torch.utils.data.Dataset):
                                                        scale=1)))
         image.convert('RGB')
         return Invert()(image)
+
+    def get_vocab_len(self):
+        return len(self.vocab)
+
+    def generate_vocab(self):
+        s = set(' ')
+        for i, row in self.df.iterrows():
+            s = s.union(row.iloc[0])
+        print(s)
+        self.vocab = list(s)
+
 
     def from_one_hot_array(self, vec):
         oh = np.where(vec == 1)
