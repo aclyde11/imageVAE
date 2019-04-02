@@ -203,6 +203,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     end = time.time()
 
     for i, (_, data, _) in enumerate(train_loader):
+        print(data)
         adjust_learning_rate(args, optimizer, epoch, i, len(train_loader))
         data = data.cuda()
         if args.prof:
