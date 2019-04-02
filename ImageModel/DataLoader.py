@@ -14,13 +14,10 @@ class MoleLoader(torch.utils.data.Dataset):
     def __init__(self, df, num=None):
         super(MoleLoader, self).__init__()
 
-        if num is not None:
-            self.df = df.sample(n=num)
-        else:
-            self.df = df
+        self.df = df
 
-        self.generate_vocab()
-        self.start_char = '!'
+        #self.generate_vocab()
+        #self.start_char = '!'
         self.end_char = '?'
 
     def __len__(self):

@@ -181,7 +181,7 @@ def main():
 
         # remember best prec@1 and save checkpoint
         if args.local_rank == 0:
-            is_best = prec1 > best_prec1
+            is_best = prec1 < best_prec1
             best_prec1 = max(prec1, best_prec1)
             save_checkpoint({
                 'epoch': epoch + 1,
