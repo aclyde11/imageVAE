@@ -197,7 +197,7 @@ def clip_gradient(optimizer, grad_clip=5.0):
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
 def train(epoch):
-    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(rampDataSize * data_size))
+    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(70000))
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
