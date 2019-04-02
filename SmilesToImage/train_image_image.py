@@ -73,7 +73,7 @@ def apply_one_hot(ch):
 
 
 
-def generate_data_loader(root, batch_size, data_size):
+def generate_data_loader(batch_size, data_size):
     return torch.utils.data.DataLoader(
         MoleLoader(smiles_lookup),
         batch_size=batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
@@ -82,7 +82,7 @@ def generate_data_loader(root, batch_size, data_size):
 class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
-        self.mse_loss = nn.MSELoss(reduction="sum")
+        self.mse_loss = nn.MSELoss(reduction="mean")
         self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
@@ -142,7 +142,7 @@ def clip_gradient(optimizer, grad_clip=5.0):
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
 def train(epoch):
-    train_loader_food = generate_data_loader(train_root, get_batch_size(epoch), int(70000))
+    train_loader_food = generate_data_loader(get_batch_size(epoch), int(70000))
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     train_loss = 0
@@ -187,7 +187,7 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    val_loader_food = generate_data_loader(val_root, get_batch_size(epoch), int(1000))
+    val_loader_food = generate_data_loader(get_batch_size(epoch), int(1000))
     model.eval()
     test_loss = 0
     with torch.no_grad():
