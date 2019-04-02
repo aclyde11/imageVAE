@@ -134,7 +134,7 @@ def main():
     #                             momentum=args.momentum,
     #                             weight_decay=args.weight_decay)
     print(args.lr)
-    optimizer = torch.optim.Adam(model.parameters(), args.lr)
+    optimizer = torch.optim.SGD(model.parameters(), args.lr, momentum=0.85)
 
     model, optimizer = amp.initialize(model, optimizer,
                                       opt_level=args.opt_level,
