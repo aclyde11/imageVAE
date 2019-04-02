@@ -84,10 +84,12 @@ print("\nCUDNN VERSION: {}\n".format(torch.backends.cudnn.version()))
 # binding_aff = binding_aff.set_index('id')
 # print(binding_aff.head())
 
-smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab", names=['id', 'smiles'])
-smiles_lookup = smiles_lookup.set_index('id')
-print(smiles_lookup.head())
-
+# smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab", names=['id', 'smiles'])
+# smiles_lookup = smiles_lookup.set_index('id')
+smiles_lookup_train = pd.read_csv("/homes/aclyde11/moses/data/train.csv")
+print(smiles_lookup_train.head())
+smiles_lookup_test = pd.read_csv("/homes/aclyde11/moses/data/test.csv")
+print(smiles_lookup_test.head())
 
 def main():
     global best_prec1, args
@@ -148,8 +150,8 @@ def main():
 
     criterion = customLoss()
 
-    train_dataset = MoleLoader(smiles_lookup, num=1000000)
-    val_dataset = MoleLoader(smiles_lookup,   num=5000)
+    train_dataset = MoleLoader(smiles_lookup_train)
+    val_dataset = MoleLoader(smiles_lookup_test)
 
     train_sampler = None
     val_sampler = None
