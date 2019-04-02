@@ -84,7 +84,8 @@ print("\nCUDNN VERSION: {}\n".format(torch.backends.cudnn.version()))
 # binding_aff = binding_aff.set_index('id')
 # print(binding_aff.head())
 
-smiles_lookup = pd.read_csv("/homes/aclyde11//moses/data/train.csv")
+smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab", names=['id', 'smiles'])
+smiles_lookup = smiles_lookup.set_index('id')
 print(smiles_lookup.head())
 
 
@@ -114,11 +115,11 @@ def main():
     else:
         print("=> creating model")
         # model = models.__dict__[args.arch]()
-        checkpoint = torch.load('/home/aclyde11/imageVAE/im_im_small/model/epoch_25.pt', map_location=torch.device('cpu'))
+        checkpoint = torch.load('/home/aclyde11/imageVAE/im_im_small/model/epoch_100.pt', map_location=torch.device('cpu'))
         encoder = PictureEncoder()
         encoder.load_state_dict(checkpoint['encoder_state_dict'])
         decoder = PictureDecoder()
-        decoder.load_state_dict(checkpoint['decoder_state_dict'])
+        decoder.load_state_dict(checkpoint['decoder_state_dict'], strict=False)
         model = GeneralVae(encoder, decoder)
 
     if args.sync_bn:
@@ -133,7 +134,7 @@ def main():
     #                             momentum=args.momentum,
     #                             weight_decay=args.weight_decay)
     print(args.lr)
-    optimizer = torch.optim.Adam(model.parameters(), args.lr)#, momentum=0.85)
+    optimizer = torch.optim.Adam(model.parameters(), args.lr)
 
     model, optimizer = amp.initialize(model, optimizer,
                                       opt_level=args.opt_level,
