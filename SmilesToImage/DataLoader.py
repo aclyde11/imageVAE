@@ -19,7 +19,7 @@ class MoleLoader(torch.utils.data.Dataset):
         else:
             self.df = df
 
-        self.generate_vocab()
+        #self.generate_vocab()
         self.start_char = '!'
         self.end_char = '?'
         self.image_invert = Invert()
@@ -94,4 +94,4 @@ class MoleLoader(torch.utils.data.Dataset):
         image = self.make_image(smile)
         image = self.image_tensor(image)
 
-        return 0, image, smile_len
+        return 0, image
