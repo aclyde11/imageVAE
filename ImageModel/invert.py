@@ -38,8 +38,8 @@ def adjust_learning_rate(args, optimizer, epoch, step, len_epoch):
     # if epoch < 5:
     #     lr = lr * float(1 + step + epoch * len_epoch) / (5. * len_epoch)
 
-    # if(args.local_rank == 0):
-    #     print("epoch = {}, step = {}, lr = {}".format(epoch, step, lr))
+    if(args.local_rank == 0):
+        print("epoch = {}, step = {}, lr = {}".format(epoch, step, lr))
 
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr

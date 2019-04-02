@@ -14,16 +14,11 @@ class MoleLoader(torch.utils.data.Dataset):
     def __init__(self, df, num=None):
         super(MoleLoader, self).__init__()
 
-        if num is not None:
-            self.df = df.sample(n=num)
-        else:
-            self.df = df
+        self.df = df
 
         #self.generate_vocab()
-        self.start_char = '!'
+        #self.start_char = '!'
         self.end_char = '?'
-        self.image_invert = Invert()
-        self.image_tensor = transforms.ToTensor()
 
     def __len__(self):
         return self.df.shape[0]
@@ -45,7 +40,7 @@ class MoleLoader(torch.utils.data.Dataset):
         image = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg, parent_width=100, parent_height=100,
                                                        scale=1)))
         image.convert('RGB')
-        return self.image_invert(image)
+        return Invert()(image)
 
     def get_vocab_len(self):
         return len(self.vocab)
@@ -92,6 +87,5 @@ class MoleLoader(torch.utils.data.Dataset):
         #embedding = torch.LongTensor(embedding)
         smile_len = len(str(smile))
         image = self.make_image(smile)
-        image = self.image_tensor(image)
 
-        return 0, image, smile_len
+        return 0, transforms.ToTensor()(image), smile_len
