@@ -20,7 +20,7 @@ from PIL import Image
 import io
 import cairosvg
 
-
+from DataLoader import MoleLoader
 
 try:
     from apex.parallel import DistributedDataParallel as DDP
@@ -58,12 +58,8 @@ binding_aff['id'] = binding_aff['id'].astype('int64')
 binding_aff = binding_aff.set_index('id')
 print(binding_aff.head())
 
-train_root = '/homes/aclyde11/moldata/moses/binding_train/'
-val_root =   '/homes/aclyde11/moldata/moses/binding_test/'
-smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab", names=['id', 'smiles'])
-smiles_lookup = smiles_lookup.set_index('id')
+smiles_lookup = pd.read_csv("/homes/aclyde11//moses/data/train.csv")
 print(smiles_lookup.head())
-
 def one_hot_array(i, n):
     return map(int, [ix == i for ix in range(n)])
 
@@ -74,57 +70,6 @@ one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(voc
 def apply_one_hot(ch):
     return np.array(map(lambda x : np.pad(one_hot_encoded_fn(x), pad_width=[(0,60 - len(x)), (0,0)], mode='constant', constant_values=0), ch))
 
-class ImageFolderWithFile(datasets.ImageFolder):
-    def __getitem__(self, index):
-        f = self.imgs[index][0]
-        f = int(f.split('/')[-1].split('.')[0])
-        t=None
-        aff=None
-        try:
-            aff = float(binding_aff.loc[f, 'norm_aff'])
-            t = list(smiles_lookup.loc[f, 'smiles'])
-        except:
-            print(f)
-            print('aff: ', aff)
-            print('t', t)
-            exit()
-        #embed = apply_one_hot([t])[0].astype(np.float32)
-        im = super(ImageFolderWithFile, self).__getitem__(index)
-
-        return  im, 0, aff
-
-class MoleLoader(torch.utils.data.Dataset):
-    def __init__(self, df):
-        super(MoleLoader, self).__init__()
-        self.df = df
-
-    def __len__(self):
-        return self.df.shape[0]
-
-    def make_image(self,mol, molSize=(256, 256), kekulize=True, mol_name=''):
-        mol = Chem.MolFromSmiles(mol)
-        mc = Chem.Mol(mol.ToBinary())
-        if kekulize:
-            try:
-                Chem.Kekulize(mc)
-            except:
-                mc = Chem.Mol(mol.ToBinary())
-        if not mc.GetNumConformers():
-            rdDepictor.Compute2DCoords(mc)
-        drawer = rdMolDraw2D.MolDraw2DSVG(molSize[0], molSize[1])
-        drawer.DrawMolecule(mc)
-        drawer.FinishDrawing()
-        svg = drawer.GetDrawingText()
-        image = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg,  parent_width=100, parent_height=100,
-                         scale=1)))
-        image.convert('RGB')
-        return Invert()(image)
-
-    def __getitem__(self, item):
-        smile = self.df.iloc[item, 0]
-        image = self.make_image(smile)
-
-        return smile, transforms.ToTensor()(image)
 
 
 
