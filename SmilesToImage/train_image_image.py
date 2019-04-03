@@ -91,11 +91,11 @@ print(smiles_lookup_test.head())
 
 train_loader_food = torch.utils.data.DataLoader(
         MoleLoader(smiles_lookup_train),
-        batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
+        batch_size=args.batch_size, shuffle=True, drop_last=True,  **kwargs)
 
 val_loader_food = torch.utils.data.DataLoader(
         MoleLoader(smiles_lookup_test),
-        batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
+        batch_size=args.batch_size, shuffle=True, drop_last=True,  **kwargs)
 
 
 class customLoss(nn.Module):
