@@ -201,81 +201,83 @@ def train(epoch):
         encoder.train()
         losses = AverageMeter()  # loss (per word decoded)
         for batch_idx, (data, embed, embedlen) in enumerate(train_loader):
-            imgs = data[0].float().cuda(1)
-            caps = embed.cuda(2)
-            caplens = embedlen.cuda(2).view(-1, 1)
+            for which_image in range(1):
 
 
-            # Forward prop.
-            imgs = encoder(imgs).cuda(2)
+                imgs = data[0].float()
+                caps = embed.cuda(2)
+                caplens = embedlen.cuda(2).view(-1, 1)
 
-            scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch > 1))
+                if which_image == 0:
+                    imgs = imgs.cuda(1)
+                else:
+                    imgs = imgs.cuda(0)
+                    imgs, _, _, _ = vae_model(imgs)
+                    imgs = imgs.cuda(1)
 
-            scores_copy = scores.clone()
-            # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
-            targets = caps_sorted[:, 1:]
-            targets_copy = targets.clone()
-            # Remove timesteps that we didn't decode at, or are pads
-            # pack_padded_sequence is an easy trick to do this
-            # print(caplens)
-            # for i in range(4):
-            #     print(scores_copy[i, ...].shape)
-            #     print(targets_copy[i, ...].shape)
-            #     print(decode_lengths[i])
+                # Forward prop.
+                imgs = encoder(imgs).cuda(2)
+
+                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch > 1))
+
+                scores_copy = scores.clone()
+                # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
+                targets = caps_sorted[:, 1:]
+                targets_copy = targets.clone()
 
 
-            scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
-            targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+                scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+                targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
-            # Calculate loss
-            loss = criterion(scores, targets)
+                # Calculate loss
+                loss = criterion(scores, targets)
 
-            # Add doubly stochastic attention regularization
-            loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
+                # Add doubly stochastic attention regularization
+                loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
 
-            # Back prop.
-            decoder_optimizer.zero_grad()
-            if encoder_optimizer is not None:
-                encoder_optimizer.zero_grad()
-            loss.backward()
-
-            # Clip gradients
-            if grad_clip is not None:
-                clip_gradient(decoder_optimizer, grad_clip)
+                # Back prop.
+                decoder_optimizer.zero_grad()
                 if encoder_optimizer is not None:
-                    clip_gradient(encoder_optimizer, grad_clip)
+                    encoder_optimizer.zero_grad()
+                loss.backward()
 
-            # Update weights
-            decoder_optimizer.step()
-            if encoder_optimizer is not None:
-                encoder_optimizer.step()
+                # Clip gradients
+                if grad_clip is not None:
+                    clip_gradient(decoder_optimizer, grad_clip)
+                    if encoder_optimizer is not None:
+                        clip_gradient(encoder_optimizer, grad_clip)
 
-            # Keep track of metrics
-            losses.update(loss.item(), sum(decode_lengths))
+                # Update weights
+                decoder_optimizer.step()
+                if encoder_optimizer is not None:
+                    encoder_optimizer.step()
 
-            experiment.log_metric('loss', loss.item())
-            acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
-            experiment.log_metric("acc_per_char", acc)
+                # Keep track of metrics
+                losses.update(loss.item(), sum(decode_lengths))
 
-            acc_per_string = 0
-            if batch_idx % log_interval == 0:
-                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
-                    epoch, batch_idx * len(data), len(train_loader.dataset),
-                           100. * batch_idx / len(train_loader),
-                           loss.item() / len(data), datetime.datetime.now()))
+                experiment.log_metric('loss', loss.item())
+                acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
+                experiment.log_metric("acc_per_char", acc)
 
-                _, preds = torch.max(scores_copy, dim=2)
-                preds = preds.cpu().numpy()
-                targets_copy = targets_copy.cpu().numpy()
-                for i in range(preds.shape[0]):
-                    sample = preds[i,...]
-                    target = targets_copy[i,...]
-                    s1 = "".join([charset[chars] for chars in target]).strip()
-                    s2 = "".join([charset[chars] for chars in sample]).strip()
-                    if i < 4:
-                        print("ORIG: {}\nNEW : {}\n".format(s1, s2))
-                    acc_per_string += 1 if s1 == s2 else 0
-                experiment.log_metric('acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
+                acc_per_string = 0
+                if batch_idx % log_interval == 0:
+                    print('Train Epoch {}: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format( "orig" if which_image == 0 else "vaes",
+                        epoch, batch_idx * len(data), len(train_loader.dataset),
+                               100. * batch_idx / len(train_loader),
+                               loss.item() / len(data), datetime.datetime.now()))
+
+                    _, preds = torch.max(scores_copy, dim=2)
+                    preds = preds.cpu().numpy()
+                    targets_copy = targets_copy.cpu().numpy()
+                    for i in range(preds.shape[0]):
+                        sample = preds[i,...]
+                        target = targets_copy[i,...]
+                        s1 = "".join([charset[chars] for chars in target]).strip()
+                        s2 = "".join([charset[chars] for chars in sample]).strip()
+                        if i < 4:
+                            print("ORIG: {}\nNEW : {}\n".format(s1, s2))
+                        acc_per_string += 1 if s1 == s2 else 0
+                    experiment.log_metric('acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
 
 
 
