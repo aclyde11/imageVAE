@@ -128,21 +128,17 @@ model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(), lr=LR)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
 for param_group in optimizer.param_groups:
-    param_group['lr'] = LR
-
-
+    param_group['lr'] = 0.005
 
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = nn.DataParallel(model)
 
 
-
-
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4, last_epoch=-1)
 loss_picture = customLoss()
-
 
 val_losses = []
 train_losses = []
