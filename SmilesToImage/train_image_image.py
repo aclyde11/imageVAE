@@ -140,7 +140,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 
 
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4 * 3, last_epoch=2)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4, last_epoch=-1)
 loss_picture = customLoss()
 
 
