@@ -176,6 +176,8 @@ def train(epoch):
             experiment.log_metric('loss', loss.item())
 
             loss.backward()
+
+            clip_gradient(optimizer, grad_clip=1.0)
             optimizer.step()
 
 
