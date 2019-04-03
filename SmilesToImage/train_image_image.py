@@ -49,7 +49,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 8e-4 * 5         ##adam rate
+LR = 1e-3 * 5         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -124,9 +124,10 @@ decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
-optimizer = optim.Adam(model.parameters(), lr=5 * 1e-3)
+optimizer = optim.Adam(model.parameters(), lr=LR)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-
+for param_group in optimizer.param_groups:
+    param_group['lr'] = LR
 
 
 
