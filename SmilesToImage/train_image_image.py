@@ -49,7 +49,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 50
-LR = 8e-4          ##adam rate
+LR = 8e-4 * 5         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -137,7 +137,7 @@ if data_para and torch.cuda.device_count() > 1:
 
 
 
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-5 * 5, last_epoch=-1)
 loss_picture = customLoss()
 
 
