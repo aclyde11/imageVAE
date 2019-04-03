@@ -43,7 +43,7 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=1
+starting_epoch=3
 epochs = 200
 no_cuda = False
 seed = 42
@@ -124,7 +124,7 @@ decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
-optimizer = optim.Adam(model.parameters(), lr=LR)
+optimizer = optim.Adam(model.parameters(), lr=5 * 1e-3)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 
