@@ -124,6 +124,8 @@ decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
+
+print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(), lr=LR)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 for param_group in optimizer.param_groups:
