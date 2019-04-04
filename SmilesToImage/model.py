@@ -118,7 +118,7 @@ class PictureEncoder(nn.Module):
     def __init__(self, rep_size=500):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
-        self.encoder = ResNet(BasicBlock, [3, 4, 6, 3], num_classes=rep_size)
+        self.encoder = ResNet(BasicBlock, [3, 2, 2, 3], num_classes=rep_size)
         self.mu = nn.Linear(rep_size, rep_size)
         self.logvar = nn.Linear(rep_size, rep_size)
 
@@ -370,10 +370,10 @@ class PictureDecoder(nn.Module):
         self.conv17 = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1, bias=False)
         self.conv17_ = nn.ConvTranspose2d(64, 64, kernel_size=5, stride=1, padding=0, bias=False)
         self.bn21 = nn.BatchNorm2d(64)
-        self.conv18 = nn.ConvTranspose2d(64, 32, kernel_size=40, stride=2, padding=0, bias=False)
-        self.conv18_ = nn.ConvTranspose2d(32, 16, kernel_size=40, stride=1, padding=0, bias=False)
+        self.conv18 = nn.ConvTranspose2d(64, 32, kernel_size=5, stride=2, padding=0, bias=False)
+        self.conv18_ = nn.ConvTranspose2d(32, 16, kernel_size=5, stride=1, padding=0, bias=False)
         self.bn22 = nn.BatchNorm2d(16)
-        self.conv19 = nn.ConvTranspose2d(16, 3, kernel_size=40, stride=1, padding=0, bias=False)
+        self.conv19 = nn.ConvTranspose2d(16, 3, kernel_size=5, stride=1, padding=0, bias=False)
         self.relu = nn.ReLU()
 
     def forward(self, z):
@@ -402,6 +402,7 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv18_(out))
         out = self.bn22(out)
         out = self.conv19(out)
+        print(out.shape)
         return out
 
 
@@ -573,7 +574,7 @@ class GeneralVae(nn.Module):
     def forward(self, x):
         mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar)
-        return self.decode(z), mu, logvar, z
+        return self.decode(z), mu, logvar
 
 class GeneralVaeBinding(nn.Module):
     def __init__(self, encoder_model, decoder_model, binding_model, rep_size=500):

@@ -156,9 +156,15 @@ def clip_gradient(optimizer, grad_clip=1.0):
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
 train_data = MoleLoader(smiles_lookup_train)
+# train_loader_food = torch.utils.data.DataLoader(
+#     train_data,
+#     batch_size=args.batch_size, shuffle=True, drop_last=True,
+#     **kwargs)
+
+
 train_loader_food = torch.utils.data.DataLoader(
     train_data,
-    batch_size=args.batch_size, shuffle=True, drop_last=True,
+    batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=250000))))),
     **kwargs)
 def train(epoch, size=100000):
     # train_loader_food = torch.utils.data.DataLoader(
