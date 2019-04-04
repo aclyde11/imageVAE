@@ -371,10 +371,11 @@ class PictureDecoder(nn.Module):
         self.conv17_ = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=1, padding=0, bias=False)
         self.bn21 = nn.BatchNorm2d(64)
         self.conv18 = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=0, bias=False)
-        self.conv18_ = nn.ConvTranspose2d(32, 16, kernel_size=4, stride=1, padding=0, bias=False)
+        self.conv18_ = nn.ConvTranspose2d(32, 16, kernel_size=5, stride=1, padding=0, bias=False)
         self.bn22 = nn.BatchNorm2d(16)
-        self.conv19 = nn.ConvTranspose2d(16, 3, kernel_size=4, stride=1, padding=0, bias=False)
-        self.relu = nn.ReLU()
+        self.conv19 = nn.ConvTranspose2d(16, 3, kernel_size=5, stride=1, padding=0, bias=False)
+        self.relu = nn.LeakyReLU()
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, z):
         out = self.fc_bn3(self.fc3(z))
@@ -402,7 +403,9 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv18_(out))
         out = self.bn22(out)
         out = self.conv19(out)
-        print(out.shape)
+
+
+        out = self.sigmoid(out)
         return out
 
 
