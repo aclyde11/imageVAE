@@ -45,7 +45,7 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=1
+starting_epoch=15
 epochs = 200
 no_cuda = False
 seed = 42
@@ -108,7 +108,7 @@ class customLoss(nn.Module):
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         #loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + min(1.0, float(round(epochs / 2 + 0.75)) * KLD_annealing) * loss_KLD
+        return loss_MSE + loss_KLD
 
 model = None
 encoder = None
@@ -116,17 +116,16 @@ decoder = None
 encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
-
-#checkpoint = torch.load(save_files + 'epoch_.pt')
-#encoder.load_state_dict(checkpoint['encoder_state_dict'])
-#decoder.load_state_dict(checkpoint['decoder_state_dict'])
+checkpoint = torch.load(save_files + 'epoch_14.pt')
+encoder.load_state_dict(checkpoint['encoder_state_dict'])
+decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
 
 print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(), lr=LR)
-#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 #for param_group in optimizer.param_groups:
 #    param_group['lr'] = 0.005
@@ -136,7 +135,7 @@ if data_para and torch.cuda.device_count() > 1:
     model = nn.DataParallel(model)
 
 
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4 * 8, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4 * 8, last_epoch=14)
 loss_picture = customLoss()
 
 val_losses = []
@@ -165,14 +164,14 @@ train_data = MoleLoader(smiles_lookup_train)
 
 train_loader_food = torch.utils.data.DataLoader(
     train_data,
-    batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=250000))))),
+    batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=750000))))),
     **kwargs)
 
 val_data = MoleLoader(smiles_lookup_test)
 
 val_loader_food = torch.utils.data.DataLoader(
         val_data,
-        batch_size=args.batch_size, shuffle=False, drop_last=True,sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(val_data), size=5000))))),
+        batch_size=args.batch_size, shuffle=False, drop_last=True,sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(val_data), size=10000))))),
         **kwargs)
 
 def train(epoch, size=100000):
@@ -282,11 +281,10 @@ def test(epoch):
     val_losses.append(test_loss)
 
 for epoch in range(starting_epoch, epochs):
+    sched.step()
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
         experiment.log_metric('lr', param_group['lr'])
-
-    sched.step()
 
     loss = train(epoch)
     test(epoch)
