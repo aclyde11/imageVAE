@@ -237,6 +237,7 @@ def test(epoch):
 
                 recon_batch, mu, logvar = model(data)
 
+
                 loss = loss_picture(recon_batch, data, mu, logvar, epoch)
 
                 experiment.log_metric('loss', loss.item())
@@ -245,6 +246,8 @@ def test(epoch):
                     n_image_gen = 8
                     images = []
                     n_samples_linspace = 16
+                    recon_batch = model.module.encode_latent_(data[:25, ...])
+
                     for i in range(n_image_gen):
                         pt_1 = recon_batch[i * 2, ...].cpu().numpy()
                         pt_2 = recon_batch[i * 2 + 1, ...].cpu().numpy()
