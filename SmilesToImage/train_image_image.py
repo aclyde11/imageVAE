@@ -89,13 +89,10 @@ smiles_lookup_test = pd.read_csv("/homes/aclyde11/moses/data/test.csv")
 print(smiles_lookup_test.head())
 
 
-train_loader_food = torch.utils.data.DataLoader(
-        MoleLoader(smiles_lookup_train),
-        batch_size=args.batch_size, shuffle=True, drop_last=True,  **kwargs)
 
 val_loader_food = torch.utils.data.DataLoader(
         MoleLoader(smiles_lookup_test),
-        batch_size=args.batch_size, shuffle=True, drop_last=True,  **kwargs)
+        batch_size=args.batch_size, shuffle=False, drop_last=True,  **kwargs)
 
 
 class customLoss(nn.Module):
@@ -157,7 +154,14 @@ def clip_gradient(optimizer, grad_clip=5.0):
             if param.grad is not None:
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
-def train(epoch):
+train_data = MoleLoader(smiles_lookup_train)
+
+def train(epoch, size=125000):
+    train_loader_food = torch.utils.data.DataLoader(
+        train_data,
+        batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indicies=list(set(list(np.random.randint(0, len(train_data), size=size))))),
+        **kwargs)
+
     with experiment.train():
         experiment.log_current_epoch(epoch)
         print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
