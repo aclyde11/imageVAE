@@ -45,7 +45,7 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=15
+starting_epoch=22
 epochs = 200
 no_cuda = False
 seed = 42
@@ -116,7 +116,7 @@ decoder = None
 encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
-checkpoint = torch.load(save_files + 'epoch_14.pt')
+checkpoint = torch.load(save_files + 'epoch_21.pt')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
@@ -278,6 +278,8 @@ def test(epoch):
                         sample_vec = torch.from_numpy(sample_vec).to(device)
                         images.append(model.module.decode(sample_vec).cpu())
                     save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
+
+
 
 
 
