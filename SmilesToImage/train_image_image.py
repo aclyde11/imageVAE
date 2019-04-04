@@ -44,7 +44,7 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=28
+starting_epoch=1
 epochs = 200
 no_cuda = False
 seed = 42
@@ -287,7 +287,7 @@ for epoch in range(starting_epoch, epochs):
         'encoder_state_dict': model.module.encoder.state_dict(),
         'decoder_state_dict' : model.module.decoder.state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
-         }, save_files + 'epoch_' + '.pt')
+         }, save_files + 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 500).to(device)
         sample = model.module.decode(sample).cpu()
