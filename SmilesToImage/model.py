@@ -377,8 +377,8 @@ class PictureDecoder(nn.Module):
         self.relu = nn.LeakyReLU()
         self.sigmoid = nn.Sigmoid()
 
-    def forward(self, z):
-        out = self.fc_bn3(self.fc3(z))
+    def forward(self, out):
+        out = self.fc_bn3(self.fc3(out))
         out = self.relu(out)
         out = self.fc_bn4(self.fc4(out))
         out = self.relu(out).view(-1, 125, 2, 2)
