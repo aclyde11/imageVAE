@@ -167,6 +167,12 @@ train_loader_food = torch.utils.data.DataLoader(
     train_data,
     batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=250000))))),
     **kwargs)
+
+val_loader_food = torch.utils.data.DataLoader(
+        MoleLoader(smiles_lookup_test),
+        batch_size=args.batch_size, shuffle=False, drop_last=True,sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=5000))))),
+        **kwargs)
+
 def train(epoch, size=100000):
     # train_loader_food = torch.utils.data.DataLoader(
     #     train_data,
