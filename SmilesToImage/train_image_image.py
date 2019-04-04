@@ -297,3 +297,4 @@ for epoch in range(starting_epoch, epochs):
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    output_dir + 'sample_' + str(epoch) + '.png')
+        del sample
