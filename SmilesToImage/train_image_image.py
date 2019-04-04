@@ -43,13 +43,13 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=3
+starting_epoch=28
 epochs = 200
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 25
-LR = 1e-3 * 5         ##adam rate
+LR = 1e-3          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -124,10 +124,10 @@ model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
 print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(), lr=0.005)
-optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-for param_group in optimizer.param_groups:
-    param_group['lr'] = 0.005
+#for param_group in optimizer.param_groups:
+#    param_group['lr'] = 0.005
 
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -156,7 +156,7 @@ def clip_gradient(optimizer, grad_clip=5.0):
 
 train_data = MoleLoader(smiles_lookup_train)
 
-def train(epoch, size=125000):
+def train(epoch, size=100000):
     train_loader_food = torch.utils.data.DataLoader(
         train_data,
         batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=size))))),
