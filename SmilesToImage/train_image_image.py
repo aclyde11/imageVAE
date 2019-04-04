@@ -27,7 +27,7 @@ parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 
 parser.add_argument('-b', '--batch-size', default=256, type=int,
                     metavar='N', help='mini-batch size per process (default: 256)')
-parser.add_argument('-g', '--grad-clip', default=1.0, type=float,
+parser.add_argument('-g', '--grad-clip', default=2.0, type=float,
                     metavar='N', help='mini-batch size per process (default: 256)')
 
 args = parser.parse_args()
@@ -156,12 +156,15 @@ def clip_gradient(optimizer, grad_clip=1.0):
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
 train_data = MoleLoader(smiles_lookup_train)
-
+train_loader_food = torch.utils.data.DataLoader(
+    train_data,
+    batch_size=args.batch_size, shuffle=True, drop_last=True,
+    **kwargs)
 def train(epoch, size=100000):
-    train_loader_food = torch.utils.data.DataLoader(
-        train_data,
-        batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=size))))),
-        **kwargs)
+    # train_loader_food = torch.utils.data.DataLoader(
+    #     train_data,
+    #     batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=size))))),
+    #     **kwargs)
 
     with experiment.train():
         experiment.log_current_epoch(epoch)
