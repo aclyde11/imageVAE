@@ -50,7 +50,7 @@ epochs = 200
 no_cuda = False
 seed = 42
 data_para = True
-log_interval = 10
+log_interval = 20
 LR = 1e-3 * 8          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
@@ -237,31 +237,28 @@ def test(epoch):
 
                 recon_batch, mu, logvar = model(data)
 
-
                 loss = loss_picture(recon_batch, data, mu, logvar, epoch)
 
                 experiment.log_metric('loss', loss.item())
                 test_loss += loss.item()
                 if i == 0:
-                    # n_image_gen = 8
-                    # images = []
-                    # n_samples_linspace = 16
-                    # for i in range(n_image_gen):
-                    #     data_latent = model.module.encode_latent_(data)
-                    #     pt_1 = data_latent[i * 2, ...].cpu().numpy()
-                    #     pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
-                    #     sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                    #     sample_vec = torch.from_numpy(sample_vec).to(device)
-                    #     images.append(model.module.decode(sample_vec).cpu())
-                    # save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
+                    n_image_gen = 8
+                    images = []
+                    n_samples_linspace = 16
+                    for i in range(n_image_gen):
+                        pt_1 = recon_batch[i * 2, ...].cpu().numpy()
+                        pt_2 = recon_batch[i * 2 + 1, ...].cpu().numpy()
+                        sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
+                        sample_vec = torch.from_numpy(sample_vec).to(device)
+                        images.append(model.module.decode(sample_vec).cpu())
+                    save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
                     n_image_gen = 8
                     images = []
                     n_samples_linspace = 16
-                    data_latent = model.module.encode_latent_(data[:15,...])
                     for i in range(n_image_gen):
-                        pt_1 = data_latent[i, ...].cpu().numpy()
-                        pt_2 = data_latent[i + 1, ...].cpu().numpy()
+                        pt_1 = recon_batch[i, ...].cpu().numpy()
+                        pt_2 = recon_batch[i + 1, ...].cpu().numpy()
                         sample_vec = interpolate_points(pt_1, pt_2,
                                                         np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                         sample_vec = torch.from_numpy(sample_vec).to(device)
