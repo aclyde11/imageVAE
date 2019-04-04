@@ -159,7 +159,7 @@ train_data = MoleLoader(smiles_lookup_train)
 def train(epoch, size=125000):
     train_loader_food = torch.utils.data.DataLoader(
         train_data,
-        batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indicies=list(set(list(np.random.randint(0, len(train_data), size=size))))),
+        batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=size))))),
         **kwargs)
 
     with experiment.train():
