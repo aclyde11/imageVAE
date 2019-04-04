@@ -183,7 +183,7 @@ def train(epoch, size=100000):
 
             optimizer.zero_grad()
 
-            recon_batch, mu, logvar, _ = model(data)
+            recon_batch, mu, logvar = model(data)
 
             loss = loss_picture(recon_batch, data, mu, logvar, epoch)
             train_loss += loss.item()
@@ -227,7 +227,7 @@ def test(epoch):
                 data = data.cuda()
                 #aff = aff.float().cuda(4)
 
-                recon_batch, mu, logvar, z = model(data)
+                recon_batch, mu, logvar = model(data)
 
 
                 loss = loss_picture(recon_batch, data, mu, logvar, epoch)
