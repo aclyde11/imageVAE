@@ -51,7 +51,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 10
-LR = 5e-3          ##adam rate
+LR = 1e-3 * 8          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -136,7 +136,7 @@ if data_para and torch.cuda.device_count() > 1:
     model = nn.DataParallel(model)
 
 
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4 * 8, last_epoch=-1)
 loss_picture = customLoss()
 
 val_losses = []
@@ -194,7 +194,7 @@ def train(epoch, size=100000):
 
             loss = loss_picture(recon_batch, data, mu, logvar, epoch)
             train_loss += loss.item()
-            experiment.log_metric('loss', loss.item())
+            experiment.log_metric('loss', loss.item() / get_batch_size(epoch))
 
             loss.backward()
 
