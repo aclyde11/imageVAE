@@ -27,7 +27,8 @@ parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 
 parser.add_argument('-b', '--batch-size', default=256, type=int,
                     metavar='N', help='mini-batch size per process (default: 256)')
-
+parser.add_argument('-g', '--grad-clip', default=1.0, type=float,
+                    metavar='N', help='mini-batch size per process (default: 256)')
 
 args = parser.parse_args()
 
@@ -143,7 +144,7 @@ train_losses = []
 def get_batch_size(epoch):
     return args.batch_size
 
-def clip_gradient(optimizer, grad_clip=5.0):
+def clip_gradient(optimizer, grad_clip=1.0):
     """
     Clips gradients computed during backpropagation to avoid explosion of gradients.
     :param optimizer: optimizer with the gradients to be clipped
@@ -181,7 +182,7 @@ def train(epoch, size=100000):
 
             loss.backward()
 
-            clip_gradient(optimizer, grad_clip=1.0)
+            clip_gradient(optimizer, grad_clip=args.grad_clip)
             optimizer.step()
 
 
