@@ -243,14 +243,25 @@ def test(epoch):
                 experiment.log_metric('loss', loss.item())
                 test_loss += loss.item()
                 if i == 0:
+                    ##
+                    n = min(data.size(0), 8)
+                    comparison = torch.cat([data[:n],
+                                            recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
+                    save_image(comparison.cpu(),
+                               output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
+
+                    del recon_batch
+                    del mu
+                    del logvar
+
                     n_image_gen = 8
                     images = []
                     n_samples_linspace = 16
-                    recon_batch = model.module.encode_latent_(data[:25, ...])
+                    data_latent = model.module.encode_latent_(data[:25, ...])
 
                     for i in range(n_image_gen):
-                        pt_1 = recon_batch[i * 2, ...].cpu().numpy()
-                        pt_2 = recon_batch[i * 2 + 1, ...].cpu().numpy()
+                        pt_1 = data_latent[i * 2, ...].cpu().numpy()
+                        pt_2 = data_latent[i * 2 + 1, ...].cpu().numpy()
                         sample_vec = interpolate_points(pt_1, pt_2, np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                         sample_vec = torch.from_numpy(sample_vec).to(device)
                         images.append(model.module.decode(sample_vec).cpu())
@@ -260,20 +271,15 @@ def test(epoch):
                     images = []
                     n_samples_linspace = 16
                     for i in range(n_image_gen):
-                        pt_1 = recon_batch[i, ...].cpu().numpy()
-                        pt_2 = recon_batch[i + 1, ...].cpu().numpy()
+                        pt_1 = data_latent[i, ...].cpu().numpy()
+                        pt_2 = data_latent[i + 1, ...].cpu().numpy()
                         sample_vec = interpolate_points(pt_1, pt_2,
                                                         np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
                         sample_vec = torch.from_numpy(sample_vec).to(device)
                         images.append(model.module.decode(sample_vec).cpu())
                     save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
-                    ##
-                    n = min(data.size(0), 8)
-                    comparison = torch.cat([data[:n],
-                                            recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
-                    save_image(comparison.cpu(),
-                               output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
+
 
         test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
@@ -300,4 +306,3 @@ for epoch in range(starting_epoch, epochs):
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    output_dir + 'sample_' + str(epoch) + '.png')
-        del sample
