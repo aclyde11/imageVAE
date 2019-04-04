@@ -24,7 +24,8 @@ import argparse
 
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
-
+parser.add_argument('-w', '--workers', default=16, type=int,
+                    metavar='N', help='mini-batch size per process (default: 256)')
 parser.add_argument('-b', '--batch-size', default=256, type=int,
                     metavar='N', help='mini-batch size per process (default: 256)')
 parser.add_argument('-g', '--grad-clip', default=2.0, type=float,
@@ -64,7 +65,7 @@ torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/im_im_small/results/'
 save_files = '/homes/aclyde11/imageVAE/im_im_small/model/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': args.workers, 'pin_memory': True} if cuda else {}
 
 binding_aff = pd.read_csv("/homes/aclyde11/moldata/moses/norm_binding_aff.csv")
 binding_aff_orig = binding_aff
