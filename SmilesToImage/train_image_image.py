@@ -45,7 +45,7 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=22
+starting_epoch=52
 epochs = 200
 no_cuda = False
 seed = 42
@@ -116,7 +116,7 @@ decoder = None
 encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
-checkpoint = torch.load(save_files + 'epoch_21.pt')
+checkpoint = torch.load(save_files + 'epoch_51.pt')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
@@ -135,7 +135,7 @@ if data_para and torch.cuda.device_count() > 1:
     model = nn.DataParallel(model)
 
 
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4 * 8, last_epoch=starting_epoch - 2)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4 * 4, last_epoch=starting_epoch - 2)
 loss_picture = customLoss()
 
 val_losses = []
@@ -164,7 +164,7 @@ train_data = MoleLoader(smiles_lookup_train)
 
 train_loader_food = torch.utils.data.DataLoader(
     train_data,
-    batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=750000))))),
+    batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=1000000))))),
     **kwargs)
 
 val_data = MoleLoader(smiles_lookup_test)
