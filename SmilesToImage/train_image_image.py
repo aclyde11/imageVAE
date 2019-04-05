@@ -45,13 +45,13 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=113
+starting_epoch=128
 epochs = 500
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 1e-3           ##adam rate
+LR = 0.0008          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -116,7 +116,7 @@ decoder = None
 encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
-checkpoint = torch.load(save_files + 'epoch_112.pt')
+checkpoint = torch.load(save_files + 'epoch_127.pt')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
@@ -135,7 +135,7 @@ if data_para and torch.cuda.device_count() > 1:
     model = nn.DataParallel(model)
 
 
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4, last_epoch=starting_epoch - 2)
+#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4, last_epoch=starting_epoch - 2)
 loss_picture = customLoss()
 
 val_losses = []
@@ -289,7 +289,8 @@ def test(epoch):
     val_losses.append(test_loss)
 
 for epoch in range(starting_epoch, epochs):
-    sched.step()
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = 0.0008
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
         experiment.log_metric('lr', param_group['lr'])
