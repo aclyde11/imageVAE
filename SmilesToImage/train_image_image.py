@@ -45,7 +45,7 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=112
+starting_epoch=113
 epochs = 500
 no_cuda = False
 seed = 42
@@ -116,7 +116,7 @@ decoder = None
 encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
-checkpoint = torch.load(save_files + 'epoch_111.pt')
+checkpoint = torch.load(save_files + 'epoch_112.pt')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
@@ -164,14 +164,14 @@ train_data = MoleLoader(smiles_lookup_train)
 
 train_loader_food = torch.utils.data.DataLoader(
     train_data,
-    batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=1250000))))),
+    batch_size=args.batch_size, shuffle=True, drop_last=True, #sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=1250000))))),
     **kwargs)
 
 val_data = MoleLoader(smiles_lookup_test)
 
 val_loader_food = torch.utils.data.DataLoader(
         val_data,
-        batch_size=args.batch_size, shuffle=False, drop_last=True,sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(val_data), size=10000))))),
+        batch_size=args.batch_size, shuffle=True, drop_last=True, #sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(val_data), size=10000))))),
         **kwargs)
 
 def train(epoch, size=100000):
