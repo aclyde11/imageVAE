@@ -69,53 +69,6 @@ smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab", names
 smiles_lookup = smiles_lookup.set_index('id')
 print(smiles_lookup.head())
 
-def from_one_hot_array(vec):
-    oh = np.where(vec == 1)
-    if oh[0].shape == (0, ):
-        return None
-    return int(oh[0][0])
-
-def decode_smiles_from_indexes(vec):
-    return "".join(map(lambda x: charset[x], vec)).strip()
-
-def one_hot_array(i, n):
-    return map(int, [ix == i for ix in range(n)])
-
-def one_hot_index(vec, charset):
-    return map(charset.index, vec)
-one_hot_encoded_fn = lambda row: np.array(map(lambda x: one_hot_array(x, len(vocab)),
-                                     one_hot_index(row, vocab)))
-def apply_t(x):
-    x = x + list((''.join([char*(embedding_width - len(x)) for char in [' ']])))
-    smi = one_hot_encoded_fn(x)
-    return smi
-
-def apply_one_hot(ch):
-    return np.array(map(apply_t, ch))
-
-class ImageFolderWithFile(datasets.ImageFolder):
-    def __getitem__(self, index):
-        t = self.imgs[index][0]
-        t = int(t.split('/')[-1].split('.')[0])
-        t = list(smiles_lookup.loc[t, 'smiles'])
-        #embed = apply_one_hot([t])[0].astype(np.float32)
-        t.insert(0, '!')
-        t.append('?')
-        caplen = len(t)
-        while len(t) < 70:
-            t.append(' ')
-        embed = [vocab[i] for i in t]
-        embed = torch.LongTensor(embed)
-        return  super(ImageFolderWithFile, self).__getitem__(index), embed, caplen
-
-def generate_data_loader(root, batch_size, data_size):
-    invert = transforms.Compose([
-        Invert(),
-        transforms.ToTensor()
-    ])
-    return torch.utils.data.DataLoader(
-        ImageFolderWithFile(root, transform=invert),
-        batch_size=batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(list(range(0, data_size))),  **kwargs)
 
 def clip_gradient(optimizer, grad_clip):
     """

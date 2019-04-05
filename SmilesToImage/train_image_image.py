@@ -45,13 +45,13 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=52
-epochs = 200
+starting_epoch=112
+epochs = 500
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 1e-3 * 8          ##adam rate
+LR = 1e-3           ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -135,7 +135,7 @@ if data_para and torch.cuda.device_count() > 1:
     model = nn.DataParallel(model)
 
 
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4 * 4, last_epoch=starting_epoch - 2)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4, last_epoch=starting_epoch - 2)
 loss_picture = customLoss()
 
 val_losses = []
@@ -164,7 +164,7 @@ train_data = MoleLoader(smiles_lookup_train)
 
 train_loader_food = torch.utils.data.DataLoader(
     train_data,
-    batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=1000000))))),
+    batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=1250000))))),
     **kwargs)
 
 val_data = MoleLoader(smiles_lookup_test)
