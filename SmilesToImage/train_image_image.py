@@ -45,13 +45,13 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=128
+starting_epoch=136
 epochs = 500
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 0.0008          ##adam rate
+LR = 1.0e-4          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -101,14 +101,14 @@ class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         self.mse_loss = nn.MSELoss(reduction="sum")
-        #self.crispyLoss = MS_SSIM()
+        self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        #loss_cripsy = self.crispyLoss(x_recon, x)
+        loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + loss_KLD
+        return loss_MSE + loss_KLD + loss_cripsy
 
 model = None
 encoder = None
@@ -116,7 +116,7 @@ decoder = None
 encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
-checkpoint = torch.load(save_files + 'epoch_127.pt')
+checkpoint = torch.load(save_files + 'epoch_135.pt')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
@@ -290,7 +290,7 @@ def test(epoch):
 
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
-        param_group['lr'] = 0.0008
+        param_group['lr'] = LR
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
         experiment.log_metric('lr', param_group['lr'])
