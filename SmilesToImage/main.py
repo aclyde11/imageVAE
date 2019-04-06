@@ -92,7 +92,11 @@ model.to(device)
 optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, nesterov=True)
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=0.000001, last_epoch=-1)
-loss_mse = customLoss()
+
+loss_mse = customLoss().cuda()
+if data_para and torch.cuda.device_count() > 1:
+    print("Let's use", torch.cuda.device_count(), "GPUs!")
+    loss_mse = nn.DataParallel(loss_mse)
 
 val_losses = []
 train_losses = []

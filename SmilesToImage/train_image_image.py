@@ -138,6 +138,10 @@ if data_para and torch.cuda.device_count() > 1:
 #sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=1e-4, last_epoch=starting_epoch - 2)
 loss_picture = customLoss()
 
+if data_para and torch.cuda.device_count() > 1:
+    print("Let's use", torch.cuda.device_count(), "GPUs!")
+    loss_picture = nn.DataParallel(loss_picture)
+loss_picture.cuda()
 val_losses = []
 train_losses = []
 
