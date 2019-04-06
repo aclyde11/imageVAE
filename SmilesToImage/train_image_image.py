@@ -45,7 +45,7 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=139
+starting_epoch=153
 epochs = 500
 no_cuda = False
 seed = 42
@@ -116,7 +116,7 @@ decoder = None
 encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
-checkpoint = torch.load(save_files + 'epoch_138.pt')
+checkpoint = torch.load(save_files + 'epoch_152.pt')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
@@ -294,9 +294,10 @@ def test(epoch):
 
     val_losses.append(test_loss)
 
+for param_group in optimizer.param_groups:
+    param_group['lr'] = LR
 for epoch in range(starting_epoch, epochs):
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = LR
+
 
     sched.step()
     for param_group in optimizer.param_groups:
