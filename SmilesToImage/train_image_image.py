@@ -108,7 +108,7 @@ class customLoss(nn.Module):
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + loss_KLD + loss_cripsy
+        return loss_MSE + loss_KLD + 100 * loss_cripsy
 
 model = None
 encoder = None
