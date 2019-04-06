@@ -244,6 +244,7 @@ def test(epoch):
 
 
                 loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+                loss = torch.sum(loss)
 
                 experiment.log_metric('loss', loss.item())
                 test_loss += loss.item()
