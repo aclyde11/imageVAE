@@ -127,15 +127,13 @@ print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(), lr=LR)
 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-#for param_group in optimizer.param_groups:
-#    param_group['lr'] = 0.005
+for param_group in optimizer.param_groups:
+   param_group['lr'] = LR
 
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = nn.DataParallel(model)
 
-
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=1e-5, last_epoch=-1)
 loss_picture = customLoss()
 
 if data_para and torch.cuda.device_count() > 1:
@@ -294,12 +292,16 @@ def test(epoch):
 
     val_losses.append(test_loss)
 
-for param_group in optimizer.param_groups:
-    param_group['lr'] = LR
+
 for epoch in range(starting_epoch, epochs):
 
-
-    sched.step()
+    if epoch == starting_epoch + 2:
+        sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=1e-5, last_epoch=-1)
+    elif epoch > starting_epoch + 2:
+        sched.step()
+    else:
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = LR
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
         experiment.log_metric('lr', param_group['lr'])
