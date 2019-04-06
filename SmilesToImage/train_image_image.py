@@ -198,6 +198,7 @@ def train(epoch, size=100000):
             recon_batch, mu, logvar = model(data)
 
             loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+            loss = torch.sum(loss)
             train_loss += loss.item()
             experiment.log_metric('loss', loss.item() / get_batch_size(epoch))
 
