@@ -45,13 +45,13 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=153
+starting_epoch=173
 epochs = 500
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 5.0e-4          ##adam rate
+LR = 5.0e-5          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -116,7 +116,7 @@ decoder = None
 encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
-checkpoint = torch.load(save_files + 'epoch_152.pt')
+checkpoint = torch.load(save_files + 'epoch_172.pt')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
@@ -295,13 +295,9 @@ def test(epoch):
 
 for epoch in range(starting_epoch, epochs):
 
-    if epoch == starting_epoch + 2:
-        sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=1e-5, last_epoch=-1)
-    elif epoch > starting_epoch + 2:
-        sched.step()
-    else:
-        for param_group in optimizer.param_groups:
-            param_group['lr'] = LR
+
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = LR
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
         experiment.log_metric('lr', param_group['lr'])
