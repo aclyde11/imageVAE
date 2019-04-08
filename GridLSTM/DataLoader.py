@@ -23,6 +23,7 @@ class MoleLoader(torch.utils.data.Dataset):
         self.vocab.append('?')
         self.vocab.insert(0, ' ')
         self.vocab =  {k: v for v, k in enumerate(self.vocab)}
+        self.charset = {k: v for v ,k in self.vocab.items()}
 
 
 
@@ -65,7 +66,7 @@ class MoleLoader(torch.utils.data.Dataset):
         return map(int, [ix == i for ix in range(n)])
 
     def one_hot_index(self, vec, charset):
-        return map(charset.index, vec)
+        return map(list(charset), vec)
 
     def one_hot_encoded_fn(self, row):
         return np.array(list(map(lambda x: self.one_hot_array(x, self.vocab), self.one_hot_index(row, self.vocab))))
