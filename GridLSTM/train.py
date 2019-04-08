@@ -69,8 +69,8 @@ val_loader_food = torch.utils.data.DataLoader(
         val_data,
         batch_size=batch_size, shuffle=False, drop_last=True,  **kwargs)
 
-vocab = train_loader_food.vocab
-charset = train_loader_food.charset
+vocab = train_data.vocab
+charset = train_data.charset
 embedding_width = 60
 embedding_size = len(vocab)
 
