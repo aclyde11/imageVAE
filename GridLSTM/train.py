@@ -106,7 +106,7 @@ decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
 encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
-checkpoint = torch.load(save_files + 'epoch_180.pt')
+checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/epoch_180.pt')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
