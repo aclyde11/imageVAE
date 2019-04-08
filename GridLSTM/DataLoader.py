@@ -15,13 +15,15 @@ class MoleLoader(torch.utils.data.Dataset):
         super(MoleLoader, self).__init__()
 
         self.df = df
-        self.vocab = vocab
+        self.vocab = list(vocab)
         self.max_length = max_len
         self.start_char = '!'
         self.end_char = '?'
         self.vocab.append('!')
         self.vocab.append('?')
         self.vocab.insert(0, ' ')
+        self.vocab =  {k: v for v, k in enumerate(self.vocab)}
+
 
 
     def __len__(self):
