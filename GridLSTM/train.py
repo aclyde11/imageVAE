@@ -181,7 +181,12 @@ def train(epoch):
         vae_model.eval()
         losses = AverageMeter()  # loss (per word decoded)
         for batch_idx, (embed, data, embedlen) in enumerate(train_loader_food):
-            for which_image in range(2):
+            rangeobj = None
+            if epoch > 2:
+                rangeobj = range(1,2)
+            else:
+                rangeobj = range(2)
+            for which_image in rangeobj:
 
                 imgs = data.float()
                 caps = embed.cuda(2)
