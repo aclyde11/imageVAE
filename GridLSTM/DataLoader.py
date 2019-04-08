@@ -87,7 +87,7 @@ class MoleLoader(torch.utils.data.Dataset):
         return np.array(mapper)
 
     def __getitem__(self, item):
-        smile = self.df.iloc[item, 0]
+        smile = self.df.iloc[item]['SMILES']
 
         embedding = self.apply_one_hot(smile)
         print(embedding)
