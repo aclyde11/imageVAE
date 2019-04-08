@@ -181,7 +181,7 @@ def train(epoch):
         vae_model.eval()
         losses = AverageMeter()  # loss (per word decoded)
         for batch_idx, (embed, data, embedlen) in enumerate(train_loader_food):
-            for which_image in range(1):
+            for which_image in range(2):
 
                 imgs = data.float()
                 caps = embed.cuda(2)
@@ -235,6 +235,11 @@ def train(epoch):
                 losses.update(loss.item(), sum(decode_lengths))
 
                 experiment.log_metric('loss', loss.item())
+                if which_image == 0:
+                    experiment.log_metric("orig_loss", loss.item())
+                else:
+                    experiment.log_metric("vae_loss", loss.item())
+
                 acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
                 experiment.log_metric("acc_per_char", acc)
 
@@ -291,64 +296,75 @@ def test(epoch):
         encoder.eval()
         losses = AverageMeter()  # loss (per word decoded)
         with torch.no_grad():
-            for batch_idx, (data, embed, embedlen) in enumerate(val_loader_food):
-                imgs = data[0].float().cuda(1)
-                caps = embed.cuda(2)
-                caplens = embedlen.cuda(2).view(-1, 1)
+            for batch_idx, (embed, data, embedlen) in enumerate(val_loader_food):
+                for which_image in range(2):
 
-                # Forward prop.
-                imgs = encoder(imgs).cuda(2)
+                    imgs = data.float()
+                    caps = embed.cuda(2)
+                    caplens = embedlen.cuda(2).view(-1, 1)
 
-                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
-                                                                                teacher_forcing=bool(epoch > 1))
+                    if which_image == 0:
+                        imgs = imgs.cuda(1)
+                    else:
+                        imgs = imgs.cuda(0)
+                        imgs, _, _, _ = vae_model(imgs)
+                        imgs = imgs.cuda(1)
+                    # Forward prop.
+                    imgs = encoder(imgs).cuda(2)
 
-                scores_copy = scores.clone()
-                # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
-                targets = caps_sorted[:, 1:]
-                targets_copy = targets.clone()
-                # Remove timesteps that we didn't decode at, or are pads
-                # pack_padded_sequence is an easy trick to do this
-                # print(caplens)
-                # for i in range(4):
-                #     print(scores_copy[i, ...].shape)
-                #     print(targets_copy[i, ...].shape)
-                #     print(decode_lengths[i])
+                    scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
+                                                                                    teacher_forcing=bool(epoch > 1))
 
-                scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
-                targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+                    scores_copy = scores.clone()
+                    # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
+                    targets = caps_sorted[:, 1:]
+                    targets_copy = targets.clone()
+                    # Remove timesteps that we didn't decode at, or are pads
+                    # pack_padded_sequence is an easy trick to do this
+                    # print(caplens)
+                    # for i in range(4):
+                    #     print(scores_copy[i, ...].shape)
+                    #     print(targets_copy[i, ...].shape)
+                    #     print(decode_lengths[i])
 
-                # Calculate loss
-                loss = criterion(scores, targets)
+                    scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+                    targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
-                # Add doubly stochastic attention regularization
-                loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
+                    # Calculate loss
+                    loss = criterion(scores, targets)
 
-                # Keep track of metrics
-                losses.update(loss.item(), sum(decode_lengths))
+                    # Add doubly stochastic attention regularization
+                    loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
 
-                acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
-                experiment.log_metric("acc_per_char", acc)
-                if batch_idx % log_interval == 0:
+                    # Keep track of metrics
+                    losses.update(loss.item(), sum(decode_lengths))
 
-                    print('Eval Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
-                        epoch, batch_idx * len(data), len(val_loader_food.dataset),
-                               100. * batch_idx / len(val_loader_food),
-                               loss.item() / len(data), datetime.datetime.now()))
+                    acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
+                    experiment.log_metric("acc_per_char", acc)
+                    if batch_idx % log_interval == 0:
 
-                    _, preds = torch.max(scores_copy, dim=2)
-                    preds = preds.cpu().numpy()
-                    targets_copy = targets_copy.cpu().numpy()
-                    for i in range(4):
-                        sample = preds[i, ...]
-                        target = targets_copy[i, ...]
-                        print("ORIG: {}\nNEW : {}".format(
-                            "".join([charset[chars] for chars in target]),
-                            "".join([charset[chars] for chars in sample])
-                        ))
+                        print('Eval Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
+                            epoch, batch_idx * len(data), len(val_loader_food.dataset),
+                                   100. * batch_idx / len(val_loader_food),
+                                   loss.item() / len(data), datetime.datetime.now()))
 
+                        _, preds = torch.max(scores_copy, dim=2)
+                        preds = preds.cpu().numpy()
+                        targets_copy = targets_copy.cpu().numpy()
+                        for i in range(4):
+                            sample = preds[i, ...]
+                            target = targets_copy[i, ...]
+                            print("ORIG: {}\nNEW : {}".format(
+                                "".join([charset[chars] for chars in target]),
+                                "".join([charset[chars] for chars in sample])
+                            ))
 
+                    if which_image == 0:
+                        experiment.log_metric("orig_loss", loss.item())
+                    else:
+                        experiment.log_metric("vae_loss", loss.item())
 
-        experiment.log_metric("loss", losses.avg)
+            experiment.log_metric("loss", loss.avg())
     return losses.avg
 
 
