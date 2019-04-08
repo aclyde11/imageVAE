@@ -47,8 +47,7 @@ vocab = {k: v for v, k in enumerate(vocab)}
 charset = {k: v for v ,k in vocab.items()}
 
 
-embedding_width = 60
-embedding_size = len(vocab)
+
 
 KLD_annealing = 0.05  ##set to 1 if not wanted.
 model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_111.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_100.pt'}
@@ -70,8 +69,10 @@ val_loader_food = torch.utils.data.DataLoader(
         val_data,
         batch_size=batch_size, shuffle=False, drop_last=True,  **kwargs)
 
-
-
+vocab = train_loader_food.vocab
+charset = train_loader_food.charset
+embedding_width = 60
+embedding_size = len(vocab)
 
 def clip_gradient(optimizer, grad_clip):
     """
@@ -182,7 +183,7 @@ def train(epoch):
         for batch_idx, (embed, data, embedlen) in enumerate(train_loader_food):
             for which_image in range(1):
 
-                imgs = data[0].float()
+                imgs = data.float()
                 caps = embed.cuda(2)
                 caplens = embedlen.cuda(2).view(-1, 1)
 
