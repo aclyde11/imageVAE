@@ -76,7 +76,7 @@ class MoleLoader(torch.utils.data.Dataset):
 
     def apply_t(self, x):
         print(x)
-        x = str(x) + str(list((''.join([char * (self.embedding_width - len(x)) for char in [' ']]))))
+        x = str(x) + ''.join(str(' ' * (self.embedding_width - len(x) )))
         print(x)
         smi = self.one_hot_encoded_fn(x)
         return smi
@@ -90,7 +90,7 @@ class MoleLoader(torch.utils.data.Dataset):
     def __getitem__(self, item):
         smile = self.df.iloc[item, 0]
 
-        embedding = self.apply_t(smile)
+        embedding = self.apply_t(self.start_char + smile +  self.end_char)
         print(embedding)
         embedding = torch.LongTensor(embedding)
         smile_len = len(str(smile))
