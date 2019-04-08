@@ -66,7 +66,9 @@ class MoleLoader(torch.utils.data.Dataset):
         return list(map(int, [ix == i for ix in range(n)]))
 
     def one_hot_index(self, vec, charset):
-        return list(map(lambda x : charset[x], list(vec)))
+        print(vec)
+        print(list(vec))
+        return list(map(lambda x : charset[x], vec))
 
     def one_hot_encoded_fn(self, row):
         return np.array(list(map(lambda x: self.one_hot_array(x, self.vocab), self.one_hot_index(row, self.vocab))))
