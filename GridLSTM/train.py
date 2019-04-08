@@ -116,17 +116,22 @@ vae_model = GeneralVae(encoder, decoder, rep_size=500).cuda(0)
 for param in vae_model.parameters():
     param.requires_grad = False
 
+
+
+checkpoint = torch.load("state_78.pt")
 decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               embed_dim=emb_dim,
                               decoder_dim=decoder_dim,
                               vocab_size=len(vocab),
                               encoder_dim=512,
                               dropout=dropout)
+decoder.load_state_dict(checkpoint['decoder_state_dict'])
 decoder.fine_tune_embeddings(True)
 
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
 encoder = Encoder()
+encoder.load_state_dict(checkpoint["encoder_state_dict"])
 encoder.fine_tune(fine_tune_encoder)
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
@@ -284,7 +289,7 @@ def test(epoch):
         encoder.eval()
         losses = AverageMeter()  # loss (per word decoded)
         with torch.no_grad():
-            for batch_idx, (data, embed, embedlen) in enumerate(val_loader):
+            for batch_idx, (data, embed, embedlen) in enumerate(val_loader_food):
                 imgs = data[0].float().cuda(1)
                 caps = embed.cuda(2)
                 caplens = embedlen.cuda(2).view(-1, 1)
@@ -324,8 +329,8 @@ def test(epoch):
                 if batch_idx % log_interval == 0:
 
                     print('Eval Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
-                        epoch, batch_idx * len(data), len(train_loader.dataset),
-                               100. * batch_idx / len(train_loader),
+                        epoch, batch_idx * len(data), len(val_loader_food.dataset),
+                               100. * batch_idx / len(val_loader_food),
                                loss.item() / len(data), datetime.datetime.now()))
 
                     _, preds = torch.max(scores_copy, dim=2)
