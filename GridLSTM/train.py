@@ -44,7 +44,7 @@ rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab = {k: v for v, k in enumerate(vocab)}
-charset = {k: v for v ,k in vocab.iteritems()}
+charset = {k: v for v ,k in vocab.items()}
 
 
 embedding_width = 60
