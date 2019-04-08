@@ -344,6 +344,7 @@ class GridLSTMDecoderWithAttention(nn.Module):
 
         # Embedding
         embeddings = self.embedding(encoded_captions)  # (batch_size, max_caption_length, embed_dim)
+        print("embedding shape ", embeddings.shape)
 
         # Initialize LSTM state
         h, m = self.init_hidden_state(encoder_out)  # (batch_size, decoder_dim)
