@@ -72,7 +72,7 @@ class MoleLoader(torch.utils.data.Dataset):
 
     def one_hot_encoded_fn(self, row):
         print(row)
-        return np.array(list(map(lambda x: self.one_hot_array(x, len(self.vocab), self.one_hot_index(row, self.vocab)))))
+        return np.array(list(map(lambda x: self.one_hot_array(x, len(self.vocab)), self.one_hot_index(row, self.vocab))))
 
     def apply_t(self, x):
         print(x)
