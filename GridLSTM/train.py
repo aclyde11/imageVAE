@@ -41,7 +41,7 @@ data_para = True
 log_interval = 10
 LR = hyper_params['learning_rate']       ##adam rate
 rampDataSize = 0.2 ## data set size to use
-embedding_width = 60
+embedding_width = 70
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
 vocab = {k: v for v, k in enumerate(vocab)}
 charset = {k: v for v ,k in vocab.items()}
@@ -59,8 +59,8 @@ save_files = '/homes/aclyde11/imageVAE/combo/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 0, 'pin_memory': True} if cuda else {}
 
-train_data = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/train.csv"), vocab, max_len=60)
-val_data   = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/test.csv"), vocab, max_len=60)
+train_data = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/train.csv"), vocab, max_len=70)
+val_data   = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/test.csv"), vocab, max_len=70)
 
 train_loader_food = torch.utils.data.DataLoader(
         train_data,
@@ -71,7 +71,7 @@ val_loader_food = torch.utils.data.DataLoader(
 
 vocab = train_data.vocab
 charset = train_data.charset
-embedding_width = 60
+embedding_width = 70
 embedding_size = len(vocab)
 
 def clip_gradient(optimizer, grad_clip):

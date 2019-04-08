@@ -11,7 +11,7 @@ import numpy as np
 
 
 class MoleLoader(torch.utils.data.Dataset):
-    def __init__(self, df, vocab, max_len=60, num=None):
+    def __init__(self, df, vocab, max_len=70, num=None):
         super(MoleLoader, self).__init__()
 
         self.df = df
@@ -83,10 +83,10 @@ class MoleLoader(torch.utils.data.Dataset):
     def __getitem__(self, item):
         smile = self.df.iloc[item, 0]
         image = self.make_image(smile)
-
-        #embedding = self.apply_t()
-        embedding =  [self.vocab[i] for i in (self.start_char + smile +  self.end_char)]
-        embedding = torch.LongTensor(embedding)
+        smile = self.start_char + smile + self.end_char
         smile_len = len(str(smile))
+        smile = smile + (' ' * (70 - smile_len))
+        embedding =  [self.vocab[i] for i in smile]
+        embedding = torch.LongTensor(embedding)
 
         return embedding, transforms.ToTensor()(image), smile_len
