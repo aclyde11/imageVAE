@@ -191,7 +191,7 @@ def train(epoch):
                     imgs = imgs.cuda(1)
                 else:
                     imgs = imgs.cuda(0)
-                    imgs, _, _, _ = vae_model(imgs)
+                    imgs, _, _ = vae_model(imgs)
                     imgs = imgs.cuda(1)
 
                 # Forward prop.
@@ -307,7 +307,7 @@ def test(epoch):
                         imgs = imgs.cuda(1)
                     else:
                         imgs = imgs.cuda(0)
-                        imgs, _, _, _ = vae_model(imgs)
+                        imgs, _, _ = vae_model(imgs)
                         imgs = imgs.cuda(1)
                     # Forward prop.
                     imgs = encoder(imgs).cuda(2)
