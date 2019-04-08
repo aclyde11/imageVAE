@@ -266,7 +266,10 @@ def train(epoch):
                         if i < 4:
                             print("ORIG: {}\nNEW : {}\n".format(s1, s2))
                         acc_per_string += 1 if s1 == s2 else 0
-                    experiment.log_metric('acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
+                    if which_image == 0:
+                        experiment.log_metric('orig_acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
+                    else:
+                        experiment.log_metric('vaes_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
 
 
 
