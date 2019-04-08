@@ -364,7 +364,7 @@ def test(epoch):
                     else:
                         experiment.log_metric("vae_loss", loss.item())
 
-            experiment.log_metric("loss", loss.avg())
+            experiment.log_metric("loss", losses.avg)
     return losses.avg
 
 
