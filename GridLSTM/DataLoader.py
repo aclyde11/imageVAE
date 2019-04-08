@@ -84,7 +84,8 @@ class MoleLoader(torch.utils.data.Dataset):
         smile = self.df.iloc[item, 0]
         image = self.make_image(smile)
 
-        embedding = self.apply_t(self.start_char + smile +  self.end_char)
+        #embedding = self.apply_t()
+        embedding =  [self.vocab[i] for i in (self.start_char + smile +  self.end_char)]
         embedding = torch.LongTensor(embedding)
         smile_len = len(str(smile))
 
