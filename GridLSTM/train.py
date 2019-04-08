@@ -125,13 +125,13 @@ decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               vocab_size=len(vocab),
                               encoder_dim=512,
                               dropout=dropout)
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
+decoder.load_state_dict(checkpoint['decoder_state_dict'], strict=False)
 decoder.fine_tune_embeddings(True)
 
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
 encoder = Encoder()
-encoder.load_state_dict(checkpoint["encoder_state_dict"])
+encoder.load_state_dict(checkpoint["encoder_state_dict"], strict=False)
 encoder.fine_tune(fine_tune_encoder)
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
