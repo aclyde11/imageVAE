@@ -60,8 +60,8 @@ save_files = '/homes/aclyde11/imageVAE/combo/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
 
-train_data = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/train.csv"), vocab, embedding_width=60)
-val_data   = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/test.csv"), vocab, embedding_width=60)
+train_data = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/train.csv"), vocab, max_len=60)
+val_data   = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/test.csv"), vocab, max_len=60)
 
 train_loader_food = torch.utils.data.DataLoader(
         train_data,
