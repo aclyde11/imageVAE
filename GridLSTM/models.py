@@ -374,7 +374,7 @@ class GridLSTMDecoderWithAttention(nn.Module):
             lstm_input = None
             #print("embedding size", embeddings.shape, attention_weighted_encoding.shape)
 
-            if teacher_forcing and t > 0:
+            if not teacher_forcing and t > 0:
                 lstm_input = torch.cat([self.embedding(torch.max(predictions[:batch_size_t, t, :], dim=1)[1].long()), attention_weighted_encoding], dim=1)
             else:
                 lstm_input = torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1)
