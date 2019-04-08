@@ -16,7 +16,7 @@ class MoleLoader(torch.utils.data.Dataset):
 
         self.df = df
         self.vocab = list(vocab)
-        self.max_length = max_len
+        self.embedding_width = max_len
         self.start_char = '!'
         self.end_char = '?'
         self.vocab.append('!')
@@ -77,7 +77,9 @@ class MoleLoader(torch.utils.data.Dataset):
         return smi
 
     def apply_one_hot(self, ch):
-        return np.array(map(self.apply_t, ch))
+        mapper = map(self.apply_t, ch)
+        print(mapper)
+        return np.array(mapper)
 
     def __getitem__(self, item):
         smile = self.df.iloc[item, 0]
