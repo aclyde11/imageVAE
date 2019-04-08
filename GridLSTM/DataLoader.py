@@ -66,34 +66,26 @@ class MoleLoader(torch.utils.data.Dataset):
         return list(map(int, [ix == i for ix in range(n)]))
 
     def one_hot_index(self, vec, charset):
-        print(vec)
-        print(list(vec))
         return list(map(lambda x : charset[x], vec))
 
     def one_hot_encoded_fn(self, row):
-        print(row)
         return np.array(list(map(lambda x: self.one_hot_array(x, len(self.vocab)), self.one_hot_index(row, self.vocab))))
 
     def apply_t(self, x):
-        print(x)
         x = str(x) + ''.join(str(' ' * (self.embedding_width - len(x) )))
-        print(x)
         smi = self.one_hot_encoded_fn(x)
         return smi
 
     def apply_one_hot(self, ch):
-        print(ch)
         mapper = list(map(self.apply_t, ch))
-        print(mapper)
         return np.array(mapper)
 
     def __getitem__(self, item):
         smile = self.df.iloc[item, 0]
+        image = self.make_image(smile)
 
         embedding = self.apply_t(self.start_char + smile +  self.end_char)
-        print(embedding)
         embedding = torch.LongTensor(embedding)
         smile_len = len(str(smile))
-        image = self.make_image(smile)
 
         return embedding, transforms.ToTensor()(image), smile_len
