@@ -77,7 +77,7 @@ class MoleLoader(torch.utils.data.Dataset):
         return smi
 
     def apply_one_hot(self, ch):
-        mapper = map(self.apply_t, ch)
+        mapper = list(map(self.apply_t, ch))
         print(mapper)
         return np.array(mapper)
 
