@@ -60,7 +60,7 @@ class MoleLoader(torch.utils.data.Dataset):
         return int(oh[0][0])
 
     def decode_smiles_from_indexes(self, vec):
-        return "".join(map(lambda x: self.charset[x], vec)).strip()
+        return "".join(list(map(lambda x: self.charset[x], vec))).strip()
 
     def one_hot_array(self, i, n):
         return list(map(int, [ix == i for ix in range(n)]))
