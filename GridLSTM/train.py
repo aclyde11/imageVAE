@@ -122,7 +122,7 @@ checkpoint = torch.load("state_78.pt")
 decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               embed_dim=emb_dim,
                               decoder_dim=decoder_dim,
-                              vocab_size=len(vocab),
+                              vocab_size=train_data.get_vocab_len(),
                               encoder_dim=512,
                               dropout=dropout)
 #decoder.load_state_dict(checkpoint['decoder_state_dict'], strict=False)
