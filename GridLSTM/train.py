@@ -1,6 +1,6 @@
 from comet_ml import Experiment
 from torch.nn.utils.rnn import pack_padded_sequence
-
+from DataLoader import MoleLoader
 import os
 
 from itertools import chain
@@ -14,6 +14,7 @@ import torchvision
 import pickle
 from PIL import  ImageOps
 from models import GridLSTMDecoderWithAttention, Encoder
+from model import GeneralVae, PictureEncoder, PictureDecoder
 from invert import Invert
 
 import numpy as np
@@ -31,7 +32,7 @@ hyper_params = {
 
 experiment = Experiment(project_name="pytorch")
 experiment.log_parameters(hyper_params)
-
+batch_size = 300
 starting_epoch=1
 epochs = hyper_params['num_epochs']
 no_cuda = False
@@ -42,18 +43,15 @@ LR = hyper_params['learning_rate']       ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
-vocab.insert(0, '!')
-vocab.insert(0, '?')
-vocab.insert(0,' ')
 vocab = {k: v for v, k in enumerate(vocab)}
 charset = {k: v for v ,k in vocab.iteritems()}
-embedding_width = 70
+
+
+embedding_width = 60
 embedding_size = len(vocab)
-embedding_size = len(vocab)
+
 KLD_annealing = 0.05  ##set to 1 if not wanted.
-#load_state = None
 model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_111.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_100.pt'}
-#model_load = None
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
@@ -61,13 +59,17 @@ output_dir = '/homes/aclyde11/imageVAE/combo/results/'
 save_files = '/homes/aclyde11/imageVAE/combo/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 16, 'pin_memory': True} if cuda else {}
-#kwargs =  {}
 
-train_root = '/homes/aclyde11/moldata/moses/train/'
-val_root =   '/homes/aclyde11/moldata/moses/test/'
-smiles_lookup = pd.read_table("/homes/aclyde11/moldata/moses_cleaned.tab", names=['id', 'smiles'])
-smiles_lookup = smiles_lookup.set_index('id')
-print(smiles_lookup.head())
+train_data = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/train.csv"), vocab, embedding_width=60)
+val_data   = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/test.csv"), vocab, embedding_width=60)
+
+train_loader_food = torch.utils.data.DataLoader(
+        train_data,
+        batch_size=batch_size, shuffle=False, drop_last=True,  **kwargs)
+val_loader_food = torch.utils.data.DataLoader(
+        val_data,
+        batch_size=batch_size, shuffle=False, drop_last=True,  **kwargs)
+
 
 
 def clip_gradient(optimizer, grad_clip):
@@ -99,10 +101,29 @@ decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               vocab_size=len(vocab),
                               encoder_dim=512,
                               dropout=dropout)
-#decoder = torch.load("decoder.95.pt")
+
+
+encoder = PictureEncoder().cuda()
+decoder = PictureDecoder().cuda()
+
+checkpoint = torch.load(save_files + 'epoch_180.pt')
+encoder.load_state_dict(checkpoint['encoder_state_dict'])
+decoder.load_state_dict(checkpoint['decoder_state_dict'])
+
+
+
+vae_model = GeneralVae(encoder, decoder, rep_size=500).cuda(0)
+for param in vae_model.parameters():
+    param.requires_grad = False
+
+decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
+                              embed_dim=emb_dim,
+                              decoder_dim=decoder_dim,
+                              vocab_size=len(vocab),
+                              encoder_dim=512,
+                              dropout=dropout)
 decoder.fine_tune_embeddings(True)
 
-#encoder = torch.load("encoder.95.pt")
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
 encoder = Encoder()
@@ -110,14 +131,12 @@ encoder.fine_tune(fine_tune_encoder)
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
 
-
 decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
 encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
 encoder = encoder.cuda(1)
 decoder = decoder.cuda(2)
 
-train_loader = generate_data_loader(train_root, 300, int(500000))
-val_loader = generate_data_loader(val_root, 300, int(20000))
+
 criterion = nn.CrossEntropyLoss().cuda(2)
 
 class AverageMeter(object):
@@ -152,10 +171,10 @@ def train(epoch):
         print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
         decoder.train()  # train mode (dropout and batchnorm is used)
         encoder.train()
+        vae_model.eval()
         losses = AverageMeter()  # loss (per word decoded)
-        for batch_idx, (data, embed, embedlen) in enumerate(train_loader):
+        for batch_idx, (data, embed, embedlen) in enumerate(train_loader_food):
             for which_image in range(1):
-
 
                 imgs = data[0].float()
                 caps = embed.cuda(2)
@@ -215,8 +234,8 @@ def train(epoch):
                 acc_per_string = 0
                 if batch_idx % log_interval == 0:
                     print('Train Epoch {}: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format( "orig" if which_image == 0 else "vaes",
-                        epoch, batch_idx * len(data), len(train_loader.dataset),
-                               100. * batch_idx / len(train_loader),
+                        epoch, batch_idx * len(data), len(train_loader_food.dataset),
+                               100. * batch_idx / len(train_loader_food),
                                loss.item() / len(data), datetime.datetime.now()))
 
                     _, preds = torch.max(scores_copy, dim=2)
@@ -260,6 +279,7 @@ def train(epoch):
 def test(epoch):
     with experiment.test():
         experiment.log_current_epoch(epoch)
+        vae_model.eval()
         decoder.eval()
         encoder.eval()
         losses = AverageMeter()  # loss (per word decoded)
