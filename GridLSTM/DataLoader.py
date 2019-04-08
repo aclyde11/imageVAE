@@ -82,14 +82,15 @@ class MoleLoader(torch.utils.data.Dataset):
         return smi
 
     def apply_one_hot(self, ch):
+        print(ch)
         mapper = list(map(self.apply_t, ch))
         print(mapper)
         return np.array(mapper)
 
     def __getitem__(self, item):
-        smile = self.df.iloc[item]['SMILES']
+        smile = self.df.iloc[item, 0]
 
-        embedding = self.apply_one_hot(smile)
+        embedding = self.apply_t(smile)
         print(embedding)
         embedding = torch.LongTensor(embedding)
         smile_len = len(str(smile))
