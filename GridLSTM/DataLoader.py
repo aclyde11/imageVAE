@@ -72,7 +72,7 @@ class MoleLoader(torch.utils.data.Dataset):
                                                   self.one_hot_index(row, self.vocab))
 
     def apply_t(self, x):
-        x = x + list((''.join([char * (self.embedding_width - len(x)) for char in [' ']])))
+        x = str(x) + str(list((''.join([char * (self.embedding_width - len(x)) for char in [' ']]))))
         smi = self.one_hot_encoded_fn(x)
         return smi
 
