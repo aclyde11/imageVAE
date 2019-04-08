@@ -179,7 +179,7 @@ def train(epoch):
         encoder.train()
         vae_model.eval()
         losses = AverageMeter()  # loss (per word decoded)
-        for batch_idx, (data, embed, embedlen) in enumerate(train_loader_food):
+        for batch_idx, (embed, data, embedlen) in enumerate(train_loader_food):
             for which_image in range(1):
 
                 imgs = data[0].float()
