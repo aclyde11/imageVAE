@@ -33,7 +33,7 @@ hyper_params = {
 experiment = Experiment(project_name="pytorch")
 experiment.log_parameters(hyper_params)
 batch_size = 300
-starting_epoch=1
+starting_epoch=8
 epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
@@ -120,7 +120,7 @@ for param in vae_model.parameters():
 
 
 
-checkpoint = torch.load("state_78.pt")
+checkpoint = torch.load("state_8.pt")
 decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               embed_dim=emb_dim,
                               decoder_dim=decoder_dim,
@@ -132,14 +132,16 @@ decoder.fine_tune_embeddings(True)
 
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
+decoder_optimizer.load_state_dict(checkpoint['decoder_optimizer_state_dict'])
 encoder = Encoder()
 encoder.load_state_dict(checkpoint["encoder_state_dict"], strict=False)
 encoder.fine_tune(fine_tune_encoder)
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
+encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer_state_dict'])
 
-decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
-encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
+decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 8, eta_min=5e-6, last_epoch=starting_epoch - 2)
+encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8, eta_min=5e-6, last_epoch=starting_epoch-2)
 encoder = encoder.cuda(1)
 decoder = decoder.cuda(2)
 
