@@ -282,7 +282,8 @@ def train(epoch):
                 acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
                 experiment.log_metric("acc_per_char", acc)
 
-                if len(corrects) >= 50 and len(wrongs) >= 50:
+                if len(corrects) >= 20 and len(wrongs) >= 20:
+                    print("breaking")
                     break
                 acc_per_string = 0
                 if batch_idx % log_interval == 0:
@@ -307,16 +308,15 @@ def train(epoch):
                             print("ORIG: {}\nNEW : {}\n".format(s1, s2))
                         acc_per_string += 1 if s1 == s2 else 0
 
-                        if len(corrects) < 50 and s1 == s2:
-                            items = [add_text_to_image(imgs_orig[i, ...], s1), add_text_to_image(imgs[i,...], s2)]
-                            corrects.append(items)
+                        if len(corrects) < 20 and s1 == s2:
+                            corrects.append(add_text_to_image(imgs_orig[i, ...], s1))
+                            corrects.append(add_text_to_image(imgs[i,...], s2))
 
-                        if len(wrongs) < 50 and s1 != s2:
+                        if len(wrongs) < 20 and s1 != s2:
                             dist = levenshteinDistance(s1, s2)
                             s2 = s2 + ", " + str(dist)
-                            items = [add_text_to_image(imgs_orig[i,...], s1),
-                                     add_text_to_image(imgs[i,...], s2)]
-                            wrongs.append(items)
+                            wrongs.append(add_text_to_image(imgs_orig[i,...], s1))
+                            wrongs.append(add_text_to_image(imgs[i,...], s2))
 
 
                     if which_image == 0:
@@ -324,17 +324,9 @@ def train(epoch):
                     else:
                         experiment.log_metric('vaes_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
 
-        corrects_flat = []
-        for i in corrects:
-            for j in i:
-                corrects_flat.append(j)
 
-        wrongs_flat = []
-        for i in wrongs:
-            for j in i:
-                wrongs_flat.append(j)
-        save_image(torch.cat(corrects_flat), "corrects_" + str(epoch) + ".png", nrow=10)
-        save_image(torch.cat(wrongs_flat), "wrongs_" + str(epoch) + ".png", nrow=10)
+        save_image(torch.cat(corrects), "corrects_" + str(epoch) + ".png", nrow=10)
+        save_image(torch.cat(wrongs), "wrongs_" + str(epoch) + ".png", nrow=10)
         exit()
 
 
