@@ -111,13 +111,10 @@ decoder = PictureDecoder().cuda()
 checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/epoch_180.pt')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
-
-
-
-vae_model = GeneralVae(encoder, decoder, rep_size=500).cuda(0)
+vae_model = GeneralVae(encoder, decoder, rep_size=500)
 for param in vae_model.parameters():
     param.requires_grad = False
-
+vae_model = vae_model.cuda(5)
 
 
 checkpoint = torch.load("state_8.pt")
@@ -129,7 +126,7 @@ decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               dropout=dropout)
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 decoder.fine_tune_embeddings(True)
-decoder = decoder.cuda(2)
+decoder = decoder.cuda(7)
 
 
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
@@ -138,7 +135,7 @@ decoder_optimizer.load_state_dict(checkpoint['decoder_optimizer_state_dict'])
 encoder = Encoder()
 encoder.load_state_dict(checkpoint["encoder_state_dict"])
 encoder.fine_tune(fine_tune_encoder)
-encoder = encoder.cuda(1)
+encoder = encoder.cuda(6)
 
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
@@ -148,7 +145,7 @@ decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 8,
 encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
 
 
-criterion = nn.CrossEntropyLoss().cuda(2)
+criterion = nn.CrossEntropyLoss().cuda(7)
 
 class AverageMeter(object):
     """
@@ -224,19 +221,19 @@ def train(epoch):
 
                 imgs = data.float()
                 imgs_orig = imgs
-                caps = embed.cuda(2)
-                caplens = embedlen.cuda(2).view(-1, 1)
+                caps = embed.cuda(7)
+                caplens = embedlen.cuda(7).view(-1, 1)
                 imgs_vae = None
                 if which_image == 0:
-                    imgs = imgs.cuda(1)
+                    imgs = imgs.cuda(6)
                 else:
-                    imgs = imgs.cuda(0)
+                    imgs = imgs.cuda(5)
                     imgs, _, _ = vae_model(imgs)
                     imgs_vae = imgs.cpu().detach()
-                    imgs = imgs.cuda(1)
+                    imgs = imgs.cuda(6)
 
                 # Forward prop.
-                imgs = encoder(imgs).cuda(2)
+                imgs = encoder(imgs).cuda(7)
 
                 scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch < 3))
 
@@ -370,17 +367,17 @@ def test(epoch):
                 for which_image in range(2):
 
                     imgs = data.float()
-                    caps = embed.cuda(2)
-                    caplens = embedlen.cuda(2).view(-1, 1)
+                    caps = embed.cuda(7)
+                    caplens = embedlen.cuda(7).view(-1, 1)
 
                     if which_image == 0:
-                        imgs = imgs.cuda(1)
+                        imgs = imgs.cuda(6)
                     else:
-                        imgs = imgs.cuda(0)
+                        imgs = imgs.cuda(5)
                         imgs, _, _ = vae_model(imgs)
-                        imgs = imgs.cuda(1)
+                        imgs = imgs.cuda(6)
                     # Forward prop.
-                    imgs = encoder(imgs).cuda(2)
+                    imgs = encoder(imgs).cuda(7)
 
                     scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
                                                                                     teacher_forcing=bool(epoch > 1))
