@@ -332,6 +332,8 @@ def train(epoch):
             print(t.dtype)
         #save_image(torch.cat(corrects), "corrects_" + str(epoch) + ".png", nrow=10)
         ts = torch.cat(wrongs)
+        print(ts.shape)
+        print(ts.dtype)
         save_image(ts, "wrongs_" + str(epoch) + ".png", nrow=10)
         exit()
 
