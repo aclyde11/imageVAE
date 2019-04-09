@@ -38,7 +38,7 @@ epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
 data_para = True
-log_interval = 20
+log_interval = 5
 LR = hyper_params['learning_rate']       ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 70
@@ -197,7 +197,7 @@ def add_text_to_image(ten, text):
     draw = ImageDraw.Draw(img)
     # font = ImageFont.truetype(<font-file>, <font-size>)
     font = ImageFont.truetype("Vera.ttf", 12)
-    draw.text((0, 0), text, (0, 0, 0), font=font)
+    draw.text((0, 0), text, (256, 256, 256), font=font)
     return transforms.ToTensor()(img.convert('RGB'))
 
 def train(epoch):
@@ -282,6 +282,8 @@ def train(epoch):
                 acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
                 experiment.log_metric("acc_per_char", acc)
 
+                if len(corrects) >= 50 and len(wrongs) >= 50:
+                    break
                 acc_per_string = 0
                 if batch_idx % log_interval == 0:
                     print('Train Epoch {}: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format( "orig" if which_image == 0 else "vaes",
@@ -314,9 +316,6 @@ def train(epoch):
                             items = [add_text_to_image(imgs_orig[i,...], s1),
                                      add_text_to_image(imgs[i,...], s2)]
                             wrongs.append(items)
-
-                        if len(corrects) >= 50 and len(wrongs) >= 50:
-                            break
 
 
                     if which_image == 0:
