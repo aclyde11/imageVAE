@@ -238,6 +238,9 @@ def train(epoch):
 
                 scores_copy = scores.clone()
                 # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
+                imgs = imgs[sort_ind]
+                imgs_orig = imgs_orig[sort_ind]
+                print('alpha shape, ', alpha.shape)
                 targets = caps_sorted[:, 1:]
                 targets_copy = targets.clone()
 
@@ -290,6 +293,9 @@ def train(epoch):
                     _, preds = torch.max(scores_copy, dim=2)
                     preds = preds.cpu().numpy()
                     targets_copy = targets_copy.cpu().numpy()
+
+                    imgs_orig = imgs_orig.detach().cpu()
+                    imgs     = imgs.detach().cpu()
                     for i in range(preds.shape[0]):
                         sample = preds[i,...]
                         target = targets_copy[i,...]
@@ -300,14 +306,14 @@ def train(epoch):
                         acc_per_string += 1 if s1 == s2 else 0
 
                         if len(corrects) < 50 and s1 == s2:
-                            items = [add_text_to_image(imgs_orig.detach().cpu(), s1), add_text_to_image(imgs.detach().cpu(), s2)]
+                            items = [add_text_to_image(imgs_orig[i, ...], s1), add_text_to_image(imgs[i,...], s2)]
                             corrects.append(items)
 
                         if len(wrongs) < 50 and s1 != s2:
                             dist = levenshteinDistance(s1, s2)
                             s2 = s2 + ", " + str(dist)
-                            items = [add_text_to_image(imgs_orig.detach().cpu(), s1),
-                                     add_text_to_image(imgs.detach().cpu(), s2)]
+                            items = [add_text_to_image(imgs_orig[i,...], s1),
+                                     add_text_to_image(imgs[i,...], s2)]
                             wrongs.append(items)
 
 
