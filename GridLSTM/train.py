@@ -170,6 +170,31 @@ class AverageMeter(object):
 def get_batch_size(epoch):
     return 300
 
+def levenshteinDistance(s1, s2):
+    if len(s1) > len(s2):
+        s1, s2 = s2, s1
+
+    distances = range(len(s1) + 1)
+    for i2, c2 in enumerate(s2):
+        distances_ = [i2+1]
+        for i1, c1 in enumerate(s1):
+            if c1 == c2:
+                distances_.append(distances[i1])
+            else:
+                distances_.append(1 + min((distances[i1], distances[i1 + 1], distances_[-1])))
+        distances = distances_
+    return distances[-1]
+
+def add_text_to_image(ten, text):
+    from PIL import Image
+    from PIL import ImageFont
+    from PIL import ImageDraw
+    img = transforms.ToPILImage(mode='RGB')(ten)
+    draw = ImageDraw.Draw(img)
+    # font = ImageFont.truetype(<font-file>, <font-size>)
+    font = ImageFont.truetype("sans-serif.ttf", 16)
+    draw.text((0, 0), text, (255, 255, 255), font=font)
+    return transforms.ToTensor(img)
 
 def train(epoch):
     with experiment.train():
@@ -180,6 +205,8 @@ def train(epoch):
         encoder.train()
         vae_model.eval()
         losses = AverageMeter()  # loss (per word decoded)
+        corrects = []
+        wrongs = []
         for batch_idx, (embed, data, embedlen) in enumerate(train_loader_food):
             rangeobj = None
             if epoch > 2:
@@ -189,6 +216,7 @@ def train(epoch):
             for which_image in rangeobj:
 
                 imgs = data.float()
+                imgs_orig = imgs
                 caps = embed.cuda(2)
                 caplens = embedlen.cuda(2).view(-1, 1)
 
@@ -266,11 +294,35 @@ def train(epoch):
                         if i < 4:
                             print("ORIG: {}\nNEW : {}\n".format(s1, s2))
                         acc_per_string += 1 if s1 == s2 else 0
+
+                        if len(corrects) < 50 and s1 == s2:
+                            items = [add_text_to_image(imgs_orig.detach().cpu(), s1), add_text_to_image(imgs.detach().cpu(), s2)]
+                            corrects.append(items)
+
+                        if len(wrongs) < 50 and s1 != s2:
+                            dist = levenshteinDistance(s1, s2)
+                            s2 = s2 + ", " + str(dist)
+                            items = [add_text_to_image(imgs_orig.detach().cpu(), s1),
+                                     add_text_to_image(imgs.detach().cpu(), s2)]
+                            wrongs.append(items)
+
+
                     if which_image == 0:
                         experiment.log_metric('orig_acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
                     else:
                         experiment.log_metric('vaes_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
 
+        corrects_flat = []
+        for i in corrects:
+            for j in i:
+                corrects_flat.append(j)
+
+        wrongs_flat = []
+        for i in wrongs:
+            for j in i:
+                wrongs_flat.append(j)
+        save_image(torch.cat(corrects_flat), "corrects_" + str(epoch) + ".png", nrow=10)
+        save_image(torch.cat(wrongs_flat), "wrongs_" + str(epoch) + ".png", nrow=10)
 
 
                 #
