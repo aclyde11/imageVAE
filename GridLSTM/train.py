@@ -191,10 +191,10 @@ def add_text_to_image(ten, text):
     from PIL import ImageFont
     from PIL import ImageDraw
     img = transforms.ToPILImage(mode='RGB')(ten)
-    draw = ImageDraw.Draw(img)
+    #draw = ImageDraw.Draw(img)
     # font = ImageFont.truetype(<font-file>, <font-size>)
-    font = ImageFont.truetype("Vera.ttf", 12)
-    draw.text((0, 0), text, (256, 256, 256), font=font)
+    #font = ImageFont.truetype("Vera.ttf", 12)
+    #draw.text((0, 0), text, (256, 256, 256), font=font)
     return transforms.ToTensor()(img.convert('RGB'))
 
 def train(epoch):
