@@ -286,6 +286,7 @@ def train(epoch):
                     break
                 acc_per_string = 0
                 if batch_idx % log_interval == 0:
+                    print("wrongs len: {}, correct len: {}".format(len(wrongs), len(corrects)))
                     print('Train Epoch {}: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format( "orig" if which_image == 0 else "vaes",
                         epoch, batch_idx * len(data), len(train_loader_food.dataset),
                                100. * batch_idx / len(train_loader_food),
