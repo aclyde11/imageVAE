@@ -108,7 +108,7 @@ decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
 encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
-checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/epoch_180.pt')
+checkpoint = torch.load('/homes/aclyde11/imageVAE/im_im_small/model/epoch_180.pt',  map_location='cpu')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 vae_model = GeneralVae(encoder, decoder, rep_size=500)
@@ -117,7 +117,7 @@ for param in vae_model.parameters():
 vae_model = vae_model.cuda(5)
 
 
-checkpoint = torch.load("state_8.pt")
+checkpoint = torch.load("state_8.pt", map_location='cpu')
 decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               embed_dim=emb_dim,
                               decoder_dim=decoder_dim,
