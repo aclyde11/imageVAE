@@ -316,6 +316,9 @@ def train(epoch):
                                      add_text_to_image(imgs[i,...], s2)]
                             wrongs.append(items)
 
+                        if len(corrects) >= 50 and len(wrongs) >= 50:
+                            break
+
 
                     if which_image == 0:
                         experiment.log_metric('orig_acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
@@ -333,6 +336,7 @@ def train(epoch):
                 wrongs_flat.append(j)
         save_image(torch.cat(corrects_flat), "corrects_" + str(epoch) + ".png", nrow=10)
         save_image(torch.cat(wrongs_flat), "wrongs_" + str(epoch) + ".png", nrow=10)
+        exit()
 
 
                 #
