@@ -214,7 +214,7 @@ def train(epoch):
                 rangeobj = range(1,2)
             else:
                 rangeobj = range(2)
-            if len(corrects) >= 20 and len(wrongs) >= 20:
+            if len(corrects) >= 20 or len(wrongs) >= 20:
                 print("breaking")
                 break
             for which_image in rangeobj:
@@ -307,11 +307,11 @@ def train(epoch):
                             print("ORIG: {}\nNEW : {}\n".format(s1, s2))
                         acc_per_string += 1 if s1 == s2 else 0
 
-                        if len(corrects) < 20 and s1 == s2:
-                            a = add_text_to_image(imgs_orig[i, ...], s1)
-                            corrects.append(a)
-                            a = add_text_to_image(imgs_vae[i,...], s2)
-                            corrects.append(a)
+                        # if len(corrects) < 20 and s1 == s2:
+                        #     a = add_text_to_image(imgs_orig[i, ...], s1)
+                        #     corrects.append(a)
+                        #     a = add_text_to_image(imgs_vae[i,...], s2)
+                        #     corrects.append(a)
 
                         if len(wrongs) < 20 and s1 != s2:
                             dist = levenshteinDistance(s1, s2)
@@ -327,7 +327,7 @@ def train(epoch):
                         experiment.log_metric('vaes_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
 
 
-        save_image(torch.cat(corrects), "corrects_" + str(epoch) + ".png", nrow=10)
+        #save_image(torch.cat(corrects), "corrects_" + str(epoch) + ".png", nrow=10)
         save_image(torch.cat(wrongs), "wrongs_" + str(epoch) + ".png", nrow=10)
         exit()
 
