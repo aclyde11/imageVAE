@@ -195,7 +195,8 @@ def add_text_to_image(ten, text):
     # font = ImageFont.truetype(<font-file>, <font-size>)
     #font = ImageFont.truetype("Vera.ttf", 12)
     #draw.text((0, 0), text, (256, 256, 256), font=font)
-    return transforms.ToTensor()(img.convert('RGB'))
+    img.convert('RGB')
+    return transforms.ToTensor()(img)
 
 def train(epoch):
     with experiment.train():
