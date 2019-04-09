@@ -226,12 +226,13 @@ def train(epoch):
                 imgs_orig = imgs
                 caps = embed.cuda(2)
                 caplens = embedlen.cuda(2).view(-1, 1)
-
+                imgs_vae = None
                 if which_image == 0:
                     imgs = imgs.cuda(1)
                 else:
                     imgs = imgs.cuda(0)
                     imgs, _, _ = vae_model(imgs)
+                    imgs_vae = imgs.cpu().detach()
                     imgs = imgs.cuda(1)
 
                 # Forward prop.
@@ -299,7 +300,7 @@ def train(epoch):
                     targets_copy = targets_copy.cpu().numpy()
 
                     imgs_orig = imgs_orig.detach().cpu()
-                    imgs     = imgs.detach().cpu()
+                    imgs_vae     = imgs_vae.detach().cpu()
                     for i in range(preds.shape[0]):
                         sample = preds[i,...]
                         target = targets_copy[i,...]
@@ -311,9 +312,8 @@ def train(epoch):
 
                         if len(corrects) < 20 and s1 == s2:
                             a = add_text_to_image(imgs_orig[i, ...], s1)
-                            print(a.shape)
                             corrects.append(a)
-                            a = add_text_to_image(imgs[i,...], s2)
+                            a = add_text_to_image(imgs_vae[i,...], s2)
                             corrects.append(a)
 
                         if len(wrongs) < 20 and s1 != s2:
@@ -321,7 +321,7 @@ def train(epoch):
                             s2 = s2 + ", " + str(dist)
                             a = add_text_to_image(imgs_orig[i, ...], s1)
                             wrongs.append(a)
-                            a = add_text_to_image(imgs[i, ...], s2)
+                            a = add_text_to_image(imgs_vae[i, ...], s2)
                             wrongs.append(a)
 
                     if which_image == 0:
@@ -330,8 +330,6 @@ def train(epoch):
                         experiment.log_metric('vaes_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
 
 
-        for i in corrects:
-            print(i.shape)
         save_image(torch.cat(corrects), "corrects_" + str(epoch) + ".png", nrow=10)
         save_image(torch.cat(wrongs), "wrongs_" + str(epoch) + ".png", nrow=10)
         exit()
