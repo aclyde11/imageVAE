@@ -316,9 +316,8 @@ def train(epoch):
                         if len(wrongs) < 20 and s1 != s2:
                             dist = levenshteinDistance(s1, s2)
                             s2 = s2 + ", " + str(dist)
-                            wrongs.append(add_text_to_image(imgs_orig[i,...], s1))
-                            wrongs.append(add_text_to_image(imgs[i,...], s2))
-
+                            wrongs.append(add_text_to_image(imgs_orig[i, ...], s1))
+                            wrongs.append(add_text_to_image(imgs[i, ...], s2))
 
                     if which_image == 0:
                         experiment.log_metric('orig_acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
@@ -326,6 +325,8 @@ def train(epoch):
                         experiment.log_metric('vaes_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
 
 
+        for i in corrects:
+            print(i.shape)
         save_image(torch.cat(corrects), "corrects_" + str(epoch) + ".png", nrow=10)
         save_image(torch.cat(wrongs), "wrongs_" + str(epoch) + ".png", nrow=10)
         exit()
