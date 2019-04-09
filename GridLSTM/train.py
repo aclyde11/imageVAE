@@ -217,6 +217,9 @@ def train(epoch):
                 rangeobj = range(1,2)
             else:
                 rangeobj = range(2)
+            if len(corrects) >= 20 and len(wrongs) >= 20:
+                print("breaking")
+                break
             for which_image in rangeobj:
 
                 imgs = data.float()
@@ -282,9 +285,7 @@ def train(epoch):
                 acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
                 experiment.log_metric("acc_per_char", acc)
 
-                if len(corrects) >= 20 and len(wrongs) >= 20:
-                    print("breaking")
-                    break
+
                 acc_per_string = 0
                 if batch_idx % log_interval == 0:
                     print("wrongs len: {}, correct len: {}".format(len(wrongs), len(corrects)))
