@@ -327,7 +327,9 @@ def train(epoch):
                     else:
                         experiment.log_metric('vaes_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
 
-
+        for t in wrongs:
+            print(t.shape)
+            print(t.dtype)
         #save_image(torch.cat(corrects), "corrects_" + str(epoch) + ".png", nrow=10)
         save_image(torch.cat(wrongs), "wrongs_" + str(epoch) + ".png", nrow=10)
         exit()
