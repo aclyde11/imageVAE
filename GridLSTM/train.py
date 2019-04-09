@@ -196,7 +196,7 @@ def add_text_to_image(ten, text):
     #font = ImageFont.truetype("Vera.ttf", 12)
     #draw.text((0, 0), text, (256, 256, 256), font=font)
     img.convert('RGB')
-    return transforms.ToTensor()(img)
+    return transforms.ToTensor()(img).float()
 
 def train(epoch):
     with experiment.train():
@@ -331,7 +331,8 @@ def train(epoch):
             print(t.shape)
             print(t.dtype)
         #save_image(torch.cat(corrects), "corrects_" + str(epoch) + ".png", nrow=10)
-        save_image(torch.cat(wrongs), "wrongs_" + str(epoch) + ".png", nrow=10)
+        ts = torch.cat(wrongs)
+        save_image(ts, "wrongs_" + str(epoch) + ".png", nrow=10)
         exit()
 
 
