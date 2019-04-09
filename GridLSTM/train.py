@@ -144,8 +144,8 @@ encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, en
                                      lr=encoder_lr) if fine_tune_encoder else None
 encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer_state_dict'])
 
-decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 8, eta_min=5e-6, last_epoch=starting_epoch - 2)
-encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8, eta_min=5e-6, last_epoch=starting_epoch-2)
+decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
+encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
 
 
 criterion = nn.CrossEntropyLoss().cuda(2)
@@ -240,7 +240,6 @@ def train(epoch):
                 # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
                 imgs = imgs[sort_ind]
                 imgs_orig = imgs_orig[sort_ind]
-                print('alpha shape, ', alphas.shape)
                 targets = caps_sorted[:, 1:]
                 targets_copy = targets.clone()
 
