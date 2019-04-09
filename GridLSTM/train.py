@@ -240,7 +240,7 @@ def train(epoch):
                 # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
                 imgs = imgs[sort_ind]
                 imgs_orig = imgs_orig[sort_ind]
-                print('alpha shape, ', alpha.shape)
+                print('alpha shape, ', alphas.shape)
                 targets = caps_sorted[:, 1:]
                 targets_copy = targets.clone()
 
