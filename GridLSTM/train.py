@@ -310,14 +310,19 @@ def train(epoch):
                         acc_per_string += 1 if s1 == s2 else 0
 
                         if len(corrects) < 20 and s1 == s2:
-                            corrects.append(add_text_to_image(imgs_orig[i, ...], s1))
-                            corrects.append(add_text_to_image(imgs[i,...], s2))
+                            a = add_text_to_image(imgs_orig[i, ...], s1)
+                            print(a.shape)
+                            corrects.append(a)
+                            a = add_text_to_image(imgs[i,...], s2)
+                            corrects.append(a)
 
                         if len(wrongs) < 20 and s1 != s2:
                             dist = levenshteinDistance(s1, s2)
                             s2 = s2 + ", " + str(dist)
-                            wrongs.append(add_text_to_image(imgs_orig[i, ...], s1))
-                            wrongs.append(add_text_to_image(imgs[i, ...], s2))
+                            a = add_text_to_image(imgs_orig[i, ...], s1)
+                            wrongs.append(a)
+                            a = add_text_to_image(imgs[i, ...], s2)
+                            wrongs.append(a)
 
                     if which_image == 0:
                         experiment.log_metric('orig_acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
