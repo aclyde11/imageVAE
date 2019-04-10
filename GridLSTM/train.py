@@ -32,7 +32,7 @@ hyper_params = {
 
 experiment = Experiment(project_name="pytorch")
 experiment.log_parameters(hyper_params)
-batch_size = 300
+batch_size = 350
 starting_epoch=8
 epochs = hyper_params['num_epochs']
 no_cuda = False
@@ -169,7 +169,7 @@ class AverageMeter(object):
 
 
 def get_batch_size(epoch):
-    return 350
+    return batch_size
 
 def levenshteinDistance(s1, s2):
     if len(s1) > len(s2):
