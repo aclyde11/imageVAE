@@ -186,15 +186,21 @@ def levenshteinDistance(s1, s2):
         distances = distances_
     return distances[-1]
 
-def add_text_to_image(ten, text):
+def add_text_to_image(ten, text, which="orig", dis=None):
     from PIL import Image
     from PIL import ImageFont
     from PIL import ImageDraw
     img = transforms.ToPILImage(mode='RGB')(ten)
     draw = ImageDraw.Draw(img)
     #ont = ImageFont.truetype(<font-file>, <font-size>)
-    font = ImageFont.truetype("Vera.ttf", 8)
-    draw.text((0, 0), text, (256, 256, 256), font=font)
+    sfont = ImageFont.truetype("Vera.ttf", 8)
+    font = ImageFont.truetype("Vera.ttf", 11)
+
+    draw.text((0, 0), text, (256, 256, 256), font=sfont)
+    if which is not None:
+        draw.text((-1, -1), which, (256, 256, 256), font=font)
+    if dis is not None:
+        draw.text((-1, 0), which, (256, 256, 256), font=font)
     img.convert('RGB')
     return transforms.ToTensor()(img).float().view(1, 3, 256, 256)
 
