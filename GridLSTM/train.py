@@ -169,7 +169,7 @@ class AverageMeter(object):
 
 
 def get_batch_size(epoch):
-    return 300
+    return 350
 
 def levenshteinDistance(s1, s2):
     if len(s1) > len(s2):
@@ -203,7 +203,7 @@ def add_text_to_image(ten, text, which="orig", dis=None):
     if dis is not None:
         draw.text((0, 225), "edit: " + dis, (0, 0, 0), font=font)
     img.convert('RGB')
-    return transforms.ToTensor()(Invert()(img)).float().view(1, 3, 256, 256)
+    return transforms.ToTensor()(img).float().view(1, 3, 256, 256)
 
 def train(epoch):
     with experiment.train():
@@ -222,9 +222,7 @@ def train(epoch):
                 rangeobj = range(1,2)
             else:
                 rangeobj = range(2)
-            if len(corrects) >= 50 or len(wrongs) >= 50:
-                print("breaking")
-                break
+
             for which_image in rangeobj:
 
                 imgs = data.float()
@@ -315,11 +313,11 @@ def train(epoch):
                             print("ORIG: {}\nNEW : {}\n".format(s1, s2))
                         acc_per_string += 1 if s1 == s2 else 0
 
-                        # if len(corrects) < 20 and s1 == s2:
-                        #     a = add_text_to_image(imgs_orig[i, ...], s1)
-                        #     corrects.append(a)
-                        #     a = add_text_to_image(imgs_vae[i,...], s2)
-                        #     corrects.append(a)
+                        if len(corrects) < 50 and s1 == s2:
+                            a = add_text_to_image(imgs_orig[i, ...], s1, "orig")
+                            corrects.append(a)
+                            a = add_text_to_image(imgs_vae[i,...], s2, "vae", str(0))
+                            corrects.append(a)
 
                         if len(wrongs) < 50 and s1 != s2:
                             dist = levenshteinDistance(s1, s2)
@@ -334,15 +332,10 @@ def train(epoch):
                     else:
                         experiment.log_metric('vaes_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
 
-        for t in wrongs:
-            print(t.shape)
-            print(t.dtype)
-        #save_image(torch.cat(corrects), "corrects_" + str(epoch) + ".png", nrow=10)
-        ts = torch.cat(wrongs)
-        print(ts.shape)
-        print(ts.dtype)
-        save_image(ts, "wrongs_" + str(epoch) + ".png", nrow=10)
-        exit()
+        if len(corrects) == 50:
+            save_image(torch.cat(corrects), "corrects_" + str(epoch) + ".png", nrow=10)
+        if len(wrongs) == 50:
+            save_image(torch.cat(wrongs), "wrongs_" + str(epoch) + ".png", nrow=10)
 
 
                 #
