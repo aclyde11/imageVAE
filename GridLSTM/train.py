@@ -191,16 +191,17 @@ def add_text_to_image(ten, text, which="orig", dis=None):
     from PIL import ImageFont
     from PIL import ImageDraw
     img = transforms.ToPILImage(mode='RGB')(ten)
+    img = Invert()(img)
     draw = ImageDraw.Draw(img)
     #ont = ImageFont.truetype(<font-file>, <font-size>)
     sfont = ImageFont.truetype("Vera.ttf", 9)
     font = ImageFont.truetype("Vera.ttf", 11)
 
-    draw.text((0, 0), text, (256, 256, 256), font=sfont)
+    draw.text((0, 0), text, (0, 0, 0), font=sfont)
     if which is not None:
-        draw.text((225, 225), which, (256, 256, 256), font=font)
+        draw.text((225, 225), which, (0, 0, 0), font=font)
     if dis is not None:
-        draw.text((0, 225), "edit: " + dis, (256, 256, 256), font=font)
+        draw.text((0, 225), "edit: " + dis, (0, 0, 0), font=font)
     img.convert('RGB')
     return transforms.ToTensor()(Invert()(img)).float().view(1, 3, 256, 256)
 
