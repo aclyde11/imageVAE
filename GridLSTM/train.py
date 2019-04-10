@@ -198,9 +198,9 @@ def add_text_to_image(ten, text, which="orig", dis=None):
 
     draw.text((0, 0), text, (256, 256, 256), font=sfont)
     if which is not None:
-        draw.text((-1, -1), which, (256, 256, 256), font=font)
+        draw.text((255, 255), which, (256, 256, 256), font=font)
     if dis is not None:
-        draw.text((-1, 0), which, (256, 256, 256), font=font)
+        draw.text((255, 0), which, (256, 256, 256), font=font)
     img.convert('RGB')
     return transforms.ToTensor()(img).float().view(1, 3, 256, 256)
 
