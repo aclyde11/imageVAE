@@ -246,7 +246,7 @@ def train(epoch):
 
                 scores_copy = scores.clone()
                 # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
-                imgs = imgs[sort_ind]
+                imgs_vae = imgs_vae[sort_ind]
                 imgs_orig = imgs_orig[sort_ind]
                 targets = caps_sorted[:, 1:]
                 targets_copy = targets.clone()
@@ -322,10 +322,10 @@ def train(epoch):
 
                         if len(wrongs) < 20 and s1 != s2:
                             dist = levenshteinDistance(s1, s2)
-                            s2 = s2 + ", " + str(dist)
-                            a = add_text_to_image(imgs_orig[i, ...], s1)
+                            s2 = s2
+                            a = add_text_to_image(imgs_orig[i, ...], s1, "orig")
                             wrongs.append(a)
-                            a = add_text_to_image(imgs_vae[i, ...], s2)
+                            a = add_text_to_image(imgs_vae[i, ...], s2, "vae", str(dist))
                             wrongs.append(a)
 
                     if which_image == 0:
