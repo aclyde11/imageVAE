@@ -200,7 +200,7 @@ def add_text_to_image(ten, text, which="orig", dis=None):
     if which is not None:
         draw.text((225, 225), which, (256, 256, 256), font=font)
     if dis is not None:
-        draw.text((0, 225), which, (256, 256, 256), font=font)
+        draw.text((0, 225), "edit: " + dis, (256, 256, 256), font=font)
     img.convert('RGB')
     return transforms.ToTensor()(img).float().view(1, 3, 256, 256)
 
