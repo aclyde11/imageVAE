@@ -193,14 +193,14 @@ def add_text_to_image(ten, text, which="orig", dis=None):
     img = transforms.ToPILImage(mode='RGB')(ten)
     draw = ImageDraw.Draw(img)
     #ont = ImageFont.truetype(<font-file>, <font-size>)
-    sfont = ImageFont.truetype("Vera.ttf", 8)
+    sfont = ImageFont.truetype("Vera.ttf", 9)
     font = ImageFont.truetype("Vera.ttf", 11)
 
     draw.text((0, 0), text, (256, 256, 256), font=sfont)
     if which is not None:
-        draw.text((255, 255), which, (256, 256, 256), font=font)
+        draw.text((225, 225), which, (256, 256, 256), font=font)
     if dis is not None:
-        draw.text((255, 0), which, (256, 256, 256), font=font)
+        draw.text((0, 225), which, (256, 256, 256), font=font)
     img.convert('RGB')
     return transforms.ToTensor()(img).float().view(1, 3, 256, 256)
 
