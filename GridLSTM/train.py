@@ -222,7 +222,7 @@ def train(epoch):
                 rangeobj = range(1,2)
             else:
                 rangeobj = range(2)
-            if len(corrects) >= 20 or len(wrongs) >= 20:
+            if len(corrects) >= 50 or len(wrongs) >= 50:
                 print("breaking")
                 break
             for which_image in rangeobj:
@@ -321,7 +321,7 @@ def train(epoch):
                         #     a = add_text_to_image(imgs_vae[i,...], s2)
                         #     corrects.append(a)
 
-                        if len(wrongs) < 20 and s1 != s2:
+                        if len(wrongs) < 50 and s1 != s2:
                             dist = levenshteinDistance(s1, s2)
                             s2 = s2
                             a = add_text_to_image(imgs_orig[i, ...], s1, "orig")
