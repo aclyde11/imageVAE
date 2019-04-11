@@ -154,8 +154,13 @@ class PictureEncoder(nn.Module):
         self.encoder_color = ResNet(BasicBlock, [3, 2], num_classes=rep_size)
 
     def forward(self, x):
-        black_channel = torch.sum(x, dim=1, keepdim=True)
+        color_enc = self.encoder_color(x)
+        x = torch.sum(x, dim=1, keepdim=True)
+        black_enc = self.encoder(x)
 
+        print(color_enc.shape)
+        print(black_enc.shape)
+        return x
 
 
 

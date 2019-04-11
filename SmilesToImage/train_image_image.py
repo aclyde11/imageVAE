@@ -62,8 +62,8 @@ model_load = None #{'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/deco
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
-output_dir = '/homes/aclyde11/imageVAE/im_im_small/results/'
-save_files = '/homes/aclyde11/imageVAE/im_im_small/model/'
+output_dir = '/homes/aclyde11/imageVAE/im_im_ex/results/'
+save_files = '/homes/aclyde11/imageVAE/im_im_ex/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': args.workers, 'pin_memory': True} if cuda else {}
 
@@ -116,16 +116,16 @@ decoder = None
 encoder = PictureEncoder().cuda()
 decoder = PictureDecoder().cuda()
 
-checkpoint = torch.load(save_files + 'epoch_180.pt')
-encoder.load_state_dict(checkpoint['encoder_state_dict'])
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
+#checkpoint = torch.load(save_files + 'epoch_180.pt')
+#encoder.load_state_dict(checkpoint['encoder_state_dict'])
+#decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
 
 print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 for param_group in optimizer.param_groups:
    param_group['lr'] = LR
