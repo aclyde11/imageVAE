@@ -114,18 +114,50 @@ class Flatten(nn.Module):
 #
 #         return self.fc21(x), self.fc22(x)
 
+# class PictureEncoder(nn.Module):
+#     def __init__(self, rep_size=500):
+#         super(PictureEncoder, self).__init__()
+#         self.rep_size = rep_size
+#         self.encoder = ResNet(BasicBlock, [3, 2, 2, 3], num_classes=rep_size)
+#         self.mu = nn.Linear(rep_size, rep_size)
+#         self.logvar = nn.Linear(rep_size, rep_size)
+#
+#     def forward(self, x):
+#         x = self.encoder(x)
+#
+#         return self.mu(x), self.logvar(x)
+#
+
+
+class SeparableConv3(nn.Module):
+    def __init__(self, kernel_size, stride=3, padding=1, bias=False):
+        super(SeparableConv3, self).__init__()
+        self.channels = 3
+
+        self.ch1 = nn.Sequential(nn.Conv2d(in_channels=1, out_channels=1, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias), nn.ReLU())
+        self.ch2 = nn.Sequential(nn.Conv2d(in_channels=1, out_channels=1, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias), nn.ReLU())
+        self.ch3 = nn.Sequential(nn.Conv2d(in_channels=1, out_channels=1, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias), nn.ReLU())
+
+    def forward(self, x):
+        return torch.cat( (self.ch1(x[:,0,...]),
+                           self.ch2(x[:,1,...]),
+                           self.ch3(x[:,2,...])),
+                           dim=1)
+
+
+
 class PictureEncoder(nn.Module):
     def __init__(self, rep_size=500):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
-        self.encoder = ResNet(BasicBlock, [3, 2, 2, 3], num_classes=rep_size)
-        self.mu = nn.Linear(rep_size, rep_size)
-        self.logvar = nn.Linear(rep_size, rep_size)
+        self.encoder = ResNet(BasicBlock, [3, 2], num_classes=rep_size)
+        self.encoder_color = ResNet(BasicBlock, [3, 2], num_classes=rep_size)
 
     def forward(self, x):
-        x = self.encoder(x)
+        black_channel = torch.sum(x, dim=1, keepdim=True)
 
-        return self.mu(x), self.logvar(x)
+
+
 
 
 def conv3x3T(in_planes, out_planes, stride=1):
