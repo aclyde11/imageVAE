@@ -312,7 +312,7 @@ for epoch in range(starting_epoch, epochs):
         'optimizer_state_dict': optimizer.state_dict()
          }, save_files + 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
-        sample = torch.randn(64, 500).to(device)
+        sample = torch.randn(64, 256).to(device)
         sample = model.module.decode(sample).cpu()
         save_image(sample.view(64, 3, 256, 256),
                    output_dir + 'sample_' + str(epoch) + '.png')
