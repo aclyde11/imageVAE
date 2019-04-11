@@ -45,7 +45,7 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=181
+starting_epoch=1
 epochs = 500
 no_cuda = False
 seed = 42
