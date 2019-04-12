@@ -268,6 +268,7 @@ class DrawModel(nn.Module):
         return self.sigmoid(self.cs[-1])
 
     def loss(self, x):
+        x = x.view(x.shape[0], -1)
         self.forward(x)
         criterion = nn.BCELoss()
         x_recons = self.sigmoid(self.cs[-1])
