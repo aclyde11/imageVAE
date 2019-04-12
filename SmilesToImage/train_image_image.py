@@ -250,7 +250,7 @@ def test(epoch):
                     ##
                     n = min(data.size(0), 8)
                     comparison = torch.cat([data[:n],
-                                            recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
+                                            recon_batch.view(-1, 256, 256)[:n]])
                     save_image(comparison.cpu(),
                                output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
 
@@ -302,7 +302,7 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
         experiment.log_metric('lr', param_group['lr'])
 
-    loss = train(epoch)
+    #loss = train(epoch)
     test(epoch)
 
     torch.save({
