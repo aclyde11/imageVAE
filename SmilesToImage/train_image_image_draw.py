@@ -193,7 +193,7 @@ def train(epoch, size=100000):
             loss = model.loss(data)
             train_loss += loss.cpu().item()
             loss.backward()
-            torch.nn.utils.clip_grad_norm(model.parameters(), args.g)
+            torch.nn.utils.clip_grad_norm(model.parameters(), args.grad_clip)
             optimizer.step()
 
             experiment.log_metric('loss', loss.item() / get_batch_size(epoch))
