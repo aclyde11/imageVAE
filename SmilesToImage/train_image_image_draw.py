@@ -52,7 +52,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 1.0e-3          ##adam rate
+LR = 3.0e-3          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -297,7 +297,7 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
         experiment.log_metric('lr', param_group['lr'])
 
-    #loss = train(epoch)
+    loss = train(epoch)
     test(epoch)
     #
     # torch.save({
