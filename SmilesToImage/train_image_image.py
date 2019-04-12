@@ -45,13 +45,13 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=1
+starting_epoch=15
 epochs = 500
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 1.0e-3          ##adam rate
+LR = 5.0e-4         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -113,19 +113,19 @@ class customLoss(nn.Module):
 model = None
 encoder = None
 decoder = None
-encoder = PictureEncoder().cuda()
-decoder = PictureDecoder().cuda()
+encoder = PictureEncoder()
+decoder = PictureDecoder()
 
-#checkpoint = torch.load(save_files + 'epoch_180.pt')
-#encoder.load_state_dict(checkpoint['encoder_state_dict'])
-#decoder.load_state_dict(checkpoint['decoder_state_dict'])
+checkpoint = torch.load( output_dir + 'sample_' + str(14) + '.png', map_location='cpu')
+encoder.load_state_dict(checkpoint['encoder_state_dict'])
+decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=500).cuda()
 
 
 print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(), lr=LR)
-#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 for param_group in optimizer.param_groups:
    param_group['lr'] = LR
