@@ -234,13 +234,13 @@ def test(epoch):
 
                 optimizer.zero_grad()
                 loss = model.loss(data)
-                recon_batch = model.get_ouput()
                 test_loss += loss.cpu().item()
 
                 experiment.log_metric('loss', loss.item())
                 test_loss += loss.item()
                 if i == 0:
                     ##
+                    recon_batch = model.get_output()
                     recon_batch = recon_batch.view(-1, 256, 256)
                     n = min(data.size(0), 8)
                     comparison = torch.cat([data[:n],
