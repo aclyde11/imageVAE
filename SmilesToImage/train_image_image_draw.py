@@ -187,7 +187,7 @@ def train(epoch, size=100000):
         train_loss = 0
         loss = None
         for batch_idx, (_, data, _) in enumerate(train_loader_food):
-            data = torch.mean(data, dim=1)
+            data = torch.mean(data, dim=1).float()
             data = data.cuda()
             optimizer.zero_grad()
             loss = model.loss(data)

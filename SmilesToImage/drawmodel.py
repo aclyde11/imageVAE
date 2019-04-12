@@ -12,7 +12,7 @@ import torchvision
 
 def Variable(data, *args, **kwargs):
     if True:
-        data = data.cuda()
+        data = data.cuda().float()
     return torch.autograd.Variable(data,*args, **kwargs)
 
 
