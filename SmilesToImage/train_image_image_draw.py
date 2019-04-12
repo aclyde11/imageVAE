@@ -124,7 +124,7 @@ model = DrawModel(T,A,B,z_size,N,dec_size,enc_size).cuda()
 
 
 print("LR: {}".format(LR))
-optimizer = optim.Adam(model.parameters(),lr=1e-3,betas=(0.5,0.999))
+optimizer = optim.Adam(model.parameters(),lr=LR,betas=(0.5,0.999))
 #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 for param_group in optimizer.param_groups:
