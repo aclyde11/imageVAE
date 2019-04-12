@@ -243,6 +243,7 @@ def test(epoch):
                     recon_batch = model.get_output()
                     recon_batch = recon_batch.view(-1, 256, 256)
                     n = min(data.size(0), 8)
+                    data = data.view(-1, 1, 256, 256)
                     comparison = torch.cat([data[:n],
                                             recon_batch.view(-1, 1, 256, 256)[:n]])
                     save_image(comparison.cpu(),
