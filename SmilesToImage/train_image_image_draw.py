@@ -228,7 +228,7 @@ def test(epoch):
         test_loss = 0
         with torch.no_grad():
             for i, (_, data, _) in enumerate(val_loader_food):
-                data = torch.mean(data, dim=1)
+                data = torch.mean(data, dim=1).float()
                 data = data.cuda()
                 #aff = aff.float().cuda(4)
 
@@ -241,6 +241,7 @@ def test(epoch):
                 test_loss += loss.item()
                 if i == 0:
                     ##
+                    recon_batch = recon_batch.view(-1, 256, 256)
                     n = min(data.size(0), 8)
                     comparison = torch.cat([data[:n],
                                             recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
