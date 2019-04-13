@@ -52,7 +52,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 8.0e-4          ##adam rate
+LR = 5.0e-4          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -122,13 +122,10 @@ enc_size = 256
 
 model = DrawModel(T,A,B,z_size,N,dec_size,enc_size).cuda()
 
-if data_para and torch.cuda.device_count() > 1:
-    print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model = nn.DataParallel(model)
 
 
 print("LR: {}".format(LR))
-optimizer = optim.Adam(model.parameters(),lr=LR,betas=(0.5,0.999))
+optimizer = optim.Adam(model.parameters(),lr=LR)
 #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 for param_group in optimizer.param_groups:
