@@ -52,7 +52,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 5e-4          ##adam rate
+LR = 8.0e-4          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -303,9 +303,9 @@ for epoch in range(starting_epoch, epochs):
         'epoch': epoch,
         'model': model.module.encoder.state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
-         }, save_files + 'epoch_' + str(epoch) + '.pt')
-    with torch.no_grad():
-        sample = torch.randn(64, 256).to(device)
-        sample = model.module.decode(sample).cpu()
-        save_image(sample.view(64, 3, 256, 256),
-                   output_dir + 'sample_' + str(epoch) + '.png')
+         }, save_files + 'draw_epoch_' + str(epoch) + '.pt')
+    # with torch.no_grad():
+    #     sample = torch.randn(64, 256).to(device)
+    #     sample = model.module.decode(sample).cpu()
+    #     save_image(sample.view(64, 3, 256, 256),
+    #                output_dir + 'sample_' + str(epoch) + '.png')
