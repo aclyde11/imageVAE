@@ -52,7 +52,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 1.0e-3 * 0.75          ##adam rate
+LR = 5e-4          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -122,6 +122,10 @@ enc_size = 256
 
 model = DrawModel(T,A,B,z_size,N,dec_size,enc_size).cuda()
 
+if data_para and torch.cuda.device_count() > 1:
+    print("Let's use", torch.cuda.device_count(), "GPUs!")
+    model = nn.DataParallel(model)
+
 
 print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(),lr=LR,betas=(0.5,0.999))
@@ -132,12 +136,7 @@ for param_group in optimizer.param_groups:
 
 
 
-loss_picture = customLoss()
 
-if data_para and torch.cuda.device_count() > 1:
-    print("Let's use", torch.cuda.device_count(), "GPUs!")
-    loss_picture = nn.DataParallel(loss_picture)
-loss_picture.cuda()
 val_losses = []
 train_losses = []
 
@@ -299,15 +298,14 @@ for epoch in range(starting_epoch, epochs):
 
     loss = train(epoch)
     test(epoch)
-    #
-    # torch.save({
-    #     'epoch': epoch,
-    #     'encoder_state_dict': model.module.encoder.state_dict(),
-    #     'decoder_state_dict' : model.module.decoder.state_dict(),
-    #     'optimizer_state_dict': optimizer.state_dict()
-    #      }, save_files + 'epoch_' + str(epoch) + '.pt')
-    # with torch.no_grad():
-    #     sample = torch.randn(64, 256).to(device)
-    #     sample = model.module.decode(sample).cpu()
-    #     save_image(sample.view(64, 3, 256, 256),
-    #                output_dir + 'sample_' + str(epoch) + '.png')
+
+    torch.save({
+        'epoch': epoch,
+        'model': model.module.encoder.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict()
+         }, save_files + 'epoch_' + str(epoch) + '.pt')
+    with torch.no_grad():
+        sample = torch.randn(64, 256).to(device)
+        sample = model.module.decode(sample).cpu()
+        save_image(sample.view(64, 3, 256, 256),
+                   output_dir + 'sample_' + str(epoch) + '.png')
