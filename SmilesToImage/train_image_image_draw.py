@@ -298,7 +298,7 @@ for epoch in range(starting_epoch, epochs):
 
     torch.save({
         'epoch': epoch,
-        'model': model.module.encoder.state_dict(),
+        'model': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
          }, save_files + 'draw_epoch_' + str(epoch) + '.pt')
     # with torch.no_grad():
