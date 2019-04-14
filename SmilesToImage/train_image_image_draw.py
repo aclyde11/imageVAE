@@ -52,7 +52,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 5.0e-4          ##adam rate
+LR = 1e-3          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -111,13 +111,13 @@ class customLoss(nn.Module):
 
         return loss_MSE + loss_KLD #+ 1000.0 * loss_cripsy
 
-T = 30
+T = 35
 A = 256
 B = 256
 z_size = 256
-N = 20
-dec_size = 512
-enc_size = 512
+N = 30
+dec_size = 256
+enc_size = 256
 
 model = DrawModel(T,A,B,z_size,N,dec_size,enc_size).cuda()
 
