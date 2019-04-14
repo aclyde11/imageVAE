@@ -45,13 +45,13 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=45
+starting_epoch=76
 epochs = 500
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 1.0e-4         ##adam rate
+LR = 6e-5         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -116,7 +116,7 @@ decoder = None
 encoder = PictureEncoder()
 decoder = PictureDecoder()
 
-checkpoint = torch.load( save_files + 'epoch_' + str(44) + '.pt', map_location='cpu')
+checkpoint = torch.load( save_files + 'epoch_' + str(75) + '.pt', map_location='cpu')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
