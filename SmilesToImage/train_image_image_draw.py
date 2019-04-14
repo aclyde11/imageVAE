@@ -111,14 +111,13 @@ class customLoss(nn.Module):
 
         return loss_MSE + loss_KLD #+ 1000.0 * loss_cripsy
 
-T = 15
-batch_size = 64
+T = 30
 A = 256
 B = 256
-z_size = 10
-N = 5
-dec_size = 256
-enc_size = 256
+z_size = 256
+N = 20
+dec_size = 512
+enc_size = 512
 
 model = DrawModel(T,A,B,z_size,N,dec_size,enc_size).cuda()
 
