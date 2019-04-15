@@ -115,17 +115,18 @@ class Flatten(nn.Module):
 #         return self.fc21(x), self.fc22(x)
 
 class PictureEncoder(nn.Module):
-    def __init__(self, rep_size=500):
+    def __init__(self, rep_size=256):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
-        self.encoder = ResNet(BasicBlock, [3, 2, 2, 3], num_classes=rep_size)
-        self.mu = nn.Linear(rep_size, rep_size)
-        self.logvar = nn.Linear(rep_size, rep_size)
+        self.encoder = ResNet(BasicBlock, [3, 2, 2, 2], num_classes=rep_size, in_classes=1)
+        self.encoder_color = ResNet(BasicBlock, [2, 1, 1, 2], num_classes=rep_size, in_classes=3)
 
     def forward(self, x):
-        x = self.encoder(x)
+        color_enc = self.encoder_color(x).view(-1, 256)
+        x = torch.sum(x, dim=1, keepdim=True)
+        black_enc = self.encoder(x).view(-1, 256)
 
-        return self.mu(x), self.logvar(x)
+        return black_enc, color_enc
 
 
 def conv3x3T(in_planes, out_planes, stride=1):
@@ -345,20 +346,19 @@ class TranposeConvBlock(nn.Module):
         x = self.relu(self.bn2(self.conv2(x)))
         return x
 
-
 class PictureDecoder(nn.Module):
-    def __init__(self, rep_size=500):
+    def __init__(self, rep_size=256):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
         # Sampling vector
         self.fc3 = nn.Linear(rep_size, rep_size)
         self.fc_bn3 = nn.BatchNorm1d(rep_size)
-        self.fc4 = nn.Linear(rep_size, rep_size)
-        self.fc_bn4 = nn.BatchNorm1d(rep_size)
+        self.fc4 = nn.Linear(rep_size, 500)
+        self.fc_bn4 = nn.BatchNorm1d(500)
 
         # Decoder
         self.preconv = nn.ConvTranspose2d(125, 128, kernel_size=3, stride=1, padding=0, bias=False)
-        self.conv15 = nn.ConvTranspose2d(128, 128, kernel_size=2, stride=2, padding=0,  bias=False)
+        self.conv15 = nn.ConvTranspose2d(128, 128, kernel_size=2, stride=2, padding=0, bias=False)
         self.conv15_ = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn15 = nn.BatchNorm2d(128)
         self.conv16 = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=2, padding=1, bias=False)
@@ -397,13 +397,10 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv17_(out))
         out = self.bn21(out)
 
-
-
         out = self.relu(self.conv18(out))
         out = self.relu(self.conv18_(out))
         out = self.bn22(out)
         out = self.conv19(out)
-
 
         out = self.sigmoid(out)
         return out
