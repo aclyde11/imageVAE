@@ -116,30 +116,29 @@ for param in vae_model.parameters():
     param.requires_grad = False
 vae_model = vae_model.cuda(5)
 
-
-checkpoint = torch.load("state_8.pt", map_location='cpu')
+#checkpoint = torch.load("state_8.pt", map_location='cpu')
 decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               embed_dim=emb_dim,
                               decoder_dim=decoder_dim,
                               vocab_size=train_data.get_vocab_len(),
                               encoder_dim=512,
                               dropout=dropout)
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
+#decoder.load_state_dict(checkpoint['decoder_state_dict'])
 decoder.fine_tune_embeddings(True)
 decoder = decoder.cuda(7)
 
 
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
-decoder_optimizer.load_state_dict(checkpoint['decoder_optimizer_state_dict'])
+#decoder_optimizer.load_state_dict(checkpoint['decoder_optimizer_state_dict'])
 encoder = Encoder()
-encoder.load_state_dict(checkpoint["encoder_state_dict"])
+#encoder.load_state_dict(checkpoint["encoder_state_dict"])
 encoder.fine_tune(fine_tune_encoder)
 encoder = encoder.cuda(6)
 
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
-encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer_state_dict'])
+#encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer_state_dict'])
 
 decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
 encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
