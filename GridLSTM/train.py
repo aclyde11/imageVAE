@@ -101,7 +101,7 @@ decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               embed_dim=emb_dim,
                               decoder_dim=decoder_dim,
                               vocab_size=len(vocab),
-                              encoder_dim=256,
+                              encoder_dim=512,
                               dropout=dropout)
 
 
@@ -217,10 +217,8 @@ def train(epoch):
         wrongs = []
         for batch_idx, (embed, data, embedlen) in enumerate(train_loader_food):
             rangeobj = None
-            if epoch > 2:
-                rangeobj = range(1,2)
-            else:
-                rangeobj = range(2)
+            rangeobj = range(1,2)
+
 
             for which_image in rangeobj:
 
