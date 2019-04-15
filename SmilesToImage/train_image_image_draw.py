@@ -52,7 +52,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 1e-3          ##adam rate
+LR = 5.0e-4          ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -115,7 +115,7 @@ T = 35
 A = 256
 B = 256
 z_size = 256
-N = 30
+N = 20
 dec_size = 256
 enc_size = 256
 
