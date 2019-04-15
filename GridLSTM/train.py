@@ -33,7 +33,7 @@ hyper_params = {
 experiment = Experiment(project_name="pytorch")
 experiment.log_parameters(hyper_params)
 batch_size = 350
-starting_epoch=8
+starting_epoch=1
 epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
@@ -85,9 +85,9 @@ def clip_gradient(optimizer, grad_clip):
             if param.grad is not None:
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
-emb_dim = 196  # dimension of word embeddings
-attention_dim = 512  # dimension of attention linear layers
-decoder_dim = 512  # dimension of decoder RNN
+emb_dim = 128  # dimension of word embeddings
+attention_dim = 256  # dimension of attention linear layers
+decoder_dim = 256  # dimension of decoder RNN
 dropout = 0.15
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # sets device for model and PyTorch tensors
 encoder_lr = 5e-4  # learning rate for encoder if fine-tuning
@@ -101,7 +101,7 @@ decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               embed_dim=emb_dim,
                               decoder_dim=decoder_dim,
                               vocab_size=len(vocab),
-                              encoder_dim=512,
+                              encoder_dim=256,
                               dropout=dropout)
 
 
