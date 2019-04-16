@@ -157,17 +157,17 @@ def clip_gradient(optimizer, grad_clip=1.0):
             if param.grad is not None:
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
-train_data = MoleLoader(smiles_lookup_train)
+#train_data = MoleLoader(smiles_lookup_train)
 # train_loader_food = torch.utils.data.DataLoader(
 #     train_data,
 #     batch_size=args.batch_size, shuffle=True, drop_last=True,
 #     **kwargs)
 
 
-train_loader_food = torch.utils.data.DataLoader(
-    train_data,
-    batch_size=args.batch_size, shuffle=True, drop_last=True, #sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=1250000))))),
-    **kwargs)
+#train_loader_food = torch.utils.data.DataLoader(
+#    train_data,
+#    batch_size=args.batch_size, shuffle=True, drop_last=True, #sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=1250000))))),
+#    **kwargs)
 
 val_data = MoleLoader(smiles_lookup_test)
 
@@ -249,14 +249,14 @@ def test(epoch):
         test_loss = 0
         with torch.no_grad():
             for i, (_, data, _) in enumerate(val_loader_food):
-                data = torch.mean(data, dim=1, keepdim=True).cuda()
+                data = data.cuda()
                 #aff = aff.float().cuda(4)
 
-                recon_batch, mu, logvar = model(data)
-
-
-                loss = loss_picture(recon_batch, data, mu, logvar, epoch)
-                loss = torch.sum(loss)
+                # recon_batch, mu, logvar = model(data)
+                #
+                #
+                # loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+                # loss = torch.sum(loss)
 
                 experiment.log_metric('loss', loss.item())
                 test_loss += loss.item()
