@@ -314,7 +314,7 @@ for epoch in range(starting_epoch, epochs):
     #      }, save_files + 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         print(datetime.datetime.now())
-        sample = torch.randn(1024, 256).to(device)
+        sample = torch.randn(128, 256).to(device)
         sample = model.module.decode(sample).cpu()
         print(datetime.datetime.now())
         exit()
