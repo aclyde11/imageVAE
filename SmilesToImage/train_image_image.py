@@ -62,8 +62,8 @@ model_load = None #{'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/deco
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
-output_dir = '/homes/aclyde11/imageVAE/im_im_ex/results/'
-save_files = '/homes/aclyde11/imageVAE/im_im_ex/model/'
+output_dir = '/homes/aclyde11/imageVAE/im_im_bw/results/'
+save_files = '/homes/aclyde11/imageVAE/im_im_bw/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': args.workers, 'pin_memory': True} if cuda else {}
 
@@ -101,14 +101,14 @@ class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         self.mse_loss = nn.MSELoss(reduction="sum")
-        #self.crispyLoss = MS_SSIM()
+        self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        #loss_cripsy = self.crispyLoss(x_recon, x)
+        loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + loss_KLD #+ 1000.0 * loss_cripsy
+        return loss_MSE + loss_KLD + 1000.0 * loss_cripsy
 
 model = None
 encoder = None
@@ -116,16 +116,16 @@ decoder = None
 encoder = PictureEncoder()
 decoder = PictureDecoder()
 
-checkpoint = torch.load( save_files + 'epoch_' + str(75) + '.pt', map_location='cpu')
-encoder.load_state_dict(checkpoint['encoder_state_dict'])
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
+#checkpoint = torch.load( save_files + 'epoch_' + str(75) + '.pt', map_location='cpu')
+# encoder.load_state_dict(checkpoint['encoder_state_dict'])
+# decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
-model = GeneralVae(encoder, decoder, rep_size=500).cuda()
+model = GeneralVae(encoder, decoder, rep_size=256).cuda()
 
 
 print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+# optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 for param_group in optimizer.param_groups:
    param_group['lr'] = LR
@@ -189,7 +189,8 @@ def train(epoch, size=100000):
         train_loss = 0
         loss = None
         for batch_idx, (_, data, _) in enumerate(train_loader_food):
-            data = data.cuda()
+            data = torch.mean(data, dim=1, keepdim=True).cuda()
+
 
             optimizer.zero_grad()
 
@@ -235,7 +236,7 @@ def test(epoch):
         test_loss = 0
         with torch.no_grad():
             for i, (_, data, _) in enumerate(val_loader_food):
-                data = data.cuda()
+                data = torch.mean(data, dim=1, keepdim=True).cuda()
                 #aff = aff.float().cuda(4)
 
                 recon_batch, mu, logvar = model(data)
