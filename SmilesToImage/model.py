@@ -162,7 +162,7 @@ class PictureEncoder(nn.Module):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
         self.encoder = ResNet(BasicBlock, [3, 2, 2, 2], num_classes=rep_size, in_classes=1)
-        self.encoder_color = ResNet(BasicBlock, [2, 1, 1, 2], num_classes=rep_size, in_classes=1)
+        self.encoder_color = ResNet(BasicBlock, [2, 1, 1, 2], num_classes=rep_size, in_classes=3)
 
     def forward(self, x):
         color_enc = self.encoder_color(x).view(-1, 256)
@@ -418,7 +418,7 @@ class PictureDecoder(nn.Module):
         self.conv18 = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=0, bias=False)
         self.conv18_ = nn.ConvTranspose2d(32, 16, kernel_size=5, stride=1, padding=0, bias=False)
         self.bn22 = nn.BatchNorm2d(16)
-        self.conv19 = nn.ConvTranspose2d(16, 1, kernel_size=5, stride=1, padding=0, bias=False)
+        self.conv19 = nn.ConvTranspose2d(16, 3, kernel_size=5, stride=1, padding=0, bias=False)
         self.relu = nn.LeakyReLU()
         self.sigmoid = nn.Sigmoid()
 
