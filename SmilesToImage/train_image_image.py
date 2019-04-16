@@ -317,5 +317,6 @@ for epoch in range(starting_epoch, epochs):
         sample = torch.randn(1024, 256).to(device)
         sample = model.module.decode(sample).cpu()
         print(datetime.datetime.now())
+        exit()
         save_image(sample.view(1024, 1, 256, 256),
                    output_dir + 'sample_' + str(epoch) + '.png')
