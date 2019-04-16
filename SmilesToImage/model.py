@@ -600,12 +600,9 @@ class GeneralVae(nn.Module):
         return self.encoder(x)
 
     def reparameterize(self, mu, logvar):
-        if self.training:
-            std = torch.exp(logvar.mul(0.5))
-            eps = Variable(std.data.new(std.size()).normal_())
-            return eps.mul(std).add_(mu)
-        else:
-            return mu
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
 
     def decode(self, z):
         return self.decoder(z)
