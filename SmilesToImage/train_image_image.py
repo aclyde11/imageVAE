@@ -251,7 +251,7 @@ def test(epoch):
                     ##
                     n = min(data.size(0), 8)
                     comparison = torch.cat([data[:n],
-                                            recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
+                                            recon_batch.view(get_batch_size(epoch), 1, 256, 256)[:n]])
                     save_image(comparison.cpu(),
                                output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
 
@@ -315,5 +315,5 @@ for epoch in range(starting_epoch, epochs):
     with torch.no_grad():
         sample = torch.randn(64, 256).to(device)
         sample = model.module.decode(sample).cpu()
-        save_image(sample.view(64, 3, 256, 256),
+        save_image(sample.view(64, 1, 256, 256),
                    output_dir + 'sample_' + str(epoch) + '.png')
