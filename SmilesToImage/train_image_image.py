@@ -297,23 +297,25 @@ def test(epoch):
 for epoch in range(starting_epoch, epochs):
 
 
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = LR
-    for param_group in optimizer.param_groups:
-        print("Current learning rate is: {}".format(param_group['lr']))
-        experiment.log_metric('lr', param_group['lr'])
-
-    loss = train(epoch)
-    test(epoch)
-
-    torch.save({
-        'epoch': epoch,
-        'encoder_state_dict': model.module.encoder.state_dict(),
-        'decoder_state_dict' : model.module.decoder.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict()
-         }, save_files + 'epoch_' + str(epoch) + '.pt')
+    # for param_group in optimizer.param_groups:
+    #     param_group['lr'] = LR
+    # for param_group in optimizer.param_groups:
+    #     print("Current learning rate is: {}".format(param_group['lr']))
+    #     experiment.log_metric('lr', param_group['lr'])
+    #
+    # #loss = train(epoch)
+    # #test(epoch)
+    #
+    # #torch.save({
+    #     'epoch': epoch,
+    #     'encoder_state_dict': model.module.encoder.state_dict(),
+    #     'decoder_state_dict' : model.module.decoder.state_dict(),
+    #     'optimizer_state_dict': optimizer.state_dict()
+    #      }, save_files + 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
-        sample = torch.randn(64, 256).to(device)
+        print(datetime.datetime.now())
+        sample = torch.randn(1024, 256).to(device)
         sample = model.module.decode(sample).cpu()
-        save_image(sample.view(64, 1, 256, 256),
+        print(datetime.datetime.now())
+        save_image(sample.view(1024, 1, 256, 256),
                    output_dir + 'sample_' + str(epoch) + '.png')
