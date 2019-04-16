@@ -18,7 +18,7 @@ class MS_SSIM(torch.nn.Module):
     def __init__(self, size_average = True, max_val = 255):
         super(MS_SSIM, self).__init__()
         self.size_average = size_average
-        self.channel = 3
+        self.channel = 1
         self.max_val = max_val
     def _ssim(self, img1, img2, size_average = True):
 
