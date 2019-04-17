@@ -264,12 +264,17 @@ def test(epoch):
                 test_loss += loss.item()
                 if i == 0:
                     ##
+                    n = min(data.size(0), 8)
+                    comparison = torch.cat([data[:n],
+                                            recon_batch.view(get_batch_size(epoch), 1, 256, 256)[:n]])
+                    save_image(comparison.cpu(),
+                               output_dir + 'open_reconstruction_' + str(epoch) + '.png', nrow=n)
 
                     n_image_gen = 8
                     images = []
                     data_latent = model.module.encode_latent_(data[:2, ...])
 
-                    for i in range(256):
+                    for i in range(20):
                         pt_1 = data_latent[0, ...].cpu()
                         sample_vec = open_ball(i, pt_1, eps=0.01)
                         sample_vec = sample_vec.cuda()
