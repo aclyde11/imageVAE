@@ -10,7 +10,7 @@ import torchvision
 from model import GeneralVae,  PictureDecoder, PictureEncoder
 import pickle
 from PIL import  ImageOps
-from utils import MS_SSIM
+from utils import MS_SSIM, AverageMeter
 from invert import Invert
 from rdkit import Chem
 from rdkit.Chem import rdDepictor
@@ -186,10 +186,9 @@ def train(epoch, size=100000):
         experiment.log_current_epoch(epoch)
         print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
         model.train()
-        train_loss = 0
-        loss = None
+        loss_meter = AverageMeter()
         for batch_idx, (_, data, _) in enumerate(train_loader_food):
-            data = torch.mean(data, dim=1, keepdim=True).cuda()
+            data = data.cuda()
 
 
             optimizer.zero_grad()
@@ -198,7 +197,7 @@ def train(epoch, size=100000):
 
             loss = loss_picture(recon_batch, data, mu, logvar, epoch)
             loss = torch.sum(loss)
-            train_loss += loss.item()
+            loss_meter.update(loss.item())
             experiment.log_metric('loss', loss.item() / get_batch_size(epoch))
 
             loss.backward()
@@ -211,12 +210,11 @@ def train(epoch, size=100000):
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                     epoch, batch_idx * len(data), len(train_loader_food.dataset),
                            100. * batch_idx / len(train_loader_food),
-                           loss.item() / len(data), datetime.datetime.now()))
+                           loss_meter.avg, datetime.datetime.now()))
 
         print('====> Epoch: {} Average loss: {:.4f}'.format(
-            epoch, train_loss / len(train_loader_food.dataset)))
-        train_losses.append(train_loss / len(train_loader_food.dataset))
-    return loss
+            epoch, loss_meter.avg))
+    return loss_meter.avg
 
 
 
@@ -236,7 +234,7 @@ def test(epoch):
         test_loss = 0
         with torch.no_grad():
             for i, (_, data, _) in enumerate(val_loader_food):
-                data = torch.mean(data, dim=1, keepdim=True).cuda()
+                data = data.cuda()
                 #aff = aff.float().cuda(4)
 
                 recon_batch, mu, logvar = model(data)
