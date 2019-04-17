@@ -189,7 +189,9 @@ def train(epoch, size=100000):
         loss_meter = AverageMeter()
         for batch_idx, (_, data, _) in enumerate(train_loader_food):
             data = data.cuda()
-
+            x = test(data)
+            print(x.shape)
+            exit()
 
             optimizer.zero_grad()
 
@@ -236,10 +238,8 @@ def test(epoch):
             for i, (_, data, _) in enumerate(val_loader_food):
                 data = data.cuda()
                 #aff = aff.float().cuda(4)
-                x = test(data)
-                print(x.shape)
-                exit()
-                #recon_batch, mu, logvar = model(data)
+
+                recon_batch, mu, logvar = model(data)
 
 
                 loss = loss_picture(recon_batch, data, mu, logvar, epoch)
