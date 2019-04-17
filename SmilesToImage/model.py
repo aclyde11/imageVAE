@@ -740,6 +740,7 @@ class PictureDecoder(nn.Module):
         out = self.conv19(out)
 
         out = self.sigmoid(out)
+        print(out.shape)
         return out
 
 
