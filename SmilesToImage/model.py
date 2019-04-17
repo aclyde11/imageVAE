@@ -701,10 +701,13 @@ class PictureDecoder(nn.Module):
         self.conv20 = nn.ConvTranspose2d(15, 7, kernel_size=4, stride=1, padding=0, bias=False)
         self.conv20_ = nn.ConvTranspose2d(7, 3, kernel_size=4, stride=1, padding=0, bias=False)
         self.bn20 = nn.BatchNorm2d(3)
-        self.conv17 = nn.ConvTranspose2d(10, 5, kernel_size=4, stride=2, padding=0, bias=False)
-        self.conv17_ = nn.ConvTranspose2d(5, 3, kernel_size=4, stride=1, padding=0, bias=False)
-        self.bn21 = nn.BatchNorm2d(3)
         self.upper2 = nn.UpsamplingNearest2d(scale_factor=2)
+
+
+        self.conv17 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=2, padding=0, bias=False)
+        self.conv17_ = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
+        self.bn21 = nn.BatchNorm2d(3)
+
 
         self.conv18 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
         self.conv18_ = nn.ConvTranspose2d(3, 3, kernel_size=5, stride=1, padding=0, bias=False)
@@ -739,7 +742,7 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv17(out))
         out = self.relu(self.conv17_(out))
         out = self.bn21(out)
-
+        print("upper3", out.shape)
 
 
         out = self.relu(self.conv18(out))
