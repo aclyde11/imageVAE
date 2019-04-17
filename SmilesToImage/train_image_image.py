@@ -288,9 +288,9 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
         experiment.log_metric('lr', param_group['lr'])
 
-    loss = train(epoch)
+    #loss = train(epoch)
     test(epoch)
-
+    exit()
     torch.save({
         'epoch': epoch,
         'encoder_state_dict': model.module.encoder.state_dict(),
