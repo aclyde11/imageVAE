@@ -272,7 +272,7 @@ def test(epoch):
                     for i in range(256):
                         pt_1 = data_latent[0, ...].cpu()
                         sample_vec = open_ball(i, pt_1, eps=0.01)
-                        sample_vec = ample_vec.cuda()
+                        sample_vec = sample_vec.cuda()
                         images.append(model.module.decode(sample_vec).cpu())
                     save_image(torch.cat(images), output_dir + 'open_ball_' + str(epoch) + '.png', nrow=9)
 
