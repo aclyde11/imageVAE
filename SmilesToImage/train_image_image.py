@@ -249,7 +249,7 @@ def test(epoch):
                     ##
                     n = min(data.size(0), 8)
                     comparison = torch.cat([data[:n],
-                                            recon_batch.view(get_batch_size(epoch), 1, 256, 256)[:n]])
+                                            recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
                     save_image(comparison.cpu(),
                                output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
 
@@ -269,18 +269,6 @@ def test(epoch):
                         sample_vec = torch.from_numpy(sample_vec).to(device)
                         images.append(model.module.decode(sample_vec).cpu())
                     save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
-
-                    n_image_gen = 8
-                    images = []
-                    n_samples_linspace = 16
-                    for i in range(n_image_gen):
-                        pt_1 = data_latent[i, ...].cpu().numpy()
-                        pt_2 = data_latent[i + 1, ...].cpu().numpy()
-                        sample_vec = interpolate_points(pt_1, pt_2,
-                                                        np.linspace(0, 1, num=n_samples_linspace, endpoint=True))
-                        sample_vec = torch.from_numpy(sample_vec).to(device)
-                        images.append(model.module.decode(sample_vec).cpu())
-                    save_image(torch.cat(images), output_dir + 'linspace_path_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
 
 
