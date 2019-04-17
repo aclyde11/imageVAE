@@ -272,10 +272,10 @@ def test(epoch):
 
                     n_image_gen = 8
                     images = []
-                    data_latent = model.module.encode_latent_(data[:2, ...])
+                    data_latent = model.module.encode_latent_(data[:64, ...])
 
                     for i in range(20):
-                        pt_1 = data_latent[128, ...].cpu()
+                        pt_1 = data_latent[34, ...].cpu()
                         sample_vec = open_ball(i, pt_1, eps=0.2)
                         sample_vec = sample_vec.cuda()
                         images.append(model.module.decode(sample_vec).cpu())
