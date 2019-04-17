@@ -230,7 +230,9 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def open_ball(i, x, eps):
+    x = x.view(1, 256)
     print(x.shape)
+
     x = x.repeat(256 * 9, 1)
     for j in range(4):
         x[i * 9 + j, i] = x[i*9 + j, i] * (1 + (4-j) * eps)
