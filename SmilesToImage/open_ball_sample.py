@@ -236,11 +236,11 @@ def open_ball(i, x, eps):
     print(x.shape)
 
     for j in range(4):
-        x[i * 9 + j, i] = x[i*9 + j, i] * (1 + (4-j) * eps)
+        x[0 + j, i] = x[0 + j, i] * (1 + (4-j) * eps)
 
     # 4 stays same
     for j in range(5, 9):
-        x[i * 9 + j, i] = x[i*9 + j, i] * (1 + (j-4) * eps)
+        x[0 + j, i] = x[0 + j, i] * (1 + (j-4) * eps)
     return x
 
 
