@@ -45,7 +45,7 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=86
+starting_epoch=124
 epochs = 500
 no_cuda = False
 seed = 42
@@ -116,7 +116,7 @@ decoder = None
 encoder = PictureEncoder()
 decoder = PictureDecoder()
 
-checkpoint = torch.load( save_files + 'epoch_' + str(85) + '.pt', map_location='cpu')
+checkpoint = torch.load( save_files + 'epoch_' + str(124) + '.pt', map_location='cpu')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
@@ -236,11 +236,11 @@ def open_ball(i, x, eps):
     print(x.shape)
 
     for j in range(4):
-        x[0 + j, i] = x[0 + j, i] * (1 + (4-j) * eps)
+        x[0 + j, i] = x[j, i]  + (4-j)
 
     # 4 stays same
     for j in range(5, 9):
-        x[0 + j, i] = x[0 + j, i] * (1 + (j-4) * eps)
+        x[0 + j, i] = x[j, i] +  (j-4)
     return x
 
 
