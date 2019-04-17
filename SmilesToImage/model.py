@@ -707,12 +707,16 @@ class PictureDecoder(nn.Module):
         self.conv17 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=2, padding=0, bias=False)
         self.conv17_ = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
         self.bn21 = nn.BatchNorm2d(3)
+        self.upper3 = nn.UpsamplingNearest2d(size=(256,256))
+
+        self.nconv1 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=0, bias=False)
+        self.nconv2 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=0, bias=False)
 
 
-        self.conv18 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
-        self.conv18_ = nn.ConvTranspose2d(3, 3, kernel_size=5, stride=1, padding=0, bias=False)
-        self.bn22 = nn.BatchNorm2d(3)
-        self.conv19 = nn.ConvTranspose2d(3, 3, kernel_size=5, stride=1, padding=0, bias=False)
+        # self.conv18 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
+        # self.conv18_ = nn.ConvTranspose2d(3, 3, kernel_size=5, stride=1, padding=0, bias=False)
+        # self.bn22 = nn.BatchNorm2d(3)
+        # self.conv19 = nn.ConvTranspose2d(3, 3, kernel_size=5, stride=1, padding=0, bias=False)
         self.relu = nn.LeakyReLU()
         self.pixelcnn = PixelCNN()
         self.sigmoid = nn.Sigmoid()
@@ -742,13 +746,14 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv17(out))
         out = self.relu(self.conv17_(out))
         out = self.bn21(out)
+        out = self.upper3(out)
         print("upper3", out.shape)
 
+        self.nconv1 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=0, bias=False)
+        self.nconv2 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=0, bias=False)
 
-        out = self.relu(self.conv18(out))
-        out = self.relu(self.conv18_(out))
-        out = self.bn22(out)
-        out = self.conv19(out)
+        out = self.relu(self.nconv1(out))
+        out = self.nconv1(out)
 
         out = self.sigmoid(out)
         print(out.shape)
