@@ -7,7 +7,7 @@ from torch import nn, optim
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
-from model import GeneralVae,  PictureDecoder, PictureEncoder
+from model import GeneralVae,  PictureDecoder, PictureEncoder, PixelCNN
 import pickle
 from PIL import  ImageOps
 from utils import MS_SSIM, AverageMeter
@@ -115,6 +115,7 @@ encoder = None
 decoder = None
 encoder = PictureEncoder(rep_size=256)
 decoder = PictureDecoder()
+test = PixelCNN().cuda()
 #checkpoint = torch.load( save_files + 'epoch_' + str(8) + '.pt', map_location='cpu')
 #encoder.load_state_dict(checkpoint['encoder_state_dict'])
 #decoder.load_state_dict(checkpoint['decoder_state_dict'])
@@ -235,8 +236,10 @@ def test(epoch):
             for i, (_, data, _) in enumerate(val_loader_food):
                 data = data.cuda()
                 #aff = aff.float().cuda(4)
-
-                recon_batch, mu, logvar = model(data)
+                x = test(data)
+                print(x.shape)
+                exit()
+                #recon_batch, mu, logvar = model(data)
 
 
                 loss = loss_picture(recon_batch, data, mu, logvar, epoch)
