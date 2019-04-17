@@ -116,7 +116,7 @@ decoder = None
 encoder = PictureEncoder()
 decoder = PictureDecoder()
 
-checkpoint = torch.load( save_files + 'epoch_' + str(100) + '.pt', map_location='cpu')
+checkpoint = torch.load( save_files + 'epoch_' + str(85) + '.pt', map_location='cpu')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
@@ -253,16 +253,15 @@ def test(epoch):
         with torch.no_grad():
             for i, (_, data, _) in enumerate(val_loader_food):
                 data = data.cuda()
-                #aff = aff.float().cuda(4)
 
-                # recon_batch, mu, logvar = model(data)
-                #
-                #
-                # loss = loss_picture(recon_batch, data, mu, logvar, epoch)
-                # loss = torch.sum(loss)
+                recon_batch, mu, logvar = model(data)
 
-                # experiment.log_metric('loss', loss.item())
-                # test_loss += loss.item()
+
+                loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+                loss = torch.sum(loss)
+
+                experiment.log_metric('loss', loss.item())
+                test_loss += loss.item()
                 if i == 0:
                     ##
 
