@@ -115,7 +115,7 @@ encoder = None
 decoder = None
 encoder = PictureEncoder(rep_size=256)
 decoder = PictureDecoder()
-test = PixelCNN().cuda()
+testmodel = PixelCNN().cuda()
 #checkpoint = torch.load( save_files + 'epoch_' + str(8) + '.pt', map_location='cpu')
 #encoder.load_state_dict(checkpoint['encoder_state_dict'])
 #decoder.load_state_dict(checkpoint['decoder_state_dict'])
@@ -189,7 +189,7 @@ def train(epoch, size=100000):
         loss_meter = AverageMeter()
         for batch_idx, (_, data, _) in enumerate(train_loader_food):
             data = data.cuda()
-            x = test(data)
+            x = testmodel(data)
             print(x.shape)
             exit()
 
@@ -199,8 +199,8 @@ def train(epoch, size=100000):
 
             loss = loss_picture(recon_batch, data, mu, logvar, epoch)
             loss = torch.sum(loss)
-            loss_meter.update(loss.item())
-            experiment.log_metric('loss', loss.item() / get_batch_size(epoch))
+            loss_meter.update(loss.item(), int(recon_batch.shape[0]))
+            experiment.log_metric('loss', loss_meter.avg)
 
             loss.backward()
 
