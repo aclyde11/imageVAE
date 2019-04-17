@@ -34,6 +34,7 @@ class MoleLoader(torch.utils.data.Dataset):
         if not mc.GetNumConformers():
             rdDepictor.Compute2DCoords(mc)
         drawer = rdMolDraw2D.MolDraw2DSVG(molSize[0], molSize[1])
+        rdMolDraw2D.MolDraw2D.SetFontSize(drawer, 16)
         drawer.DrawMolecule(mc)
         drawer.FinishDrawing()
         svg = drawer.GetDrawingText()
