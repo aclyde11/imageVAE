@@ -270,7 +270,7 @@ def test(epoch):
                     data_latent = model.module.encode_latent_(data[:2, ...])
 
                     for i in range(256):
-                        pt_1 = data_latent[0, ...].cpu().numpy()
+                        pt_1 = data_latent[0, ...].cpu()
                         sample_vec = open_ball(i, pt_1, eps=0.01)
                         sample_vec = torch.from_numpy(sample_vec).to(device)
                         images.append(model.module.decode(sample_vec).cpu())
