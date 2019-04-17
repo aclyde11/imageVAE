@@ -236,11 +236,11 @@ def open_ball(i, x, eps):
     print(x.shape)
 
     for j in range(4):
-        x[0 + j, i] = x[j, i]  + (4-j)
+        x[0 + j, i] = x[j, i]  + (4-j) * 3
 
     # 4 stays same
     for j in range(5, 9):
-        x[0 + j, i] = x[j, i] +  (j-4)
+        x[0 + j, i] = x[j, i] +  (j-4) * 3
     return x
 
 
@@ -275,7 +275,7 @@ def test(epoch):
                     data_latent = model.module.encode_latent_(data[:2, ...])
 
                     for i in range(20):
-                        pt_1 = data_latent[0, ...].cpu()
+                        pt_1 = data_latent[128, ...].cpu()
                         sample_vec = open_ball(i, pt_1, eps=0.2)
                         sample_vec = sample_vec.cuda()
                         images.append(model.module.decode(sample_vec).cpu())
