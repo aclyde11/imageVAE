@@ -115,7 +115,7 @@ encoder = None
 decoder = None
 encoder = PictureEncoder()
 decoder = PictureDecoder()
-checkpoint = torch.load( save_files + 'epoch_' + str(9) + '.pt', map_location='cpu')
+checkpoint = torch.load( save_files + 'epoch_' + str(8) + '.pt', map_location='cpu')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
