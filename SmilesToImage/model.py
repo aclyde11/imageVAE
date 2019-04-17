@@ -166,6 +166,7 @@ class PictureEncoder(nn.Module):
 
     def forward(self, x):
         color_enc = self.encoder_color(x).view(-1, 256)
+        x = torch.mean(x, dim=1, keepdim=True)
         black_enc = self.encoder(x).view(-1, 256)
 
         return black_enc, color_enc
