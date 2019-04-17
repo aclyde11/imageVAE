@@ -266,7 +266,7 @@ def test(epoch):
                     ##
                     n = min(data.size(0), 8)
                     comparison = torch.cat([data[:n],
-                                            recon_batch.view(get_batch_size(epoch), 1, 256, 256)[:n]])
+                                            recon_batch.view(get_batch_size(epoch), 3, 256, 256)[:n]])
                     save_image(comparison.cpu(),
                                output_dir + 'open_reconstruction_' + str(epoch) + '.png', nrow=n)
 
