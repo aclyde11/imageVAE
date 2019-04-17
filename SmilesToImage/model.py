@@ -749,11 +749,9 @@ class PictureDecoder(nn.Module):
         out = self.upper3(out)
         print("upper3", out.shape)
 
-        self.nconv1 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=0, bias=False)
-        self.nconv2 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=0, bias=False)
 
         out = self.relu(self.nconv1(out))
-        out = self.nconv1(out)
+        out = self.nconv2(out)
 
         out = self.sigmoid(out)
         print(out.shape)
