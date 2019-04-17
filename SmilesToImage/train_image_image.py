@@ -49,7 +49,7 @@ starting_epoch=1
 epochs = 500
 no_cuda = False
 seed = 42
-data_para = True
+data_para = False
 log_interval = 20
 LR = 1.0e-4         ##adam rate
 rampDataSize = 0.3 ## data set size to use
@@ -189,9 +189,6 @@ def train(epoch, size=100000):
         loss_meter = AverageMeter()
         for batch_idx, (_, data, _) in enumerate(train_loader_food):
             data = data.cuda()
-            x = testmodel(data)
-            print(x.shape)
-            exit()
 
             optimizer.zero_grad()
 
