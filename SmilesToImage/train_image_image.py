@@ -51,7 +51,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 5.0e-4         ##adam rate
+LR = 1.0e-4         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -101,31 +101,30 @@ class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         self.mse_loss = nn.MSELoss(reduction="sum")
-        #self.crispyLoss = MS_SSIM()
+        self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        #loss_cripsy = self.crispyLoss(x_recon, x)
+        loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + loss_KLD #+ 1000.0 * loss_cripsy
+        return loss_MSE + loss_KLD + 10000.0 * loss_cripsy
 
 model = None
 encoder = None
 decoder = None
 encoder = PictureEncoder()
 decoder = PictureDecoder()
-
-#checkpoint = torch.load( save_files + 'epoch_' + str(75) + '.pt', map_location='cpu')
-# encoder.load_state_dict(checkpoint['encoder_state_dict'])
-# decoder.load_state_dict(checkpoint['decoder_state_dict'])
+checkpoint = torch.load( save_files + 'epoch_' + str(9) + '.pt', map_location='cpu')
+encoder.load_state_dict(checkpoint['encoder_state_dict'])
+decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=256).cuda()
 
 
 print("LR: {}".format(LR))
 optimizer = optim.SGD(model.parameters(), lr=LR, momentum=0.85)
-# optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 for param_group in optimizer.param_groups:
    param_group['lr'] = LR
