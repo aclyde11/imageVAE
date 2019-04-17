@@ -51,7 +51,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 20
-LR = 5.0e-4         ##adam rate
+LR = 1.0e-4         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -113,17 +113,17 @@ class customLoss(nn.Module):
 model = None
 encoder = None
 decoder = None
-encoder = PictureEncoder()
+encoder = PictureEncoder(rep_size=256)
 decoder = PictureDecoder()
-checkpoint = torch.load( save_files + 'epoch_' + str(8) + '.pt', map_location='cpu')
-encoder.load_state_dict(checkpoint['encoder_state_dict'])
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
+#checkpoint = torch.load( save_files + 'epoch_' + str(8) + '.pt', map_location='cpu')
+#encoder.load_state_dict(checkpoint['encoder_state_dict'])
+#decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=256).cuda()
 
 
 print("LR: {}".format(LR))
-optimizer = optim.Adam(model.parameters(), lr=LR)
+optimizer = optim.SGD(model.parameters(), lr=LR, momentum=0.8, nesterov=True)
 #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 for param_group in optimizer.param_groups:
