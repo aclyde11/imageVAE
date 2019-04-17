@@ -691,8 +691,9 @@ class PictureDecoder(nn.Module):
 
         # Decoder
         self.preconv = nn.ConvTranspose2d(4, 4, kernel_size=3, stride=1, padding=0, bias=False)
-        self.conv15 = nn.ConvTranspose2d(4, 3, kernel_size=3, stride=2, padding=0, bias=False)
+        self.conv15 = nn.ConvTranspose2d(4, 3, kernel_size=2, stride=2, padding=0, bias=False)
         self.conv15_ = nn.ConvTranspose2d(3, 3, kernel_size=3, stride=2, padding=0, bias=False)
+        self.upper = nn.UpsamplingBilinear2d(scale_factor=2)
         self.bn15 = nn.BatchNorm2d(3)
         self.conv16 = nn.ConvTranspose2d(50, 40, kernel_size=3, stride=2, padding=0, bias=False)
         self.conv16_ = nn.ConvTranspose2d(40, 30, kernel_size=3, stride=1, padding=0, bias=False)
@@ -717,11 +718,12 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
         out = self.bn15(out)
+        out  = self.upper(out)
 
         ## pixel cnn
-        print(out.shape)
+        print('pre pixel', out.shape)
         out = self.pixelcnn(out)
-        print(out.shape)
+        print('post pixel', out.shape)
 
         out = self.relu(self.conv16(out))
         out = self.relu(self.conv16_(out))
