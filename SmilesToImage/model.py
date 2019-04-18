@@ -259,7 +259,6 @@ class PixelCNN(nn.Module):
 
         num_mix = 3 if self.input_channels == 1 else 10
         self.nin_out = nin(nr_filters, num_mix * nr_logistic_mix)
-        self.init_padding = None
 
     def forward(self, x, sample=False):
         # similar as done in the tf repo :
@@ -274,8 +273,8 @@ class PixelCNN(nn.Module):
         else:
             xs = [int(y) for y in x.size()]
             padding = Variable(torch.ones(xs[0], 1, xs[2], xs[3]), requires_grad=False)
-            self.init_padding = padding.cuda() if x.is_cuda else padding
-            x = torch.cat((x, self.init_padding), 1)
+            init_padding = padding.cuda() if x.is_cuda else padding
+            x = torch.cat((x, init_padding), 1)
         # else:
         #     x = torch.cat((x, self.init_padding), 1)
         # print("PADDING: ", self.init_padding.shape)
