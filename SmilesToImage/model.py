@@ -754,7 +754,7 @@ class PictureDecoder(nn.Module):
         # out = self.relu(self.conv20(out))
         # out = self.relu(self.conv20_(out))
         # out = self.bn20(out)
-        out = self.upper2(out)
+        # out = self.upper2(out)
         # out = self.relu(self.conv17(out))
         # out = self.relu(self.conv17_(out))
         # out = self.bn21(out)
