@@ -263,8 +263,8 @@ class PixelCNN(nn.Module):
 
     def forward(self, x, sample=False):
         # similar as done in the tf repo :
+        print("SHAPE: ", x.shape, x.dtype)
 
-        print("PADDING: ", self.init_padding.shape, "SHAPE ", x.shape)
         try:
             if self.init_padding is None and not sample:
                 xs = [int(y) for y in x.size()]
@@ -277,6 +277,8 @@ class PixelCNN(nn.Module):
                 padding = Variable(torch.ones(xs[0], 1, xs[2], xs[3]), requires_grad=False)
                 padding = padding.cuda() if x.is_cuda else padding
                 x = torch.cat((x, padding), 1)
+            print("PADDING: ", self.init_padding.shape)
+
         except:
             print("ERROR")
             print(x.shape, self.init_padding)
