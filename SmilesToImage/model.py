@@ -719,13 +719,13 @@ class PictureDecoder(nn.Module):
 
 
 
-        self.preconv = nn.Conv2d(1, 3, kernel_size=3, stride=1, padding=1, bias=False)
-        self.conv15 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-        self.conv15_ = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn15 = nn.BatchNorm2d(3)  # 16 x 16
-        self.upper1 = nn.ConvTranspose2d(3, 3, kernel_size=3, stride=2, padding=1)   # 32 x 32
-        self.conv16 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-        self.conv16_ =nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
+        self.preconv = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv15 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv15_ = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn15 = nn.BatchNorm2d(1)  # 16 x 16
+        self.upper1 = nn.ConvTranspose2d(1, 1, kernel_size=3, stride=2, padding=1)   # 32 x 32
+        self.conv16 = nn.Conv2d(1, 2, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv16_ =nn.Conv2d(2, 3, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn16 = nn.BatchNorm2d(3)
         self.upper2 = nn.ConvTranspose2d(3, 3, kernel_size=6, stride=2, padding=2)   # 64 x 64
 
