@@ -214,7 +214,7 @@ class PixelCNNLayer_down(nn.Module):
 
 
 class PixelCNN(nn.Module):
-    def __init__(self, nr_resnet=5, nr_filters=10, nr_logistic_mix=10,
+    def __init__(self, nr_resnet=5, nr_filters=10, nr_logistic_mix=6,
                  resnet_nonlinearity='concat_elu', input_channels=3):
         super(PixelCNN, self).__init__()
         if resnet_nonlinearity == 'concat_elu':
@@ -698,10 +698,10 @@ class PictureDecoder(nn.Module):
 
 
         # Decoder
-        self.preconv = nn.ConvTranspose2d(4, 4, kernel_size=3, stride=1, padding=0, bias=False)
-        self.conv15 = nn.ConvTranspose2d(4, 3, kernel_size=3, stride=1, padding=0, bias=False)
-        self.conv15_ = nn.ConvTranspose2d(3, 3, kernel_size=3, stride=2, padding=0, bias=False)
-        self.upper = nn.UpsamplingBilinear2d(size=(20,20))
+        self.preconv = nn.ConvTranspose2d(4, 4, kernel_size=3, stride=2, padding=0, bias=False)
+        self.conv15 = nn.ConvTranspose2d(4, 3, kernel_size=3, stride=2, padding=0, bias=False)
+        self.conv15_ = nn.ConvTranspose2d(3, 3, kernel_size=3, stride=1, padding=0, bias=False)
+        self.upper = nn.UpsamplingBilinear2d(size=(128,128))
         self.bn15 = nn.BatchNorm2d(3)
         self.conv16 = nn.ConvTranspose2d(60, 30, kernel_size=3, stride=1, padding=0, bias=False)
         self.conv16_ = nn.ConvTranspose2d(30, 15, kernel_size=3, stride=1, padding=0, bias=False)
