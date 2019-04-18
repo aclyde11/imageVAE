@@ -727,7 +727,7 @@ class PictureDecoder(nn.Module):
         # self.bn22 = nn.BatchNorm2d(3)
         # self.conv19 = nn.ConvTranspose2d(3, 3, kernel_size=5, stride=1, padding=0, bias=False)
         self.relu = nn.LeakyReLU()
-        self.pixelcnn = PixelCNN()
+        #self.pixelcnn = PixelCNN()
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, out):
