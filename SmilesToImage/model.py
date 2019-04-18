@@ -263,6 +263,7 @@ class PixelCNN(nn.Module):
 
     def forward(self, x, sample=False):
         # similar as done in the tf repo :
+        print("Sample: ", sample)
         print("SHAPE: ", x.shape, x.dtype)
 
         try:
