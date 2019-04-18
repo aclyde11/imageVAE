@@ -266,20 +266,18 @@ class PixelCNN(nn.Module):
         print("Sample: ", sample)
         print("SHAPE: ", x.shape, x.dtype)
 
-        if self.init_padding is None and not sample:
-            xs = [int(y) for y in x.size()]
-            padding = Variable(torch.ones(xs[0], 1, xs[2], xs[3]), requires_grad=False)
-            self.init_padding = padding.cuda() if x.is_cuda else padding
-            x = torch.cat((x, self.init_padding), 1)
-
-        if self.init_padding is not None and not sample:
-            x = torch.cat((x, self.init_padding), 1)
-
         if sample:
             xs = [int(y) for y in x.size()]
             padding = Variable(torch.ones(xs[0], 1, xs[2], xs[3]), requires_grad=False)
             padding = padding.cuda() if x.is_cuda else padding
             x = torch.cat((x, padding), 1)
+        elif self.init_padding is None:
+            xs = [int(y) for y in x.size()]
+            padding = Variable(torch.ones(xs[0], 1, xs[2], xs[3]), requires_grad=False)
+            self.init_padding = padding.cuda() if x.is_cuda else padding
+            x = torch.cat((x, self.init_padding), 1)
+        else:
+            x = torch.cat((x, self.init_padding), 1)
         print("PADDING: ", self.init_padding.shape)
 
 
