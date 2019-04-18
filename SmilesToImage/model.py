@@ -700,21 +700,21 @@ class PictureDecoder(nn.Module):
         # Decoder
         self.preconv = nn.ConvTranspose2d(4, 4, kernel_size=3, stride=2, padding=0, bias=False)
         self.conv15 = nn.ConvTranspose2d(4, 3, kernel_size=3, stride=2, padding=0, bias=False)
-        self.conv15_ = nn.ConvTranspose2d(3, 3, kernel_size=3, stride=1, padding=0, bias=False)
+        self.conv15_ = nn.ConvTranspose2d(3, 3, kernel_size=3, stride=2, padding=0, bias=False)
         self.upper = nn.UpsamplingBilinear2d(size=(128,128))
         self.bn15 = nn.BatchNorm2d(3)
-        self.conv16 = nn.ConvTranspose2d(60, 30, kernel_size=3, stride=1, padding=0, bias=False)
-        self.conv16_ = nn.ConvTranspose2d(30, 15, kernel_size=3, stride=1, padding=0, bias=False)
-        self.bn16 = nn.BatchNorm2d(15)
-        self.conv20 = nn.ConvTranspose2d(15, 7, kernel_size=4, stride=1, padding=0, bias=False)
-        self.conv20_ = nn.ConvTranspose2d(7, 3, kernel_size=4, stride=1, padding=0, bias=False)
-        self.bn20 = nn.BatchNorm2d(3)
-        self.upper2 = nn.UpsamplingNearest2d(scale_factor=2)
+        # self.conv16 = nn.ConvTranspose2d(60, 30, kernel_size=3, stride=1, padding=0, bias=False)
+        # self.conv16_ = nn.ConvTranspose2d(30, 15, kernel_size=3, stride=1, padding=0, bias=False)
+        # self.bn16 = nn.BatchNorm2d(15)
+        # self.conv20 = nn.ConvTranspose2d(15, 7, kernel_size=4, stride=1, padding=0, bias=False)
+        # self.conv20_ = nn.ConvTranspose2d(7, 3, kernel_size=4, stride=1, padding=0, bias=False)
+        # self.bn20 = nn.BatchNorm2d(3)
+        # self.upper2 = nn.UpsamplingNearest2d(scale_factor=2)
 
 
-        self.conv17 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=2, padding=0, bias=False)
-        self.conv17_ = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
-        self.bn21 = nn.BatchNorm2d(3)
+        # self.conv17 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
+        # self.conv17_ = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
+        # self.bn21 = nn.BatchNorm2d(3)
         self.upper3 = nn.UpsamplingNearest2d(size=(256,256))
 
         self.nconv1 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
@@ -730,6 +730,7 @@ class PictureDecoder(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, out):
+        bs = out.shape[0]
         out = out.view(-1, 4, 8, 8)
         out = self.relu(self.preconv(out))
         out = self.relu(self.conv15(out))
@@ -738,21 +739,25 @@ class PictureDecoder(nn.Module):
         print(out.shape)
         out  = self.upper(out)
 
+
         ## pixel cnn
         out = self.pixelcnn(out)
+        out = out.view(bs, 3, 256, 256, -1)
+        out = nn.Softmax(dim=4)(out)
+
         print("pixel out: ", out.shape)
 
-        out = self.relu(self.conv16(out))
-        out = self.relu(self.conv16_(out))
-        out = self.bn16(out)
-
-        out = self.relu(self.conv20(out))
-        out = self.relu(self.conv20_(out))
-        out = self.bn20(out)
+        # out = self.relu(self.conv16(out))
+        # out = self.relu(self.conv16_(out))
+        # out = self.bn16(out)
+        #
+        # out = self.relu(self.conv20(out))
+        # out = self.relu(self.conv20_(out))
+        # out = self.bn20(out)
         out = self.upper2(out)
-        out = self.relu(self.conv17(out))
-        out = self.relu(self.conv17_(out))
-        out = self.bn21(out)
+        # out = self.relu(self.conv17(out))
+        # out = self.relu(self.conv17_(out))
+        # out = self.bn21(out)
         out = self.upper3(out)
 
 
