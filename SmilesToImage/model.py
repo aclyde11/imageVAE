@@ -744,8 +744,9 @@ class PictureDecoder(nn.Module):
         out = self.pixelcnn(out)
         out = out.contiguous().view(bs, 3, -1, 128, 128)
         out = nn.Softmax(dim=2)(out)
+        out, _ = torch.max(out, dim=2, keepdim=False)
 
-        print("pixel out: ", out.shape)
+        #print("pixel out: ", out.shape)
 
         # out = self.relu(self.conv16(out))
         # out = self.relu(self.conv16_(out))
