@@ -196,7 +196,10 @@ for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
     train(epoch)
-    test(epoch)
+    try:
+        test(epoch)
+    except :
+        print("Woah. Validation error...")
     torch.save(model.module, 'epoch_' + str(epoch) + '.pt')
     with torch.no_grad():
         sample = torch.randn(64, 2000).to(device)
