@@ -736,7 +736,7 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
         out = self.bn15(out)
-        print(out.shape)
+        #print(out.shape)
         out  = self.upper(out)
 
 
