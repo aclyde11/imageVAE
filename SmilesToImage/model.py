@@ -263,20 +263,27 @@ class PixelCNN(nn.Module):
 
     def forward(self, x, sample=False):
         # similar as done in the tf repo :
-        if self.init_padding is None and not sample:
-            xs = [int(y) for y in x.size()]
-            padding = Variable(torch.ones(xs[0], 1, xs[2], xs[3]), requires_grad=False)
-            self.init_padding = padding.cuda() if x.is_cuda else padding
+        try:
+            if self.init_padding is None and not sample:
+                xs = [int(y) for y in x.size()]
+                padding = Variable(torch.ones(xs[0], 1, xs[2], xs[3]), requires_grad=False)
+                self.init_padding = padding.cuda() if x.is_cuda else padding
+                x = torch.cat((x, self.init_padding), 1)
 
-        if sample:
-            xs = [int(y) for y in x.size()]
-            padding = Variable(torch.ones(xs[0], 1, xs[2], xs[3]), requires_grad=False)
-            padding = padding.cuda() if x.is_cuda else padding
-            x = torch.cat((x, padding), 1)
+            if self.init_padding is not None and not sample and x.shape[0] != self.init_padding.shape[0]:
+                x = torch.cat((x, self.init_padding[:int(x.shape[0])]), 1)
+
+            if sample:
+                xs = [int(y) for y in x.size()]
+                padding = Variable(torch.ones(xs[0], 1, xs[2], xs[3]), requires_grad=False)
+                padding = padding.cuda() if x.is_cuda else padding
+                x = torch.cat((x, padding), 1)
+        except:
+            print("ERROR")
+            print(x.shape, self.init_padding.shape)
 
         ###      UP PASS    ###
-        print("PIXIE" , x.shape, self.init_padding.shape)
-        x = x if sample else torch.cat((x, self.init_padding), 1)
+
         u_list = [self.u_init(x)]
         ul_list = [self.ul_init[0](x) + self.ul_init[1](x)]
         for i in range(3):
