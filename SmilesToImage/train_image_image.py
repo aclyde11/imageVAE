@@ -126,8 +126,13 @@ print("LR: {}".format(LR))
 optimizer = optim.SGD(model.parameters(), lr=LR, momentum=0.8, nesterov=True)
 #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
+
+
 for param_group in optimizer.param_groups:
    param_group['lr'] = LR
+
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=1e-4, last_epoch=-1)
+
 
 if data_para and torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -281,6 +286,8 @@ def test(epoch):
 
 for epoch in range(starting_epoch, epochs):
 
+
+    sched.step()
 
     for param_group in optimizer.param_groups:
         param_group['lr'] = LR
