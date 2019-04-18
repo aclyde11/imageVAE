@@ -236,7 +236,6 @@ def test(epoch):
                 #aff = aff.float().cuda(4)
 
 
-                print(data.shape)
                 recon_batch, mu, logvar = model(data)
 
 
@@ -290,21 +289,16 @@ for epoch in range(starting_epoch, epochs):
         experiment.log_metric('lr', param_group['lr'])
 
     loss = train(epoch)
-    try:
-        test(epoch)
-    except:
-        print("Woah validation error...")
+    test(epoch)
+
     torch.save({
         'epoch': epoch,
         'encoder_state_dict': model.module.encoder.state_dict(),
         'decoder_state_dict' : model.module.decoder.state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
          }, save_files + 'epoch_' + str(epoch) + '.pt')
-    try:
-        with torch.no_grad():
-            sample = torch.randn(64, 256).to(device)
-            sample = model.module.decode(sample).cpu()
-            save_image(sample.view(64, 3, 256, 256),
-                       output_dir + 'sample_' + str(epoch) + '.png')
-    except:
-        print("hmm error here too.")
+    with torch.no_grad():
+        sample = torch.randn(64, 256).to(device)
+        sample = model.module.decode(sample).cpu()
+        save_image(sample.view(64, 3, 256, 256),
+                   output_dir + 'sample_' + str(epoch) + '.png')

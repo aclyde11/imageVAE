@@ -275,6 +275,7 @@ class PixelCNN(nn.Module):
             x = torch.cat((x, padding), 1)
 
         ###      UP PASS    ###
+        print("PIXIE" , x.shape, self.init_padding.shape)
         x = x if sample else torch.cat((x, self.init_padding), 1)
         u_list = [self.u_init(x)]
         ul_list = [self.ul_init[0](x) + self.ul_init[1](x)]
