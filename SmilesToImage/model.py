@@ -284,7 +284,7 @@ class PixelCNN(nn.Module):
             print(x.shape, self.init_padding)
 
         ###      UP PASS    ###
-
+        print("final: ", x.shape)
         u_list = [self.u_init(x)]
         ul_list = [self.ul_init[0](x) + self.ul_init[1](x)]
         for i in range(3):
