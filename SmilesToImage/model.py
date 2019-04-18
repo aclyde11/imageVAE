@@ -695,81 +695,82 @@ class PictureDecoder(nn.Module):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
         # Sampling vector
-        self.fc = nn.Sequential(nn.Linear(rep_size, rep_size), nn.Tanh())
+        self.fc3 = nn.Linear(rep_size, rep_size)
+        self.fc_bn3 = nn.BatchNorm1d(rep_size)
 
         # Decoder
-        self.preconv = nn.ConvTranspose2d(4, 4, kernel_size=3, stride=2, padding=0, bias=False)
-        self.conv15 = nn.ConvTranspose2d(4, 4, kernel_size=3, stride=2, padding=0, bias=False)
-        self.conv15_ = nn.ConvTranspose2d(4, 3, kernel_size=3, stride=2, padding=0, bias=False)
-        self.upper = nn.UpsamplingBilinear2d(size=(128,128))
-        self.bn15 = nn.BatchNorm2d(3)
-        self.conv16 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-        self.conv16_ = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn16 = nn.BatchNorm2d(3)
-        self.conv20 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-        self.conv20_ = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn20 = nn.BatchNorm2d(3)
-        # self.upper2 = nn.UpsamplingNearest2d(scale_factor=2)
-        self.nconv12 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-        self.nconv22 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-
-        # self.conv17 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
+        # self.preconv = nn.ConvTranspose2d(1, 3, kernel_size=3, stride=1, padding=0, bias=False)
+        # self.conv15 = nn.ConvTranspose2d(3, 3, kernel_size=2, stride=2, padding=0, bias=False)
+        # self.conv15_ = nn.ConvTranspose2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
+        # self.bn15 = nn.BatchNorm2d(3)
+        # self.conv16 = nn.ConvTranspose2d(3, 3, kernel_size=3, stride=2, padding=1, bias=False)
+        # self.conv16_ = nn.ConvTranspose2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
+        # self.bn16 = nn.BatchNorm2d(3)
+        # self.conv20 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=2, padding=1, bias=False)
+        # self.conv20_ = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=2, padding=1, bias=False)
+        # self.bn20 = nn.BatchNorm2d(3)
+        # self.conv17 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=2, padding=1, bias=False)
         # self.conv17_ = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
         # self.bn21 = nn.BatchNorm2d(3)
-        self.upper3 = nn.UpsamplingNearest2d(size=(256,256))
-
-        self.nconv1 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-        self.nconv2 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-
-
-        # self.conv18 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
+        # self.conv18 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=2, padding=0, bias=False)
         # self.conv18_ = nn.ConvTranspose2d(3, 3, kernel_size=5, stride=1, padding=0, bias=False)
         # self.bn22 = nn.BatchNorm2d(3)
         # self.conv19 = nn.ConvTranspose2d(3, 3, kernel_size=5, stride=1, padding=0, bias=False)
+
+
+
+        self.preconv = nn.Conv2d(1, 3, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv15 = nn.Conv2d(1, 3, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv15_ = nn.Conv2d(1, 3, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn15 = nn.BatchNorm2d(3)
+        self.upper1 = nn.UpsamplingNearest2d(scale_factor=2)
+        self.conv16 = nn.Conv2d(1, 3, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv16_ =nn.Conv2d(1, 3, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn16 = nn.BatchNorm2d(3)
+        self.upper2 = nn.UpsamplingNearest2d(scale_factor=2)
+
+        self.conv20 = nn.Conv2d(1, 9, kernel_size=3, stride=1, padding=9 // 2, bias=False)
+        self.conv20_ = nn.Conv2d(1, 9, kernel_size=3, stride=1, padding=9 // 2, bias=False)
+        self.bn20 = nn.BatchNorm2d(3)
+        self.upper3 = nn.UpsamplingNearest2d(scale_factor=2)
+
+        self.conv17 = nn.Conv2d(1, 19, kernel_size=3, stride=1, padding=19 // 2, bias=False)
+        self.conv17_ = nn.Conv2d(1, 19, kernel_size=3, stride=1, padding=19 // 2, bias=False)
+        self.bn21 = nn.BatchNorm2d(3)
+        self.upper4 = nn.UpsamplingNearest2d(scale_factor=2)
+        self.conv18 = nn.Conv2d(1, 25, kernel_size=3, stride=1, padding=25 // 2, bias=False)
+        self.conv18_ = nn.Conv2d(1, 25, kernel_size=3, stride=1, padding=25 // 2, bias=False)
+        self.bn22 = nn.BatchNorm2d(3)
+        self.conv19 = nn.Conv2d(1, 3, kernel_size=3, stride=1, padding=1, bias=False)
         self.relu = nn.LeakyReLU()
-        #self.pixelcnn = PixelCNN()
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, out):
-        bs = out.shape[0]
-        out = self.fc(out)
-        out = out.view(-1, 4, 8, 8)
+        out = self.relu(self.fc_bn3(self.fc3(out)))
+        out = out.view(-1, 1, 16, 16)
         out = self.relu(self.preconv(out))
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
         out = self.bn15(out)
-        #print(out.shape)
-        out  = self.upper(out)
-        out = self.relu(self.nconv12(out))
-        out = self.relu(self.nconv22(out))
-
-        ## pixel cnn
-        #out = self.pixelcnn(out)
-        #out = out.contiguous().view(bs, 3, -1, 128, 128)
-        #out = nn.Softmax(dim=2)(out)
-        #out, _ = torch.max(out, dim=2, keepdim=False)
-
-        #print("pixel out: ", out.shape)
-
         out = self.relu(self.conv16(out))
         out = self.relu(self.conv16_(out))
         out = self.bn16(out)
-        #
+
         out = self.relu(self.conv20(out))
         out = self.relu(self.conv20_(out))
         out = self.bn20(out)
-        # out = self.upper2(out)
-        # out = self.relu(self.conv17(out))
-        # out = self.relu(self.conv17_(out))
-        # out = self.bn21(out)
-        out = self.upper3(out)
+        out = self.relu(self.conv17(out))
+        out = self.relu(self.conv17_(out))
+        out = self.bn21(out)
 
-
-        out = self.relu(self.nconv1(out))
-        out = self.nconv2(out)
+        out = self.relu(self.conv18(out))
+        out = self.relu(self.conv18_(out))
+        out = self.bn22(out)
+        out = self.conv19(out)
 
         out = self.sigmoid(out)
         return out
+
 
 
 # class PictureDecoder(nn.Module):
