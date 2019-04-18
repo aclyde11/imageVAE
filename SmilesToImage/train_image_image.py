@@ -123,9 +123,8 @@ model = GeneralVae(encoder, decoder, rep_size=256).cuda()
 
 
 print("LR: {}".format(LR))
-optimizer = optim.SGD(model.parameters(), lr=LR, momentum=0.8, nesterov=True)
+optimizer = optim.Adam(model.parameters(), lr=LR)
 #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-
 
 
 for param_group in optimizer.param_groups:
@@ -289,8 +288,8 @@ for epoch in range(starting_epoch, epochs):
 
     sched.step()
 
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = LR
+    # for param_group in optimizer.param_groups:
+    #     param_group['lr'] = LR
     for param_group in optimizer.param_groups:
         print("Current learning rate is: {}".format(param_group['lr']))
         experiment.log_metric('lr', param_group['lr'])
