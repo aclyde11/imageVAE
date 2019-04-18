@@ -722,22 +722,22 @@ class PictureDecoder(nn.Module):
         self.preconv = nn.Conv2d(1, 3, kernel_size=3, stride=1, padding=1, bias=False)
         self.conv15 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
         self.conv15_ = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn15 = nn.BatchNorm2d(3)
-        self.upper1 = nn.UpsamplingNearest2d(scale_factor=2)
+        self.bn15 = nn.BatchNorm2d(3)  # 16 x 16
+        self.upper1 = nn.ConvTranspose2d(3, 3, kernel_size=3, stride=2, padding=1)   # 32 x 32
         self.conv16 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
         self.conv16_ =nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn16 = nn.BatchNorm2d(3)
-        self.upper2 = nn.UpsamplingNearest2d(scale_factor=2)
+        self.upper2 = nn.ConvTranspose2d(3, 3, kernel_size=6, stride=2, padding=2)   # 64 x 64
 
         self.conv20 = nn.Conv2d(3, 3, kernel_size=9, stride=1, padding=9 // 2, bias=False)
         self.conv20_ = nn.Conv2d(3, 3, kernel_size=9, stride=1, padding=9 // 2, bias=False)
         self.bn20 = nn.BatchNorm2d(3)
-        self.upper3 = nn.UpsamplingNearest2d(scale_factor=2)
+        self.upper3 = nn.ConvTranspose2d(3, 3, kernel_size=8, stride=2, padding=3)   # 128 x 128
 
         self.conv17 = nn.Conv2d(3, 3, kernel_size=19, stride=1, padding=19 // 2, bias=False)
         self.conv17_ = nn.Conv2d(3, 3, kernel_size=19, stride=1, padding=19 // 2, bias=False)
         self.bn21 = nn.BatchNorm2d(3)
-        self.upper4 = nn.UpsamplingNearest2d(scale_factor=2)
+        self.upper4 =  nn.ConvTranspose2d(3, 3, kernel_size=10, stride=2, padding=4) # 256 x 256
         self.conv18 = nn.Conv2d(3, 3, kernel_size=25, stride=1, padding=25 // 2, bias=False)
         self.conv18_ = nn.Conv2d(3, 3, kernel_size=25, stride=1, padding=25 // 2, bias=False)
         self.bn22 = nn.BatchNorm2d(3)
