@@ -187,7 +187,7 @@ def train(epoch, size=100000):
         model.train()
         loss_meter = AverageMeter()
         for batch_idx, (_, data, _) in enumerate(train_loader_food):
-            data = data.cuda()
+            data = data.float().cuda()
 
             optimizer.zero_grad()
 
@@ -232,9 +232,11 @@ def test(epoch):
         test_loss = 0
         with torch.no_grad():
             for i, (_, data, _) in enumerate(val_loader_food):
-                data = data.cuda()
+                data = data.float().cuda()
                 #aff = aff.float().cuda(4)
 
+
+                print(data.shape)
                 recon_batch, mu, logvar = model(data)
 
 
@@ -287,7 +289,7 @@ for epoch in range(starting_epoch, epochs):
         print("Current learning rate is: {}".format(param_group['lr']))
         experiment.log_metric('lr', param_group['lr'])
 
-    loss = train(epoch)
+    #loss = train(epoch)
     test(epoch)
     torch.save({
         'epoch': epoch,
