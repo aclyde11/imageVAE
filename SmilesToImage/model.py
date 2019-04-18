@@ -730,9 +730,7 @@ class PictureDecoder(nn.Module):
         out  = self.upper(out)
 
         ## pixel cnn
-        print('pre pixel', out.shape)
         out = self.pixelcnn(out)
-        print('post pixel', out.shape)
 
         out = self.relu(self.conv16(out))
         out = self.relu(self.conv16_(out))
@@ -742,19 +740,16 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv20_(out))
         out = self.bn20(out)
         out = self.upper2(out)
-        print("upper 2", out.shape)
         out = self.relu(self.conv17(out))
         out = self.relu(self.conv17_(out))
         out = self.bn21(out)
         out = self.upper3(out)
-        print("upper3", out.shape)
 
 
         out = self.relu(self.nconv1(out))
         out = self.nconv2(out)
 
         out = self.sigmoid(out)
-        print(out.shape)
         return out
 
 
