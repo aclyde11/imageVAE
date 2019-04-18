@@ -49,7 +49,7 @@ starting_epoch=1
 epochs = 500
 no_cuda = False
 seed = 42
-data_para = False
+data_para = True
 log_interval = 20
 LR = 1.0e-4         ##adam rate
 rampDataSize = 0.3 ## data set size to use
@@ -115,7 +115,6 @@ encoder = None
 decoder = None
 encoder = PictureEncoder(rep_size=256)
 decoder = PictureDecoder()
-testmodel = PixelCNN().cuda()
 #checkpoint = torch.load( save_files + 'epoch_' + str(8) + '.pt', map_location='cpu')
 #encoder.load_state_dict(checkpoint['encoder_state_dict'])
 #decoder.load_state_dict(checkpoint['decoder_state_dict'])
