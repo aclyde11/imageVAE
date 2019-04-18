@@ -735,10 +735,12 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
         out = self.bn15(out)
+        print(out.shape)
         out  = self.upper(out)
 
         ## pixel cnn
         out = self.pixelcnn(out)
+        print("pixel out: ", out.shape)
 
         out = self.relu(self.conv16(out))
         out = self.relu(self.conv16_(out))
