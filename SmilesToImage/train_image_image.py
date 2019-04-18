@@ -62,7 +62,7 @@ model_load = None #{'decoder' : '/homes/aclyde11/imageVAE/im_im_small/model/deco
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
-output_dir = '/homes/aclyde11/imageVAE/im_im_bw/results/'
+output_dir = '/homes/aclyde11/imageVAE/im_im_bw/results2/'
 save_files = '/homes/aclyde11/imageVAE/im_im_bw/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': args.workers, 'pin_memory': True} if cuda else {}
