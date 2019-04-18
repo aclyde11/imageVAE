@@ -742,8 +742,8 @@ class PictureDecoder(nn.Module):
 
         ## pixel cnn
         out = self.pixelcnn(out)
-        out = out.contiguous().view(bs, 3, 128, 128, -1)
-        out = nn.Softmax(dim=4)(out)
+        out = out.contiguous().view(bs, 3, -1, 128, 128)
+        out = nn.Softmax(dim=2)(out)
 
         print("pixel out: ", out.shape)
 
