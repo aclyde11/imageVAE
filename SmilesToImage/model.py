@@ -695,7 +695,7 @@ class PictureDecoder(nn.Module):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
         # Sampling vector
-
+        self.fc = nn.Sequential(nn.Linear(rep_size, rep_size), nn.Tanh())
 
         # Decoder
         self.preconv = nn.ConvTranspose2d(4, 4, kernel_size=3, stride=2, padding=0, bias=False)
@@ -710,7 +710,8 @@ class PictureDecoder(nn.Module):
         # self.conv20_ = nn.ConvTranspose2d(7, 3, kernel_size=4, stride=1, padding=0, bias=False)
         # self.bn20 = nn.BatchNorm2d(3)
         # self.upper2 = nn.UpsamplingNearest2d(scale_factor=2)
-
+        self.nconv12 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
+        self.nconv22 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
 
         # self.conv17 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
         # self.conv17_ = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
@@ -731,6 +732,7 @@ class PictureDecoder(nn.Module):
 
     def forward(self, out):
         bs = out.shape[0]
+        out = self.fc(out)
         out = out.view(-1, 4, 8, 8)
         out = self.relu(self.preconv(out))
         out = self.relu(self.conv15(out))
@@ -738,13 +740,14 @@ class PictureDecoder(nn.Module):
         out = self.bn15(out)
         #print(out.shape)
         out  = self.upper(out)
-
+        out = self.relu(self.nconv12(out))
+        out = self.relu(self.nconv22(out))
 
         ## pixel cnn
-        out = self.pixelcnn(out)
-        out = out.contiguous().view(bs, 3, -1, 128, 128)
-        out = nn.Softmax(dim=2)(out)
-        out, _ = torch.max(out, dim=2, keepdim=False)
+        #out = self.pixelcnn(out)
+        #out = out.contiguous().view(bs, 3, -1, 128, 128)
+        #out = nn.Softmax(dim=2)(out)
+        #out, _ = torch.max(out, dim=2, keepdim=False)
 
         #print("pixel out: ", out.shape)
 
