@@ -752,16 +752,22 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
         out = self.bn15(out)
+        out = self.upper1(out)
+
         out = self.relu(self.conv16(out))
         out = self.relu(self.conv16_(out))
         out = self.bn16(out)
+        out = self.upper2(out)
 
         out = self.relu(self.conv20(out))
         out = self.relu(self.conv20_(out))
         out = self.bn20(out)
+        out = self.upper3(out)
+
         out = self.relu(self.conv17(out))
         out = self.relu(self.conv17_(out))
         out = self.bn21(out)
+        out = self.upper4(out)
 
         out = self.relu(self.conv18(out))
         out = self.relu(self.conv18_(out))
