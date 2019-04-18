@@ -709,8 +709,8 @@ class PictureDecoder(nn.Module):
         self.bn21 = nn.BatchNorm2d(3)
         self.upper3 = nn.UpsamplingNearest2d(size=(256,256))
 
-        self.nconv1 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=0, bias=False)
-        self.nconv2 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=0, bias=False)
+        self.nconv1 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
+        self.nconv2 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
 
 
         # self.conv18 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=1, padding=0, bias=False)
