@@ -214,7 +214,7 @@ class PixelCNNLayer_down(nn.Module):
 
 
 class PixelCNN(nn.Module):
-    def __init__(self, nr_resnet=4, nr_filters=10, nr_logistic_mix=6,
+    def __init__(self, nr_resnet=5, nr_filters=80, nr_logistic_mix=10,
                  resnet_nonlinearity='concat_elu', input_channels=3):
         super(PixelCNN, self).__init__()
         if resnet_nonlinearity == 'concat_elu':
@@ -313,6 +313,7 @@ class PixelCNN(nn.Module):
 
         assert len(u_list) == len(ul_list) == 0
 
+        print(x_out.shape)
         return x_out
 
 class TimeDistributed(nn.Module):
