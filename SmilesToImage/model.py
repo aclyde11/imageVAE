@@ -459,7 +459,7 @@ class PictureEncoder(nn.Module):
     def __init__(self, rep_size=256):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
-        self.encoder = ResNet(BasicBlock, [3, 3, 3, 3], num_classes=rep_size, in_classes=3)
+        self.encoder = ResNet(BasicBlock, [3, 3, 3, 3], num_classes=rep_size, in_classes=1)
         self.encoder_color = ResNet(BasicBlock, [2, 2, 2, 2], num_classes=rep_size, in_classes=3)
 
     def forward(self, x):
