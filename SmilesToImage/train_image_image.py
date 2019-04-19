@@ -260,9 +260,9 @@ def test(epoch):
                     del mu
                     del logvar
 
-                    n_image_gen = 8
+                    n_image_gen = 10
                     images = []
-                    n_samples_linspace = 16
+                    n_samples_linspace = 20
                     data_latent = model.module.encode_latent_(data[:25, ...])
 
                     for i in range(n_image_gen):
