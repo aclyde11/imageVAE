@@ -14,8 +14,8 @@ class MoleLoader(torch.utils.data.Dataset):
     def __init__(self, df, num=None):
         super(MoleLoader, self).__init__()
 
-        #size = df.shape[0]
-        self.df = df #.iloc[:int(size // 10), :]
+        size = df.shape[0]
+        self.df = df.iloc[:int(size // 2), :]
 
         #self.generate_vocab()
         #self.start_char = '!'
@@ -35,7 +35,7 @@ class MoleLoader(torch.utils.data.Dataset):
         if not mc.GetNumConformers():
             rdDepictor.Compute2DCoords(mc)
         drawer = rdMolDraw2D.MolDraw2DSVG(molSize[0], molSize[1])
-        drawer.SetFontSize(1)
+        drawer.SetFontSize(0.85)
         drawer.DrawMolecule(mc)
         drawer.FinishDrawing()
         svg = drawer.GetDrawingText()

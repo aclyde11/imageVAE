@@ -51,7 +51,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 25
-LR = 1.0e-3         ##adam rate
+LR = 2.0e-3         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -130,7 +130,7 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 for param_group in optimizer.param_groups:
    param_group['lr'] = LR
 
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 5, eta_min=1e-4, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 8, eta_min=2.0e-4, last_epoch=-1)
 
 
 if data_para and torch.cuda.device_count() > 1:
@@ -197,12 +197,12 @@ def train(epoch, size=100000):
 
             recon_batch, mu, logvar = model(data)
 
-            loss = loss_picture(recon_batch, data, mu, logvar, epoch)
-            loss = torch.sum(loss)
-            loss_meter.update(loss.item(), int(recon_batch.shape[0]))
+            loss2 = loss_picture(recon_batch, data, mu, logvar, epoch)
+            loss2 = torch.sum(loss2)
+            loss_meter.update(loss2.item(), int(recon_batch.shape[0]))
             experiment.log_metric('loss', loss_meter.avg)
 
-            loss.backward()
+            loss2.backward()
 
             clip_gradient(optimizer, grad_clip=args.grad_clip)
             optimizer.step()
@@ -233,6 +233,7 @@ def test(epoch):
     with experiment.test():
 
         model.eval()
+        losses = AverageMeter()
         test_loss = 0
         with torch.no_grad():
             for i, (_, data, _) in enumerate(val_loader_food):
@@ -243,11 +244,10 @@ def test(epoch):
                 recon_batch, mu, logvar = model(data)
 
 
-                loss = loss_picture(recon_batch, data, mu, logvar, epoch)
-                loss = torch.sum(loss)
-
-                experiment.log_metric('loss', loss.item())
-                test_loss += loss.item()
+                loss2 = loss_picture(recon_batch, data, mu, logvar, epoch)
+                loss2 = torch.sum(loss2)
+                losses.update(loss2.item(), int(data.shape[0]))
+                test_loss += loss2.item()
                 if i == 0:
                     ##
                     n = min(data.size(0), 8)
@@ -279,6 +279,7 @@ def test(epoch):
 
         test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
+    experiment.log_metric('loss', losses.avg)
 
     val_losses.append(test_loss)
 
