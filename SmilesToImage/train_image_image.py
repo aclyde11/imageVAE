@@ -207,6 +207,7 @@ def train(epoch, size=100000):
             optimizer.step()
 
 
+
             if batch_idx % log_interval == 0:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
                     epoch, batch_idx * len(data), len(train_loader_food.dataset),
@@ -218,6 +219,19 @@ def train(epoch, size=100000):
     return loss_meter.avg
 
 
+def open_ball(i, x, eps):
+    x = x.view(1, 256)
+
+    x = x.repeat(9, 1)
+    print(x.shape)
+
+    for j in range(4):
+        x[0 + j, i] = x[j, i]  + (4-j) * 5
+
+    # 4 stays same
+    for j in range(5, 9):
+        x[0 + j, i] = x[j, i] +  (j-4) * 5
+    return x
 
 def interpolate_points(x,y, sampling):
     from sklearn.linear_model import LinearRegression
@@ -272,6 +286,14 @@ def test(epoch):
                         images.append(model.module.decode(sample_vec).cpu())
                     save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
+                    images = []
+
+                    for i in range(256):
+                        pt_1 = data_latent[21, ...].cpu()
+                        sample_vec = open_ball(i, pt_1, eps=0.2)
+                        sample_vec = sample_vec.cuda()
+                        images.append(model.module.decode(sample_vec).cpu())
+                    save_image(torch.cat(images), output_dir + 'open_ball.png', nrow=9)
 
 
 
