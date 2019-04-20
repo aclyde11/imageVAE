@@ -49,8 +49,7 @@ seed = 42
 log_interval = 25
 LR = 8.0e-4         ##adam rate
 embedding_width = 60
-vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
-embedding_size = len(vocab)
+
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
