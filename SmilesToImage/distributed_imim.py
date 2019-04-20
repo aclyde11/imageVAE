@@ -146,7 +146,7 @@ def train(epoch, size=100000):
     #     batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=size))))),
     #     **kwargs)
 
-    experiment.log_current_epoch(epoch)
+    #experiment.log_current_epoch(epoch)
     print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
     model.train()
     for batch_idx, (_, data, _) in enumerate(train_loader_food):
