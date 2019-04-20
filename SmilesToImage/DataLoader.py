@@ -14,8 +14,8 @@ class MoleLoader(torch.utils.data.Dataset):
     def __init__(self, df, num=None):
         super(MoleLoader, self).__init__()
 
-        size = df.shape[0]
-        self.df = df.iloc[:int(size // 2), :]
+        #size = df.shape[0]
+        self.df = df #.iloc[:int(size), :]
 
         #self.generate_vocab()
         #self.start_char = '!'
