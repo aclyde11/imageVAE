@@ -57,7 +57,7 @@ device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': args.workers, 'pin_memory': True} if cuda else {}
 
 smiles_lookup_train = pd.read_csv(args.train_file)
-smiles_lookup_test = pd.read_csv(args.val_file)
+#smiles_lookup_test = pd.read_csv(args.val_file)
 
 
 def reduce_tensor(tensor):
