@@ -38,7 +38,7 @@ parser.add_argument("--local_rank", default=0, type=int)
 
 parser.add_argument('-o', '--output_file', default=None, type=str)
 args = parser.parse_args()
-
+print("MY RANK IS: ", args.local_rank)
 if args.local_rank == 0:
     experiment = Experiment(project_name='pytorch', auto_metric_logging=False)
 from DataLoader import MoleLoader
