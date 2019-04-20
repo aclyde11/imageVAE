@@ -105,7 +105,7 @@ class customLoss(nn.Module):
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x) / (256.0 * 256.0)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        loss_cripsy = self.crispyLoss(x_recon, x)
+        #loss_cripsy = self.crispyLoss(x_recon, x)
 
         return loss_MSE + loss_KLD #+ loss_cripsy
 
