@@ -39,7 +39,8 @@ parser.add_argument("--local_rank", default=0, type=int)
 parser.add_argument('-o', '--output_file', default=None, type=str)
 args = parser.parse_args()
 
-experiment = Experiment(project_name='pytorch', auto_metric_logging=False)
+if args.local_rank == 0:
+    experiment = Experiment(project_name='pytorch', auto_metric_logging=False)
 from DataLoader import MoleLoader
 
 starting_epoch=1
@@ -146,26 +147,26 @@ def train(epoch, size=100000):
     #     batch_size=args.batch_size, shuffle=False, drop_last=True, sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=size))))),
     #     **kwargs)
 
-    with experiment.train():
-        experiment.log_current_epoch(epoch)
-        print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
-        model.train()
-        for batch_idx, (_, data, _) in enumerate(train_loader_food):
-            data = data.float().cuda()
+    experiment.log_current_epoch(epoch)
+    print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
+    model.train()
+    for batch_idx, (_, data, _) in enumerate(train_loader_food):
+        data = data.float().cuda()
 
-            optimizer.zero_grad()
+        optimizer.zero_grad()
 
-            recon_batch, mu, logvar = model(data)
+        recon_batch, mu, logvar = model(data)
 
-            loss = loss_picture(recon_batch, data, mu, logvar, epoch)
-            loss.backward()
+        loss = loss_picture(recon_batch, data, mu, logvar, epoch)
+        loss.backward()
 
-            clip_gradient(optimizer, grad_clip=args.grad_clip)
-            optimizer.step()
-
+        clip_gradient(optimizer, grad_clip=args.grad_clip)
+        optimizer.step()
 
 
-            if args.local_rank == 0 and batch_idx % log_interval == 0:
+
+        if args.local_rank == 0 and batch_idx % log_interval == 0:
+            with experiment.train()
                 reduced_loss = reduce_tensor(loss.data)
                 reduced_loss=float(reduced_loss)
                 torch.cuda.synchronize()
@@ -203,24 +204,22 @@ def interpolate_points(x,y, sampling):
     return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
 
 def test(epoch):
-    with experiment.test():
 
-        model.eval()
-        losses = AverageMeter()
-        test_loss = 0
-        with torch.no_grad():
-            for i, (_, data, _) in enumerate(val_loader_food):
-                data = data.float().cuda()
-                recon_batch, mu, logvar = model(data)
-
-
-                loss2 = loss_picture(recon_batch, data, mu, logvar, epoch)
-                loss2 = torch.sum(loss2)
-                losses.update(loss2.item(), int(data.shape[0]))
-                test_loss += loss2.item()
+    model.eval()
+    losses = AverageMeter()
+    test_loss = 0
+    with torch.no_grad():
+        for i, (_, data, _) in enumerate(val_loader_food):
+            data = data.float().cuda()
+            recon_batch, mu, logvar = model(data)
 
 
-        test_loss /= len(val_loader_food.dataset)
+            loss2 = loss_picture(recon_batch, data, mu, logvar, epoch)
+            losses.update(loss2.item(), int(data.shape[0]))
+            test_loss += loss2.item()
+
+
+    test_loss /= len(val_loader_food.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
     experiment.log_metric('loss', losses.avg)
 
