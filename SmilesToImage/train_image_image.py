@@ -284,6 +284,9 @@ def test(epoch):
 
 
 for epoch in range(starting_epoch, epochs):
+    if epoch == starting_epoch:
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = LR
 
     sched.step()
 
