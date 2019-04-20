@@ -103,7 +103,7 @@ class customLoss(nn.Module):
         #self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
-        loss_MSE = self.mse_loss(x_recon, x) / (256.0 * 256.0)
+        loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         #loss_cripsy = self.crispyLoss(x_recon, x)
 
@@ -198,7 +198,7 @@ def train(epoch, size=100000):
 
             loss2 = loss_picture(recon_batch, data, mu, logvar, epoch)
             loss2 = torch.sum(loss2)
-            loss_meter.update(loss2.item() * 256.0 * 256.0, int(recon_batch.shape[0]))
+            loss_meter.update(loss2.item() , int(recon_batch.shape[0]))
             experiment.log_metric('loss', loss_meter.avg)
 
             loss2.backward()
