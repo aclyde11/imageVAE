@@ -128,18 +128,18 @@ def clip_gradient(optimizer, grad_clip=1.0):
 
 
 train_data = MoleLoader(smiles_lookup_train)
-val_data = MoleLoader(smiles_lookup_test)
+# val_data = MoleLoader(smiles_lookup_test)
 
 train_sampler = torch.utils.data.distributed.DistributedSampler(train_data)
-val_sampler =   torch.utils.data.distributed.DistributedSampler(val_data)
+# val_sampler =   torch.utils.data.distributed.DistributedSampler(val_data)
 train_loader_food = torch.utils.data.DataLoader(
     train_data,
     batch_size=args.batch_size, sampler=train_sampler, drop_last=True, #sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(train_data), size=1250000))))),
     **kwargs)
-val_loader_food = torch.utils.data.DataLoader(
-        val_data,
-        batch_size=args.batch_size, sampler=val_sampler, drop_last=True, #sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(val_data), size=10000))))),
-        **kwargs)
+# val_loader_food = torch.utils.data.DataLoader(
+#         val_data,
+#         batch_size=args.batch_size, sampler=val_sampler, drop_last=True, #sampler=torch.utils.data.SubsetRandomSampler(indices=list(set(list(np.random.randint(0, len(val_data), size=10000))))),
+#         **kwargs)
 
 def train(epoch, size=100000):
     # train_loader_food = torch.utils.data.DataLoader(
@@ -166,7 +166,7 @@ def train(epoch, size=100000):
 
 
         if args.local_rank == 0 and batch_idx % log_interval == 0:
-            with experiment.train()
+            with experiment.train():
                 reduced_loss = reduce_tensor(loss.data)
                 reduced_loss=float(reduced_loss)
                 torch.cuda.synchronize()
