@@ -44,7 +44,7 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=59
+starting_epoch=64
 epochs = 500
 no_cuda = False
 seed = 42
@@ -100,21 +100,21 @@ class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         self.mse_loss = nn.MSELoss(reduction="sum")
-        self.crispyLoss = MS_SSIM()
+       # self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        loss_cripsy = self.crispyLoss(x_recon, x)
+        #loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + loss_KLD + loss_cripsy
+        return loss_MSE + 2 * loss_KLD #+ loss_cripsy
 
 model = None
 encoder = None
 decoder = None
 encoder = PictureEncoder(rep_size=256)
 decoder = PictureDecoder()
-checkpoint = torch.load( save_files + 'epoch_' + str(58) + '.pt', map_location='cpu')
+checkpoint = torch.load( save_files + 'epoch_' + str(63) + '.pt', map_location='cpu')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
