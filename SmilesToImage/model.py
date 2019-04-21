@@ -708,7 +708,7 @@ class PictureDecoder(nn.Module):
 
         # Decoder
         self.preconv = nn.ConvTranspose2d(64, 64, kernel_size=3, stride=1, padding=0, bias=False)
-        self.conv15 = nn.ConvTranspose2d(64, 64, kernel_size=2, stride=2, padding=0, bias=False)
+        self.conv15 = nn.ConvTranspose2d(64, 64, kernel_size=2, stride=1, padding=0, bias=False)
         self.conv15_ = nn.ConvTranspose2d(64, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn15 = nn.BatchNorm2d(64)
         self.conv16 = nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, bias=False)
@@ -719,7 +719,7 @@ class PictureDecoder(nn.Module):
         self.conv17 = nn.ConvTranspose2d(32, 32, kernel_size=4, stride=2, padding=1, bias=False)
         self.conv17_ = nn.ConvTranspose2d(32, 32, kernel_size=4, stride=1, padding=0, bias=False)
         self.bn21 = nn.BatchNorm2d(32)
-        self.conv18 = nn.ConvTranspose2d(32, 16, kernel_size=4, stride=1, padding=0, bias=False)
+        self.conv18 = nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=0, bias=False)
         self.conv18_ = nn.ConvTranspose2d(16, 8, kernel_size=5, stride=1, padding=0, bias=False)
         self.conv19 = nn.ConvTranspose2d(8, 3, kernel_size=5, stride=1, padding=0, bias=False)
         self.convlast = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)

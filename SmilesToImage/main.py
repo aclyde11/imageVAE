@@ -194,7 +194,7 @@ def test(epoch):
 
 for epoch in range(starting_epoch, epochs):
     for param_group in optimizer.param_groups:
-        print("Current learning rate is: {}".format(param_group['lr']))
+        param_group['lr']) = LR
     train(epoch)
     try:
         test(epoch)
