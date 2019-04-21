@@ -706,21 +706,20 @@ class PictureDecoder(nn.Module):
         # Sampling vector
         self.fc3 = nn.Linear(rep_size, rep_size)
         self.fc_bn3 = nn.BatchNorm1d(rep_size)
-        self.fc4 = nn.Linear(rep_size, rep_size)
-        self.fc_bn4 = nn.BatchNorm1d(rep_size)
+        self.fc4 = nn.Linear(rep_size, rep_size * 2)
 
         # Decoder
         self.preconv = nn.ConvTranspose2d(64, 64, kernel_size=3, stride=1, padding=0, bias=False)
         self.conv15 = nn.ConvTranspose2d(64, 64, kernel_size=2, stride=2, padding=0, bias=False)
         self.conv15_ = nn.ConvTranspose2d(64, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn15 = nn.BatchNorm2d(64)
-        self.conv16 = nn.ConvTranspose2d(64, 64, kernel_size=3, stride=2, padding=1, bias=False)
-        self.conv16_ = nn.ConvTranspose2d(64, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn16 = nn.BatchNorm2d(64)
-        self.conv20 = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1, bias=False)
-        self.conv20_ = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1, bias=False)
-        self.bn20 = nn.BatchNorm2d(64)
-        self.conv17 = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1, bias=False)
+        self.conv16 = nn.ConvTranspose2d(64, 32, kernel_size=3, stride=1, padding=0, bias=False)
+        self.conv16_ = nn.ConvTranspose2d(32, 32, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn16 = nn.BatchNorm2d(32)
+        self.conv20 = nn.ConvTranspose2d(32, 32, kernel_size=4, stride=2, padding=1, bias=False)
+        self.conv20_ = nn.ConvTranspose2d(32, 32, kernel_size=4, stride=2, padding=1, bias=False)
+        self.bn20 = nn.BatchNorm2d(32)
+        self.conv17 = nn.ConvTranspose2d(32, 32, kernel_size=4, stride=2, padding=1, bias=False)
         self.conv17_ = nn.ConvTranspose2d(32, 32, kernel_size=4, stride=1, padding=0, bias=False)
         self.bn21 = nn.BatchNorm2d(32)
         self.conv18 = nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=0, bias=False)
@@ -734,8 +733,8 @@ class PictureDecoder(nn.Module):
     def forward(self, out):
         out = self.fc_bn3(self.fc3(out))
         out = self.relu(out)
-        out = self.fc_bn4(self.fc4(out))
-        out = self.relu(out).view(-1, 64, 2, 2)
+        out = self.fc4(out)
+        out = self.relu(out).view(-1, 64, 4, 4)
         out = self.relu(self.preconv(out))
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
@@ -758,6 +757,7 @@ class PictureDecoder(nn.Module):
         out = self.convlast(out)
 
         out = self.sigmoid(out)
+        print(out.shape)
         return out
 #
 # class PictureDecoder(nn.Module):
