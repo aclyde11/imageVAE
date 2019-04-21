@@ -716,13 +716,11 @@ class PictureDecoder(nn.Module):
         self.bn16 = nn.BatchNorm2d(32)
         self.conv20 = nn.ConvTranspose2d(32, 32, kernel_size=4, stride=2, padding=1, bias=False)
         self.conv20_ = nn.ConvTranspose2d(32, 32, kernel_size=4, stride=2, padding=1, bias=False)
-        self.bn20 = nn.BatchNorm2d(32)
         self.conv17 = nn.ConvTranspose2d(32, 32, kernel_size=4, stride=2, padding=1, bias=False)
         self.conv17_ = nn.ConvTranspose2d(32, 32, kernel_size=4, stride=1, padding=0, bias=False)
         self.bn21 = nn.BatchNorm2d(32)
         self.conv18 = nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=0, bias=False)
         self.conv18_ = nn.ConvTranspose2d(16, 8, kernel_size=5, stride=1, padding=0, bias=False)
-        self.bn22 = nn.BatchNorm2d(8)
         self.conv19 = nn.ConvTranspose2d(8, 3, kernel_size=5, stride=1, padding=0, bias=False)
         self.convlast = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
         self.relu = nn.LeakyReLU()
@@ -743,18 +741,17 @@ class PictureDecoder(nn.Module):
 
         out = self.relu(self.conv20(out))
         out = self.relu(self.conv20_(out))
-        out = self.bn20(out)
         out = self.relu(self.conv17(out))
         out = self.relu(self.conv17_(out))
         out = self.bn21(out)
 
         out = self.relu(self.conv18(out))
         out = self.relu(self.conv18_(out))
-        out = self.bn22(out)
         out = self.relu(self.conv19(out))
         out = self.convlast(out)
 
         out = self.sigmoid(out)
+        print(out.shape)
         return out
 #
 # class PictureDecoder(nn.Module):
