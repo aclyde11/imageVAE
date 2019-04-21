@@ -44,13 +44,13 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=64
+starting_epoch=1
 epochs = 500
 no_cuda = False
 seed = 42
 data_para = True
 log_interval = 25
-LR = 8.0e-4         ##adam rate
+LR = 1.0e-3         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -102,34 +102,51 @@ class customLoss(nn.Module):
         self.mse_loss = nn.MSELoss(reduction="sum")
        # self.crispyLoss = MS_SSIM()
 
-    def forward(self, x_recon, x, mu, logvar, epoch):
+    def compute_kernel(self, x, y):
+        x_size = x.shape[0]
+        y_size = y.shape[0]
+        dim = x.shape[1]
+
+        tiled_x = x.view(x_size, 1, dim).repeat(1, y_size, 1)
+        tiled_y = y.view(1, y_size, dim).repeat(x_size, 1, 1)
+
+        return torch.exp(-torch.mean((tiled_x - tiled_y) ** 2, dim=2) / dim * 1.0)
+
+    def compute_mmd(self, x, y):
+        x_kernel = self.compute_kernel(x, x)
+        y_kernel =  self.compute_kernel(y, y)
+        xy_kernel =  self.compute_kernel(x, y)
+        return torch.mean(x_kernel) + torch.mean(y_kernel) - 2 * torch.mean(xy_kernel)
+
+    def forward(self, x_recon, x, z, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
-        loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        loss_mmd = self.compute_mmd(x, z)
+        #loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         #loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + min(1.0, epoch * 0.02) * loss_KLD #+ loss_cripsy
+        return loss_MSE + loss_mmd # min(1.0, epoch * 0.02) * loss_KLD #+ loss_cripsy
 
 model = None
 encoder = None
 decoder = None
 encoder = PictureEncoder(rep_size=256)
 decoder = PictureDecoder()
-checkpoint = torch.load( save_files + 'epoch_' + str(63) + '.pt', map_location='cpu')
-encoder.load_state_dict(checkpoint['encoder_state_dict'])
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
+#checkpoint = torch.load( save_files + 'epoch_' + str(63) + '.pt', map_location='cpu')
+#encoder.load_state_dict(checkpoint['encoder_state_dict'])
+#decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=256).cuda()
 
 
 print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 
 for param_group in optimizer.param_groups:
    param_group['lr'] = LR
 
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 10, eta_min=8.0e-5, last_epoch=-1)
+sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 15, eta_min=8.0e-5, last_epoch=-1)
 
 
 if data_para and torch.cuda.device_count() > 1:
