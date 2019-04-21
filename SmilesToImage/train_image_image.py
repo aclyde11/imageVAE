@@ -118,9 +118,9 @@ class customLoss(nn.Module):
         xy_kernel =  self.compute_kernel(x, y)
         return torch.mean(x_kernel) + torch.mean(y_kernel) - 2 * torch.mean(xy_kernel)
 
-    def forward(self, x_recon, x, z, mu, logvar, epoch):
+    def forward(self, x_recon, x, x_samples, z):
         loss_MSE = self.mse_loss(x_recon, x)
-        loss_mmd = self.compute_mmd(x, z)
+        loss_mmd = self.compute_mmd(x_samples, z)
         #loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         #loss_cripsy = self.crispyLoss(x_recon, x)
 
@@ -208,12 +208,12 @@ def train(epoch, size=100000):
         loss_meter = AverageMeter()
         for batch_idx, (_, data, _) in enumerate(train_loader_food):
             data = data.float().cuda()
-
+            x_samples = torch.autograd.Variable(torch.randn((len(data), 256)))
             optimizer.zero_grad()
 
-            recon_batch, mu, logvar = model(data)
+            recon_batch, z = model(data)
 
-            loss2 = loss_picture(recon_batch, data, mu, logvar, epoch)
+            loss2 = loss_picture(recon_batch, data, x_samples, z)
             loss2 = torch.sum(loss2)
             loss_meter.update(loss2.item() , int(recon_batch.shape[0]))
             experiment.log_metric('loss', loss_meter.avg)
