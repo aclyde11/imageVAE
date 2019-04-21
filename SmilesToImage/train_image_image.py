@@ -118,29 +118,29 @@ class customLoss(nn.Module):
         xy_kernel =  self.compute_kernel(x, y)
         return torch.mean(x_kernel) + torch.mean(y_kernel) - 2 * torch.mean(xy_kernel)
 
-    def forward(self, x_recon, x, x_samples, z):
+    def forward(self, x_recon, x, mu, logvar):
         loss_MSE = self.mse_loss(x_recon, x)
-        loss_mmd = self.compute_mmd(x_samples, z)
-        #loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        #loss_mmd = self.compute_mmd(x_samples, z)
+        loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         #loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + loss_mmd # min(1.0, epoch * 0.02) * loss_KLD #+ loss_cripsy
+        return loss_MSE +loss_KLD
 
 model = None
 encoder = None
 decoder = None
 encoder = PictureEncoder(rep_size=256)
 decoder = PictureDecoder()
-checkpoint = torch.load( save_files + 'epoch_' + str(42) + '.pt', map_location='cpu')
-encoder.load_state_dict(checkpoint['encoder_state_dict'])
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
+# checkpoint = torch.load( save_files + 'epoch_' + str(42) + '.pt', map_location='cpu')
+# encoder.load_state_dict(checkpoint['encoder_state_dict'])
+# decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=256).cuda()
 
 
 print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(), lr=LR)
-optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 
 for param_group in optimizer.param_groups:
@@ -208,12 +208,11 @@ def train(epoch, size=100000):
         loss_meter = AverageMeter()
         for batch_idx, (_, data, _) in enumerate(train_loader_food):
             data = data.float().cuda()
-            x_samples = torch.autograd.Variable(torch.randn((len(data), 256)))
             optimizer.zero_grad()
 
-            recon_batch, z = model(data)
+            recon_batch, mu, logvar, _ = model(data)
 
-            loss2 = loss_picture(recon_batch, data, x_samples, z)
+            loss2 = loss_picture(recon_batch, data, mu, logvar)
             loss2 = torch.sum(loss2)
             loss_meter.update(loss2.item() , int(recon_batch.shape[0]))
             experiment.log_metric('loss', loss_meter.avg)
@@ -269,11 +268,10 @@ def test(epoch):
             for i, (_, data, _) in enumerate(val_loader_food):
                 data = data.float().cuda()
                 #aff = aff.float().cuda(4)
-                x_samples = torch.autograd.Variable(torch.randn((len(data), 256)))
 
-                recon_batch, z = model(data)
+                recon_batch, mu, logvar, _ = model(data)
 
-                loss2 = loss_picture(recon_batch, data, x_samples, z)
+                loss2 = loss_picture(recon_batch, data, mu, logvar)
                 loss2 = torch.sum(loss2)
                 losses.update(loss2.item(), int(data.shape[0]))
                 test_loss += loss2.item()

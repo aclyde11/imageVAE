@@ -459,15 +459,18 @@ class PictureEncoder(nn.Module):
     def __init__(self, rep_size=256):
         super(PictureEncoder, self).__init__()
         self.rep_size = rep_size
-        self.encoder = ResNet(BasicBlock, [3, 3, 3, 3], num_classes=rep_size, in_classes=1)
-        self.encoder_color = ResNet(BasicBlock, [2, 2, 2, 2], num_classes=rep_size, in_classes=3)
 
+        self.encoder = ResNet(BasicBlock, [2, 3, 2, 3], num_classes=rep_size, in_classes=1)
+        self.encoder_color = ResNet(BasicBlock, [2, 3, 2, 3], num_classes=rep_size, in_classes=3)
+        self.w1 =         torch.autograd.Variable(torch.ones(1), requires_grad=True)
+        self.w2 = torch.autograd.Variable(torch.ones(1), requires_grad=True)
+        self.sigmoid = nn.Sigmoid()
     def forward(self, x):
         color_enc = self.encoder_color(x).view(-1, 256)
         x = torch.mean(x, dim=1, keepdim=True)
         black_enc = self.encoder(x).view(-1, 256)
 
-        return black_enc, color_enc
+        return self.sigmoid(self.w1) * black_enc + (1 - self.sigmoid(self.w1)) * color_enc, self.sigmoid(self.w2) * color_enc + (1-self.sigmoid(self.w2)) * black_enc
 
 
 def conv3x3T(in_planes, out_planes, stride=1):
@@ -747,7 +750,7 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv19(out))
         out = self.convlast(out)
 
-        out = self.relu(out)
+        out = self.sigmoid(out)
         return out
 #
 # class PictureDecoder(nn.Module):
@@ -1012,7 +1015,7 @@ class GeneralVae(nn.Module):
     def forward(self, x):
         mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar)
-        return self.decode(z), z
+        return self.decode(z), mu, logvar, z
 
 
 class GeneralVaeBinding(nn.Module):
