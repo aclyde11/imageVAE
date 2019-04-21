@@ -454,7 +454,6 @@ class SeparableConv3(nn.Module):
                           self.ch3(x[:, 2, ...])),
                          dim=1)
 
-class Singleton(nn.Module):
 
 
 class PictureEncoder(nn.Module):
