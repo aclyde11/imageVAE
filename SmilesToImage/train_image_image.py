@@ -99,7 +99,7 @@ val_loader_food = torch.utils.data.DataLoader(
 class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
-        self.mse_loss = nn.MSELoss(reduction="sum")
+        self.mse_loss = nn.MSELoss(reduction="mean")
        # self.crispyLoss = MS_SSIM()
 
     def compute_kernel(self, x, y):
