@@ -707,7 +707,7 @@ class PictureDecoder(nn.Module):
         self.fc4 = nn.Linear(rep_size * 2, rep_size * 4)
 
         # Decoder
-        self.preconv = nn.ConvTranspose2d(16, 16, kernel_size=3, stride=1, padding=1, bias=False)
+        self.preconv = nn.ConvTranspose2d(16, 16, kernel_size=3, stride=1, padding=0, bias=False)
         self.conv15 = nn.ConvTranspose2d(16, 16, kernel_size=2, stride=1, padding=1, bias=False)
         self.conv15_ = nn.ConvTranspose2d(16, 16, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn15 = nn.BatchNorm2d(16)
