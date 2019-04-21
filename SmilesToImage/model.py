@@ -703,8 +703,8 @@ class PictureDecoder(nn.Module):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
         # Sampling vector
-        self.fc3 = nn.Linear(rep_size, rep_size)
-        self.fc4 = nn.Linear(rep_size, rep_size * 2)
+        self.fc3 = nn.Linear(rep_size, rep_size * 2)
+        self.fc4 = nn.Linear(rep_size * 2, rep_size * 4)
 
         # Decoder
         self.preconv = nn.ConvTranspose2d(64, 64, kernel_size=3, stride=1, padding=0, bias=False)
