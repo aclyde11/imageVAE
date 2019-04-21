@@ -50,7 +50,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 25
-LR = 2.0e-3         ##adam rate
+LR = 1.0e-3         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -318,9 +318,9 @@ def test(epoch):
 
 
 for epoch in range(starting_epoch, epochs):
-    if epoch != starting_epoch and epoch % 20 == 0:
+    if epoch != starting_epoch and epoch % 15 == 0:
         for param_group in optimizer.param_groups:
-            param_group['lr'] = LR * 0.9
+            param_group['lr'] = max(LR * 0.9, 5.0e-5)
 
     # for param_group in optimizer.param_groups:
     #     param_group['lr'] = LR
