@@ -50,7 +50,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 25
-LR = 1.0e-3         ##adam rate
+LR = 2.0e-3         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -99,7 +99,7 @@ val_loader_food = torch.utils.data.DataLoader(
 class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
-        self.mse_loss = nn.MSELoss(reduction="mean")
+        self.mse_loss = nn.MSELoss(reduction="sum")
        # self.crispyLoss = MS_SSIM()
 
     def compute_kernel(self, x, y):
