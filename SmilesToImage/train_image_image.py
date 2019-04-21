@@ -100,14 +100,14 @@ class customLoss(nn.Module):
     def __init__(self):
         super(customLoss, self).__init__()
         self.mse_loss = nn.MSELoss(reduction="sum")
-        #self.crispyLoss = MS_SSIM()
+        self.crispyLoss = MS_SSIM()
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        #loss_cripsy = self.crispyLoss(x_recon, x)
+        loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + loss_KLD #+ loss_cripsy
+        return loss_MSE + loss_KLD + loss_cripsy
 
 model = None
 encoder = None
@@ -286,14 +286,14 @@ def test(epoch):
                         images.append(model.module.decode(sample_vec).cpu())
                     save_image(torch.cat(images), output_dir + 'linspace_' + str(epoch) + '.png', nrow=n_samples_linspace)
 
-                    images = []
-
-                    for i in range(256):
-                        pt_1 = data_latent[21, ...].cpu()
-                        sample_vec = open_ball(i, pt_1, eps=0.2)
-                        sample_vec = sample_vec.cuda()
-                        images.append(model.module.decode(sample_vec).cpu())
-                    save_image(torch.cat(images), output_dir + 'open_ball.png', nrow=9)
+                    # images = []
+                    #
+                    # for i in range(256):
+                    #     pt_1 = data_latent[21, ...].cpu()
+                    #     sample_vec = open_ball(i, pt_1, eps=0.2)
+                    #     sample_vec = sample_vec.cuda()
+                    #     images.append(model.module.decode(sample_vec).cpu())
+                    # save_image(torch.cat(images), output_dir + 'open_ball.png', nrow=9)
 
 
 
