@@ -718,7 +718,7 @@ class PictureDecoder(nn.Module):
         self.conv20_ = nn.ConvTranspose2d(4, 4, kernel_size=4, stride=2, padding=1, bias=False)
         self.conv17 = nn.ConvTranspose2d(4, 4, kernel_size=4, stride=2, padding=1, bias=False)
         self.conv17_ = nn.ConvTranspose2d(4, 4, kernel_size=4, stride=1, padding=0, bias=False)
-        self.bn21 = nn.BatchNorm2d(16)
+        self.bn21 = nn.BatchNorm2d(4)
         self.conv18 = nn.ConvTranspose2d(4, 4, kernel_size=4, stride=2, padding=0, bias=False)
         self.conv18_ = nn.ConvTranspose2d(4, 3, kernel_size=5, stride=1, padding=0, bias=False)
         self.conv19 = nn.ConvTranspose2d(3, 3, kernel_size=5, stride=1, padding=0, bias=False)
