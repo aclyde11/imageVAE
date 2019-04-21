@@ -745,7 +745,7 @@ class PictureDecoder(nn.Module):
         out = self.relu(self.conv18_(out))
         out = self.bn22(out)
         out = self.relu(self.conv19(out))
-        out = self.convlast(self.convlast(out))
+        out = self.convlast(out)
 
         out = self.sigmoid(out)
         return out

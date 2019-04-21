@@ -44,7 +44,7 @@ try:
 except ImportError:
     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
-starting_epoch=49
+starting_epoch=59
 epochs = 500
 no_cuda = False
 seed = 42
@@ -114,7 +114,7 @@ encoder = None
 decoder = None
 encoder = PictureEncoder(rep_size=256)
 decoder = PictureDecoder()
-checkpoint = torch.load( save_files + 'epoch_' + str(48) + '.pt', map_location='cpu')
+checkpoint = torch.load( save_files + 'epoch_' + str(58) + '.pt', map_location='cpu')
 encoder.load_state_dict(checkpoint['encoder_state_dict'])
 decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
