@@ -751,7 +751,6 @@ class PictureDecoder(nn.Module):
         out = self.convlast(out)
 
         out = self.sigmoid(out)
-        print(out.shape)
         return out
 #
 # class PictureDecoder(nn.Module):
