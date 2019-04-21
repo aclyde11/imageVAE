@@ -269,12 +269,11 @@ def test(epoch):
             for i, (_, data, _) in enumerate(val_loader_food):
                 data = data.float().cuda()
                 #aff = aff.float().cuda(4)
+                x_samples = torch.autograd.Variable(torch.randn((len(data), 256)))
 
+                recon_batch, z = model(data)
 
-                recon_batch, mu, logvar = model(data)
-
-
-                loss2 = loss_picture(recon_batch, data, mu, logvar, epoch)
+                loss2 = loss_picture(recon_batch, data, x_samples, z)
                 loss2 = torch.sum(loss2)
                 losses.update(loss2.item(), int(data.shape[0]))
                 test_loss += loss2.item()
@@ -287,8 +286,7 @@ def test(epoch):
                                output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
 
                     del recon_batch
-                    del mu
-                    del logvar
+                    del z
 
                     n_image_gen = 10
                     images = []
