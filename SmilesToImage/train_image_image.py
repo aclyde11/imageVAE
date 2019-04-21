@@ -131,16 +131,16 @@ encoder = None
 decoder = None
 encoder = PictureEncoder(rep_size=256)
 decoder = PictureDecoder()
-#checkpoint = torch.load( save_files + 'epoch_' + str(63) + '.pt', map_location='cpu')
-#encoder.load_state_dict(checkpoint['encoder_state_dict'])
-#decoder.load_state_dict(checkpoint['decoder_state_dict'])
+checkpoint = torch.load( save_files + 'epoch_' + str(42) + '.pt', map_location='cpu')
+encoder.load_state_dict(checkpoint['encoder_state_dict'])
+decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
 model = GeneralVae(encoder, decoder, rep_size=256).cuda()
 
 
 print("LR: {}".format(LR))
 optimizer = optim.Adam(model.parameters(), lr=LR)
-#optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 
 for param_group in optimizer.param_groups:
