@@ -703,16 +703,16 @@ class PictureDecoder(nn.Module):
         super(PictureDecoder, self).__init__()
         self.rep_size = rep_size
         # Sampling vector
-        self.fc3 = nn.Linear(rep_size, rep_size * 2)
-        self.fc4 = nn.Linear(rep_size * 2, rep_size * 4)
+        self.fc3 = nn.Linear(rep_size, rep_size * 3)
+        self.fc4 = nn.Linear(rep_size * 3, rep_size * 6)
 
         # Decoder
-        self.preconv = nn.ConvTranspose2d(4, 4, kernel_size=3, stride=1, padding=0, bias=False)
-        self.conv15 = nn.ConvTranspose2d(4, 4, kernel_size=2, stride=1, padding=0, bias=False)
-        self.conv15_ = nn.ConvTranspose2d(4, 4, kernel_size=3, stride=1, padding=0, bias=False)
-        self.bn15 = nn.BatchNorm2d(4)
-        self.conv16 = nn.ConvTranspose2d(4, 4, kernel_size=3, stride=2, padding=0, bias=False)
-        self.conv16_ = nn.ConvTranspose2d(4, 4, kernel_size=3, stride=1, padding=0, bias=False)
+        self.preconv = nn.ConvTranspose2d(6, 6, kernel_size=3, stride=1, padding=0, bias=False)
+        self.conv15 = nn.ConvTranspose2d(6, 6, kernel_size=2, stride=1, padding=0, bias=False)
+        self.conv15_ = nn.ConvTranspose2d(6, 6, kernel_size=3, stride=1, padding=0, bias=False)
+        self.bn15 = nn.BatchNorm2d(6)
+        self.conv16 = nn.ConvTranspose2d(6, 6, kernel_size=3, stride=2, padding=0, bias=False)
+        self.conv16_ = nn.ConvTranspose2d(6, 4, kernel_size=3, stride=1, padding=0, bias=False)
         self.bn16 = nn.BatchNorm2d(4)
         self.conv20 = nn.ConvTranspose2d(4, 4, kernel_size=4, stride=2, padding=0, bias=False)
         self.conv20_ = nn.ConvTranspose2d(4, 4, kernel_size=4, stride=1, padding=0, bias=False)
@@ -730,7 +730,7 @@ class PictureDecoder(nn.Module):
         out = self.fc3(out)
         out = self.relu(out)
         out = self.fc4(out)
-        out = self.relu(out).view(-1, 4, 16, 16)
+        out = self.relu(out).view(-1, 6, 16, 16)
         out = self.relu(self.preconv(out))
         out = self.relu(self.conv15(out))
         out = self.relu(self.conv15_(out))
