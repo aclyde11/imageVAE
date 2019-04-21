@@ -704,7 +704,6 @@ class PictureDecoder(nn.Module):
         self.rep_size = rep_size
         # Sampling vector
         self.fc3 = nn.Linear(rep_size, rep_size)
-        self.fc_bn3 = nn.BatchNorm1d(rep_size)
         self.fc4 = nn.Linear(rep_size, rep_size * 2)
 
         # Decoder
@@ -730,7 +729,7 @@ class PictureDecoder(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, out):
-        out = self.fc_bn3(self.fc3(out))
+        out = self.fc3(out)
         out = self.relu(out)
         out = self.fc4(out)
         out = self.relu(out).view(-1, 64, 4, 4)
