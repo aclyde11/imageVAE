@@ -35,7 +35,7 @@ args = parser.parse_args()
 
 
 from DataLoader import MoleLoader
-experiment = ExistingExperiment(previous_experiment="ac5d98bc2343422694feeaaec9791e59")
+experiment = Experiment(project_name='pytorch', auto_metric_logging=False)
 try:
     from apex.parallel import DistributedDataParallel as DDP
     from apex.fp16_utils import *
