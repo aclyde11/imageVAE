@@ -146,7 +146,7 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 for param_group in optimizer.param_groups:
    param_group['lr'] = LR
 
-sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 15, eta_min=8.0e-5, last_epoch=-1)
+#sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 15, eta_min=8.0e-5, last_epoch=-1)
 
 
 if data_para and torch.cuda.device_count() > 1:
@@ -284,7 +284,6 @@ def test(epoch):
                                output_dir + 'reconstruction_' + str(epoch) + '.png', nrow=n)
 
                     del recon_batch
-                    del z
 
                     n_image_gen = 10
                     images = []
@@ -319,11 +318,9 @@ def test(epoch):
 
 
 for epoch in range(starting_epoch, epochs):
-    if epoch == starting_epoch:
+    if epoch != starting_epoch and epoch % 20 == 0:
         for param_group in optimizer.param_groups:
-            param_group['lr'] = LR
-
-    sched.step()
+            param_group['lr'] = LR * 0.9
 
     # for param_group in optimizer.param_groups:
     #     param_group['lr'] = LR
