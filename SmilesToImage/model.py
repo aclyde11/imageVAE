@@ -454,6 +454,8 @@ class SeparableConv3(nn.Module):
                           self.ch3(x[:, 2, ...])),
                          dim=1)
 
+class Singleton(nn.Module):
+
 
 class PictureEncoder(nn.Module):
     def __init__(self, rep_size=256):
@@ -462,14 +464,19 @@ class PictureEncoder(nn.Module):
 
         self.encoder = ResNet(BasicBlock, [2, 3, 2, 3], num_classes=rep_size, in_classes=1)
         self.encoder_color = ResNet(BasicBlock, [2, 3, 2, 3], num_classes=rep_size, in_classes=3)
-        self.w1 =         torch.autograd.Variable(torch.ones(1), requires_grad=True)
-        self.w2 = torch.autograd.Variable(torch.ones(1), requires_grad=True)
+        self.w1 = nn.Parameter(torch.Tensor(1))
+        self.w2 = nn.Parameter(torch.Tensor(1))
+        self.lc1 = nn.Sequential(nn.Linear(rep_size, rep_size), nn.LeakyReLU(), nn.Linear(rep_size, rep_size), nn.LeakyReLU())
+        self.lc2 = nn.Sequential(nn.Linear(rep_size, rep_size), nn.LeakyReLU(), nn.Linear(rep_size, rep_size), nn.LeakyReLU())
+
         self.sigmoid = nn.Sigmoid()
     def forward(self, x):
         color_enc = self.encoder_color(x).view(-1, 256)
+        color_enc = self.lc2(color_enc)
+
         x = torch.mean(x, dim=1, keepdim=True)
         black_enc = self.encoder(x).view(-1, 256)
-
+        black_enc = self.lc1(black_enc)
         return self.sigmoid(self.w1) * black_enc + (1 - self.sigmoid(self.w1)) * color_enc, self.sigmoid(self.w2) * color_enc + (1-self.sigmoid(self.w2)) * black_enc
 
 
