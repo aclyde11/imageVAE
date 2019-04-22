@@ -51,7 +51,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 25
-LR = 2.0e-3         ##adam rate
+LR = 1.0e-3         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -195,7 +195,7 @@ def train(epoch, size=100000):
 
             optimizer.zero_grad()
 
-            recon_batch, mu, logvar = model(data)
+            recon_batch, mu, logvar, _ = model(data)
 
             loss2 = loss_picture(recon_batch, data, mu, logvar, epoch)
             loss2 = torch.sum(loss2)
@@ -241,7 +241,7 @@ def test(epoch):
                 #aff = aff.float().cuda(4)
 
 
-                recon_batch, mu, logvar = model(data)
+                recon_batch, mu, logvar, _ = model(data)
 
 
                 loss2 = loss_picture(recon_batch, data, mu, logvar, epoch)
