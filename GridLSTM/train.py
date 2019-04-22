@@ -32,13 +32,13 @@ hyper_params = {
 
 experiment = Experiment(project_name="pytorch")
 experiment.log_parameters(hyper_params)
-batch_size = 512
+batch_size = 600
 starting_epoch=1
 epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
 data_para = True
-log_interval = 5
+log_interval = 20
 LR = hyper_params['learning_rate']       ##adam rate
 rampDataSize = 0.2 ## data set size to use
 embedding_width = 70
@@ -241,7 +241,6 @@ def train(epoch):
                 mu, logvar = encoder(imgs)
 
                 imgs = reparameterize(mu, logvar).cuda(7)
-                print(imgs.shape)
                 scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch < 3))
 
                 scores_copy = scores.clone()
@@ -384,7 +383,6 @@ def test(epoch):
                     mu, logvar = encoder(imgs)
 
                     imgs = reparameterize(mu, logvar, training=False).cuda(7)
-                    print(imgs.shape)
                     scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
                                                                                     teacher_forcing=False)
 
