@@ -463,8 +463,6 @@ class PictureEncoder(nn.Module):
 
         self.encoder = ResNet(BasicBlock, [2, 3, 2, 3], num_classes=rep_size, in_classes=1)
         self.encoder_color = ResNet(BasicBlock, [2, 3, 2, 3], num_classes=rep_size, in_classes=3)
-        self.w1 = nn.Parameter(torch.Tensor(1))
-        self.w2 = nn.Parameter(torch.Tensor(1))
         self.lc1 = nn.Sequential(nn.Linear(rep_size, rep_size), nn.LeakyReLU(), nn.Linear(rep_size, rep_size), nn.LeakyReLU())
         self.lc2 = nn.Sequential(nn.Linear(rep_size, rep_size), nn.LeakyReLU(), nn.Linear(rep_size, rep_size), nn.LeakyReLU())
 
@@ -476,7 +474,7 @@ class PictureEncoder(nn.Module):
         x = torch.mean(x, dim=1, keepdim=True)
         black_enc = self.encoder(x).view(-1, 256)
         black_enc = self.lc1(black_enc)
-        return self.sigmoid(self.w1) * black_enc + (1 - self.sigmoid(self.w1)) * color_enc, self.sigmoid(self.w2) * color_enc + (1-self.sigmoid(self.w2)) * black_enc
+        return color_enc, black_enc
 
 
 def conv3x3T(in_planes, out_planes, stride=1):
