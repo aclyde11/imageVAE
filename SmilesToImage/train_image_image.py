@@ -105,10 +105,10 @@ class customLoss(nn.Module):
 
     def forward(self, x_recon, x, mu, logvar, epoch):
         loss_MSE = self.mse_loss(x_recon, x)
-        #loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         #loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE # loss_KLD + #loss_cripsy * 256 * 256
+        return loss_MSE + loss_KLD  #loss_cripsy * 256 * 256
 
 model = None
 encoder = None
@@ -286,14 +286,18 @@ def test(epoch):
 
 for epoch in range(starting_epoch, epochs):
 
+    if epoch != starting_epoch and epoch % 15:
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = LR * (0.9 ** epoch // 15)
+            experiment.log_metric('lr', param_group['lr'])
+            print("Current learning rate is: {}".format(param_group['lr']))
 
-    sched.step()
-
+    for param_group in optimizer.param_groups:
+        experiment.log_metric('lr', param_group['lr'])
+        print("Current learning rate is: {}".format(param_group['lr']))
     # for param_group in optimizer.param_groups:
     #     param_group['lr'] = LR
-    for param_group in optimizer.param_groups:
-        print("Current learning rate is: {}".format(param_group['lr']))
-        experiment.log_metric('lr', param_group['lr'])
+
 
     loss = train(epoch)
     test(epoch)
@@ -304,6 +308,7 @@ for epoch in range(starting_epoch, epochs):
         'decoder_state_dict' : model.module.decoder.state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
          }, save_files + 'epoch_' + str(epoch) + '.pt')
+    torch.save(model.module, "loader.pt")
     with torch.no_grad():
         sample = torch.randn(64, 256).to(device)
         sample = model.module.decode(sample).cpu()
