@@ -286,7 +286,7 @@ def test(epoch):
 
 for epoch in range(starting_epoch, epochs):
 
-    if epoch != starting_epoch and epoch % 15:
+    if epoch != starting_epoch and epoch % 15 == 0:
         for param_group in optimizer.param_groups:
             param_group['lr'] = LR * (0.9 ** epoch // 15)
             experiment.log_metric('lr', param_group['lr'])
