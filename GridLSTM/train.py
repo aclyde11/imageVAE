@@ -121,7 +121,7 @@ decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               embed_dim=emb_dim,
                               decoder_dim=decoder_dim,
                               vocab_size=train_data.get_vocab_len(),
-                              encoder_dim=512,
+                              encoder_dim=32,
                               dropout=dropout)
 #decoder.load_state_dict(checkpoint['decoder_state_dict'])
 decoder.fine_tune_embeddings(True)
