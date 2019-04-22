@@ -202,8 +202,8 @@ def add_text_to_image(ten, text, which="orig", dis=None):
 def reparameterize(mu, logvar, training=True):
         shape = mu.shape
         bs = mu.shape[0]
-        mu = mu.view(bs, -1)
-        logvar = mu.view(bs, -1)
+        mu = mu.contiguous().view(bs, -1)
+        logvar = logvar.contiguous().view(bs, -1)
         if training:
            std = torch.exp(logvar.mul(0.5))
            eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
