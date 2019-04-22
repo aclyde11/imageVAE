@@ -51,7 +51,7 @@ no_cuda = False
 seed = 42
 data_para = True
 log_interval = 25
-LR = 1.0e-3         ##adam rate
+LR = 2.0e-3         ##adam rate
 rampDataSize = 0.3 ## data set size to use
 embedding_width = 60
 vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
@@ -108,7 +108,7 @@ class customLoss(nn.Module):
         loss_KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         #loss_cripsy = self.crispyLoss(x_recon, x)
 
-        return loss_MSE + loss_KLD  #loss_cripsy * 256 * 256
+        return loss_MSE + min(1.0, 0.002 * epoch) * loss_KLD  #loss_cripsy * 256 * 256
 
 model = None
 encoder = None
