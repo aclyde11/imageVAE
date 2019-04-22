@@ -199,13 +199,17 @@ def add_text_to_image(ten, text, which="orig", dis=None):
     img.convert('RGB')
     return transforms.ToTensor()(img).float().view(1, 3, 256, 256)
 
-def reparameterize(self, mu, logvar, training=True):
+def reparameterize(mu, logvar, training=True):
+        shape = mu.shape
+        bs = mu.shape[0]
+        mu = mu.view(bs, -1)
+        logvar = mu.view(bs, -1)
         if training:
            std = torch.exp(logvar.mul(0.5))
            eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
-           return eps.mul(std).add_(mu)
+           return eps.mul(std).add_(mu).view(shape)
         else:
-           return mu
+           return mu.view(shape)
 
 def train(epoch):
     with experiment.train():

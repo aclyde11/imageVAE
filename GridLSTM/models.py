@@ -20,6 +20,14 @@ class Encoder(nn.Module):
         modules = list(resnet.children())[:-2]
         self.resnet = nn.Sequential(*modules)
 
+
+        #resnet = torchvision.models.resnet18(pretrained=True)  # pretrained ImageNet ResNet-101
+        resnet = ResNet(BasicBlock, [2, 3, 2, 3], num_classes=14, in_classes=3)
+
+        # Remove linear and pool layers (since we're not doing classification)
+        modules = list(resnet.children())[:-2]
+        self.resnet2 = nn.Sequential(*modules)
+
         # Resize image to fixed size to allow input images of variable size
         #self.adaptive_pool = nn.AdaptiveAvgPool2d((encoded_image_size, encoded_image_size))
 
@@ -34,7 +42,10 @@ class Encoder(nn.Module):
         out = self.resnet(images)  # (batch_size, 2048, image_size/32, image_size/32)
         #out = self.adaptive_pool(out)  # (batch_size, 2048, encoded_image_size, encoded_image_size)
         out = out.permute(0, 2, 3, 1)  # (batch_size, encoded_image_size, encoded_image_size, 2048)
-        return out
+
+        out2 = self.resnet2(images)
+        out2 = out.permute(0, 2, 3, 1)
+        return out, out2
 
     def fine_tune(self, fine_tune=True):
         """
