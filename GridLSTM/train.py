@@ -217,18 +217,9 @@ def train(epoch):
 
             for which_image in rangeobj:
 
-                imgs = data.float()
-                imgs_orig = imgs
-                caps = embed.cuda(7)
-                caplens = embedlen.cuda(7).view(-1, 1)
-                imgs_vae = None
-                if which_image == 0:
-                    imgs = imgs.cuda(6)
-                else:
-                    imgs = imgs.cuda(5)
-                    imgs,_,_ = vae_model(imgs)
-                    imgs_vae = imgs.cpu().detach()
-                    imgs = imgs.cuda(6)
+
+                imgs = imgs.cuda(6)
+
 
                 # Forward prop.
                 imgs = encoder(imgs).cuda(7)
