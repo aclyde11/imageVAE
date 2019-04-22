@@ -371,23 +371,22 @@ def test(epoch):
         losses = AverageMeter()  # loss (per word decoded)
         with torch.no_grad():
             for batch_idx, (embed, data, embedlen) in enumerate(val_loader_food):
-                for which_image in range(2):
-
+                for which_image in range(1,2):
                     imgs = data.float()
+                    imgs_orig = imgs
                     caps = embed.cuda(7)
                     caplens = embedlen.cuda(7).view(-1, 1)
+                    imgs_vae = None
+                    imgs = imgs.cuda(6)
+                    imgs_vae = imgs.cpu()
 
-                    if which_image == 0:
-                        imgs = imgs.cuda(6)
-                    else:
-                        imgs = imgs.cuda(5)
-                        imgs, _, _ = vae_model(imgs)
-                        imgs = imgs.cuda(6)
                     # Forward prop.
-                    imgs = encoder(imgs).cuda(7)
+                    mu, logvar = encoder(imgs)
 
+                    imgs = reparameterize(mu, logvar, training=False).cuda(7)
+                    print(imgs.shape)
                     scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
-                                                                                    teacher_forcing=bool(epoch > 1))
+                                                                                    teacher_forcing=False)
 
                     scores_copy = scores.clone()
                     # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
