@@ -4,7 +4,7 @@ from skimage import io, transform
 from torch import nn, optim
 from torch.nn import functional as F
 import torchvision
-
+from ResNet import ResNet, BasicBlock
 class Encoder(nn.Module):
     """
     Encoder.
@@ -13,7 +13,8 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.enc_image_size = encoded_image_size
 
-        resnet = torchvision.models.resnet18(pretrained=True)  # pretrained ImageNet ResNet-101
+        #resnet = torchvision.models.resnet18(pretrained=True)  # pretrained ImageNet ResNet-101
+        self.resnet = ResNet(BasicBlock, [2, 3, 2, 3], num_classes=14, in_classes=1)
 
         # Remove linear and pool layers (since we're not doing classification)
         modules = list(resnet.children())[:-2]
