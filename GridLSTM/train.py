@@ -236,9 +236,9 @@ def train(epoch):
                     imgs = imgs.cuda(6)
 
                 # Forward prop.
-                #imgs = encoder(imgs).cuda(7)
+                imgs = encoder(imgs).cuda(7)
                 print(imgs.shape)
-                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(z, caps, caplens, teacher_forcing=bool(epoch < 3))
+                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch < 3))
 
                 scores_copy = scores.clone()
                 # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
