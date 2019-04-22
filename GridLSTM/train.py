@@ -97,12 +97,7 @@ alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as i
 fine_tune_encoder = True  # fine-tune encoder?
 
 
-decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
-                              embed_dim=emb_dim,
-                              decoder_dim=decoder_dim,
-                              vocab_size=len(vocab),
-                              encoder_dim=512,
-                              dropout=dropout)
+
 
 
 encoder = PictureEncoder().cuda()
