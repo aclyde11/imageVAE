@@ -231,7 +231,7 @@ def train(epoch):
                     imgs = imgs.cuda(6)
                 else:
                     imgs = imgs.cuda(5)
-                    imgs,z = vae_model(imgs)
+                    imgs,_,_ = vae_model(imgs)
                     imgs_vae = imgs.cpu().detach()
                     imgs = imgs.cuda(6)
 
