@@ -288,7 +288,7 @@ for epoch in range(starting_epoch, epochs):
 
     if epoch != starting_epoch and epoch % 15 == 0:
         for param_group in optimizer.param_groups:
-            param_group['lr'] = LR * (0.9 ** epoch // 15)
+            param_group['lr'] = LR * (0.9 ** (epoch // 15))
             experiment.log_metric('lr', param_group['lr'])
             print("Current learning rate is: {}".format(param_group['lr']))
 
