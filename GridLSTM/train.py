@@ -237,6 +237,7 @@ def train(epoch):
 
                 # Forward prop.
                 imgs = encoder(imgs).cuda(7)
+                print(imgs.shape)
 
                 scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch < 3))
 
