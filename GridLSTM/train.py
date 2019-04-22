@@ -199,6 +199,14 @@ def add_text_to_image(ten, text, which="orig", dis=None):
     img.convert('RGB')
     return transforms.ToTensor()(img).float().view(1, 3, 256, 256)
 
+def reparameterize(self, mu, logvar, training=True):
+        if training:
+           std = torch.exp(logvar.mul(0.5))
+           eps = torch.autograd.Variable(std.data.new(std.size()).normal_())
+           return eps.mul(std).add_(mu)
+        else:
+           return mu
+
 def train(epoch):
     with experiment.train():
         experiment.log_current_epoch(epoch)
@@ -226,7 +234,9 @@ def train(epoch):
                 imgs_vae = imgs.cpu()
 
                 # Forward prop.
-                imgs = encoder(imgs).cuda(7)
+                mu, logvar = encoder(imgs).cuda(7)
+
+                imgs = reparameterize(mu, logvar)
                 print(imgs.shape)
                 scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch < 3))
 
