@@ -32,7 +32,7 @@ hyper_params = {
 
 experiment = Experiment(project_name="pytorch")
 experiment.log_parameters(hyper_params)
-batch_size = 128
+batch_size = 512
 starting_epoch=1
 epochs = hyper_params['num_epochs']
 no_cuda = False
