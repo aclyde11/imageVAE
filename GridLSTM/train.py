@@ -238,9 +238,9 @@ def train(epoch):
                 imgs_vae = imgs.cpu()
 
                 # Forward prop.
-                mu, logvar = encoder(imgs).cuda(7)
+                mu, logvar = encoder(imgs)
 
-                imgs = reparameterize(mu, logvar)
+                imgs = reparameterize(mu, logvar).cuda(7)
                 print(imgs.shape)
                 scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch < 3))
 
