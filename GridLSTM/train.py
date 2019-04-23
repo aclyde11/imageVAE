@@ -444,7 +444,7 @@ def sample():
             start_char = embed[0]
             mu, logvar = encoder(data.float().cuda(6))
             #z = reparameterize(mu, logvar).cuda(7)
-            mu = mu.cuda(7)
+            z = mu.cuda(7)
             o_shape = z.shape
             z = z.view(z.shape[0], -1)
         for i in range(1):
