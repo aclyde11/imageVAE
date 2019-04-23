@@ -33,7 +33,7 @@ hyper_params = {
 experiment = Experiment(project_name="pytorch")
 experiment.log_parameters(hyper_params)
 batch_size = 600
-starting_epoch=1
+starting_epoch=120
 epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
@@ -245,7 +245,9 @@ def train(epoch):
 
                 # Calculate loss
                 loss = criterion(scores, targets)
-
+                kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+                experiment.log("kl", kl_loss.item())
+                loss += kl_loss
                 # Add doubly stochastic attention regularization
                 loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
 
@@ -466,16 +468,16 @@ def sample():
 
 
 for epoch in range(starting_epoch, epochs):
-    sample()
-    #decoder_sched.step()
-    #encoder_sched.step()
-    #train(epoch)
-    #val = test(epoch)
+    # sample()
+    decoder_sched.step()
+    encoder_sched.step()
+    train(epoch)
+    val = test(epoch)
 
-    #
-    # torch.save({
-    #     'epoch': epoch,
-    #     'decoder_state_dict': decoder.state_dict(),
-    #     'decoder_optimizer_state_dict': decoder_optimizer.state_dict(),
-    #     'encoder_state_dict' : encoder.state_dict(),
-    #     'encoder_optimizer_state_dict' : encoder_optimizer.state_dict()}, 'state_' + str(epoch) + ".pt")
+
+    torch.save({
+        'epoch': epoch,
+        'decoder_state_dict': decoder.state_dict(),
+        'decoder_optimizer_state_dict': decoder_optimizer.state_dict(),
+        'encoder_state_dict' : encoder.state_dict(),
+        'encoder_optimizer_state_dict' : encoder_optimizer.state_dict()}, 'state_' + str(epoch) + ".pt")
