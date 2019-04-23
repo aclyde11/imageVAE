@@ -443,26 +443,26 @@ def sample():
         for batch_idx, (embed, data, embedlen) in enumerate(val_loader_food):
             start_char = embed[0]
             mu, logvar = encoder(data.float().cuda(6))
-            #z = reparameterize(mu, logvar).cuda(7)
-            z = mu.cuda(7)
+            z = reparameterize(mu, logvar * 2.0).cuda(7)
+            #z = mu.cuda(7)
             o_shape = z.shape
             z = z.view(z.shape[0], -1)
-        for i in range(1):
-            print(z.shape)
-            z1 = z[i * 2, ...].cpu().numpy()
-            z2 = z[i * 4 + 1, ...].cpu().numpy()
-            sample_vec = interpolate_points(z1, z2, np.linspace(0, 1, num=50, endpoint=True))
-            sample_vec = torch.from_numpy(sample_vec).cuda(7)
-            sample_vec = sample_vec.view(-1, 16, 16, 32)
-            bs = sample_vec.shape[0]
-            ts = start_char.repeat(bs, 1).cuda(7)
-            print(ts.shape)
-            scores = decoder.sample(sample_vec, ts).cpu()
-            _, preds = torch.max(scores, dim=2)
-            preds = preds.numpy()
-            for j in range(preds.shape[0]):
-                p = preds[i,...]
-                print("".join([charset[chars] for chars in p]))
+            for i in range(3):
+                print(z.shape)
+                z1 = z[i * 2, ...].cpu().numpy()
+                z2 = z[i * 4 + 1, ...].cpu().numpy()
+                sample_vec = interpolate_points(z1, z2, np.linspace(0, 1, num=50, endpoint=True))
+                sample_vec = torch.from_numpy(sample_vec).cuda(7)
+                sample_vec = sample_vec.view(-1, 16, 16, 32)
+                bs = sample_vec.shape[0]
+                ts = start_char.repeat(bs, 1).cuda(7)
+                print(ts.shape)
+                scores = decoder.sample(sample_vec, ts).cpu()
+                _, preds = torch.max(scores, dim=2)
+                preds = preds.numpy()
+                for j in range(preds.shape[0]):
+                    p = preds[i,...]
+                    print("".join([charset[chars] for chars in p]))
 
 
 for epoch in range(starting_epoch, epochs):
