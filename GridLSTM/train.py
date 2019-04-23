@@ -100,40 +100,30 @@ fine_tune_encoder = True  # fine-tune encoder?
 
 
 
-encoder = PictureEncoder().cuda()
-decoder = PictureDecoder().cuda()
 
-# checkpoint = torch.load( "/homes/aclyde11/imageVAE/im_im_ex/model/" + 'epoch_' + str(106) + '.pt', map_location='cpu')
-# encoder.load_state_dict(checkpoint['encoder_state_dict'])
-# decoder.load_state_dict(checkpoint['decoder_state_dict'])
-vae_model = GeneralVae(encoder, decoder, rep_size=500)
-for param in vae_model.parameters():
-    param.requires_grad = False
-vae_model = vae_model.cuda(5)
-
-#checkpoint = torch.load("state_8.pt", map_location='cpu')
+checkpoint = torch.load("state_119.pt", map_location='cpu')
 decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                               embed_dim=emb_dim,
                               decoder_dim=decoder_dim,
                               vocab_size=train_data.get_vocab_len(),
                               encoder_dim=32,
                               dropout=dropout)
-#decoder.load_state_dict(checkpoint['decoder_state_dict'])
+decoder.load_state_dict(checkpoint['decoder_state_dict'])
 decoder.fine_tune_embeddings(True)
 decoder = decoder.cuda(7)
 
 
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
-#decoder_optimizer.load_state_dict(checkpoint['decoder_optimizer_state_dict'])
+decoder_optimizer.load_state_dict(checkpoint['decoder_optimizer_state_dict'])
 encoder = Encoder()
-#encoder.load_state_dict(checkpoint["encoder_state_dict"])
+encoder.load_state_dict(checkpoint["encoder_state_dict"])
 encoder.fine_tune(fine_tune_encoder)
 encoder = encoder.cuda(6)
 
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
-#encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer_state_dict'])
+encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer_state_dict'])
 
 decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
 encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
@@ -218,7 +208,6 @@ def train(epoch):
         print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
         decoder.train()  # train mode (dropout and batchnorm is used)
         encoder.train()
-        vae_model.eval()
         losses = AverageMeter()  # loss (per word decoded)
         corrects = []
         wrongs = []
@@ -364,7 +353,6 @@ def train(epoch):
 def test(epoch):
     with experiment.test():
         experiment.log_current_epoch(epoch)
-        vae_model.eval()
         decoder.eval()
         encoder.eval()
         losses = AverageMeter()  # loss (per word decoded)
@@ -438,17 +426,47 @@ def test(epoch):
             experiment.log_metric("loss", losses.avg)
     return losses.avg
 
+def interpolate_points(x,y, sampling):
+    from sklearn.linear_model import LinearRegression
+    ln = LinearRegression()
+    data = np.stack((x,y))
+    data_train = np.array([0, 1]).reshape(-1, 1)
+    ln.fit(data_train, data)
+
+    return ln.predict(sampling.reshape(-1, 1)).astype(np.float32)
+
+
+def sample():
+    decoder.eval()
+    encoder.eval()
+    with torch.no_grad():
+        for batch_idx, (embed, data, embedlen) in enumerate(val_loader_food):
+            mu, logvar = encoder(data.float().cuda(6))
+            z = reparameterize(mu, logvar).cuda(7)
+
+        for i in range(1):
+            z1 = z[i * 2, ...].cpu().numpy()
+            z2 = z[i * 2 + 1, ...].cpu().numpy()
+            sample_vec = interpolate_points(z1, z2, np.linspace(0, 1, num=200, endpoint=True))
+            sample_vec = torch.from_numpy(sample_vec).to(device)
+            scores, _, _, _, _ = decoder(sample_vec).cpu()
+            _, preds = torch.max(scores, dim=2)
+            for j in range(preds.shape[0]):
+                p = preds[i,...]
+                print("".join([charset[chars] for chars in p]))
+
 
 for epoch in range(starting_epoch, epochs):
-    decoder_sched.step()
-    encoder_sched.step()
-    train(epoch)
-    val = test(epoch)
+    sample()
+    #decoder_sched.step()
+    #encoder_sched.step()
+    #train(epoch)
+    #val = test(epoch)
 
-
-    torch.save({
-        'epoch': epoch,
-        'decoder_state_dict': decoder.state_dict(),
-        'decoder_optimizer_state_dict': decoder_optimizer.state_dict(),
-        'encoder_state_dict' : encoder.state_dict(),
-        'encoder_optimizer_state_dict' : encoder_optimizer.state_dict()}, 'state_' + str(epoch) + ".pt")
+    #
+    # torch.save({
+    #     'epoch': epoch,
+    #     'decoder_state_dict': decoder.state_dict(),
+    #     'decoder_optimizer_state_dict': decoder_optimizer.state_dict(),
+    #     'encoder_state_dict' : encoder.state_dict(),
+    #     'encoder_optimizer_state_dict' : encoder_optimizer.state_dict()}, 'state_' + str(epoch) + ".pt")
