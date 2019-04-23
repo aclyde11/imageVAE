@@ -441,6 +441,7 @@ def sample():
     encoder.eval()
     with torch.no_grad():
         for batch_idx, (embed, data, embedlen) in enumerate(val_loader_food):
+            start_char = embed[0]
             mu, logvar = encoder(data.float().cuda(6))
             z = reparameterize(mu, logvar).cuda(7)
             o_shape = z.shape
@@ -452,7 +453,10 @@ def sample():
             sample_vec = interpolate_points(z1, z2, np.linspace(0, 1, num=200, endpoint=True))
             sample_vec = torch.from_numpy(sample_vec).cuda(7)
             sample_vec = sample_vec.view(-1, 16, 16, 32)
-            scores, _, _, _, _ = decoder(sample_vec).cpu()
+            bs = sample_vec.shape[0]
+            ts = start_char.repeat(bs, 1)
+            print(ts.shape)
+            scores, _, _, _, _ = decoder(sample_vec, ts).cpu()
             _, preds = torch.max(scores, dim=2)
             for j in range(preds.shape[0]):
                 p = preds[i,...]

@@ -243,6 +243,80 @@ class GridLSTMDecoderWithAttention(nn.Module):
         c = self.init_c(mean_encoder_out)
         return h, c
 
+    def sample(self, encoder_out, start_char, teacher_forcing=False, use_first_state=False):
+        """
+        Forward propagation.
+        :param encoder_out: encoded images, a tensor of dimension (batch_size, enc_image_size, enc_image_size, encoder_dim)
+        :param encoded_captions: encoded captions, a tensor of dimension (batch_size, max_caption_length)
+        :param caption_lengths: caption lengths, a tensor of dimension (batch_size, 1)
+        :return: scores for vocabulary, sorted encoded captions, decode lengths, weights, sort indices
+        """
+
+        batch_size = encoder_out.size(0)
+        encoder_dim = encoder_out.size(-1)
+        vocab_size = self.vocab_size
+
+        # Flatten image
+        encoder_out = encoder_out.view(batch_size, -1, encoder_dim)  # (batch_size, num_pixels, encoder_dim)
+        num_pixels = encoder_out.size(1)
+
+
+        # Embedding
+        embeddings = self.embedding(start_char)  # (batch_size, max_caption_length, embed_dim)
+        # #print("embedding shape ", embeddings.shape)
+
+        # Initialize LSTM state
+        h, m = self.init_hidden_state(encoder_out)  # (batch_size, decoder_dim)
+        newhs = [h, h, h]
+        newms = [m, m, m]
+        # We won't decode at the <end> position, since we've finished generating as soon as we generate <end>
+        # So, decoding lengths are actual lengths - 1
+        # decode_lengths = (70 - 1).tolist()
+        decode_lengths = (70 - 1).tolist()
+
+        # Create tensors to hold word predicion scores and alphas
+        predictions = torch.zeros(batch_size, max(decode_lengths), vocab_size).cuda(7)
+        alphas = torch.zeros(batch_size, max(decode_lengths), num_pixels).cuda(7)
+
+        # At each time-step, decode by
+        # attention-weighing the encoder's output based on the decoder's previous hidden state output
+        # then generate a new word in the decoder with the previous word and the attention weighted encoding
+        for t in range(70):
+
+            batch_size_t = sum([l > t for l in decode_lengths])
+
+
+            attention_weighted_encoding, alpha = self.attention(encoder_out[:batch_size_t],
+                                                                h[:batch_size_t])
+            gate = self.sigmoid(self.f_beta(h[:batch_size_t]))  # gating scalar, (batch_size_t, encoder_dim)
+            attention_weighted_encoding = gate * attention_weighted_encoding
+
+            lstm_input = None
+            #print("embedding size", embeddings.shape, attention_weighted_encoding.shape)
+
+            if not teacher_forcing and t > 0:
+                lstm_input = torch.cat([self.embedding(torch.max(predictions[:batch_size_t, t, :], dim=1)[1].long()), attention_weighted_encoding], dim=1)
+            else:
+                lstm_input = torch.cat([embeddings[:batch_size_t, t, :], attention_weighted_encoding], dim=1)
+
+            if use_first_state and t == 0:
+                lstm_input = torch.cat([embeddings[:batch_size_t, t, :], encoder_out[:batch_size_t]], dim=1)
+
+            newhs.insert(0, h)
+            newms.insert(0, m)
+            newhs = map(lambda x : x[:batch_size_t, ...], newhs)
+            newms = map(lambda x : x[:batch_size_t, ...], newms)
+
+            #print("input shape", lstm_input.shape)
+            #print('running grid ', t)
+            h, m, newhs, newms = self.decode_step1(lstm_input, newhs, newms)
+
+            preds = self.fc(self.dropout(h))  # (batch_size_t, vocab_size)
+            predictions[:batch_size_t, t, :] = preds
+            alphas[:batch_size_t, t, :] = alpha
+
+        return predictions, decode_lengths, alphas
+
 
     def forward(self, encoder_out, encoded_captions, caption_lengths, teacher_forcing=True, use_first_state=False):
         """
