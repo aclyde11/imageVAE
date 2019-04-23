@@ -445,6 +445,7 @@ def sample():
             z = reparameterize(mu, logvar).cuda(7)
 
         for i in range(1):
+            print(z.shape)
             z1 = z[i * 2, ...].cpu().numpy()
             z2 = z[i * 2 + 1, ...].cpu().numpy()
             sample_vec = interpolate_points(z1, z2, np.linspace(0, 1, num=200, endpoint=True))
