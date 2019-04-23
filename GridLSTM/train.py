@@ -245,6 +245,8 @@ def train(epoch):
 
                 # Calculate loss
                 loss = criterion(scores, targets)
+                mu = mu.view(mu.shape[0], -1)
+                logvar = logvar.view(logvar.shape[0], -1)
                 kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
                 experiment.log("kl", kl_loss.item())
                 loss += kl_loss
