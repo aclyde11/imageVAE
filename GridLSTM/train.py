@@ -443,7 +443,7 @@ def sample():
         for batch_idx, (embed, data, embedlen) in enumerate(val_loader_food):
             mu, logvar = encoder(data.float().cuda(6))
             z = reparameterize(mu, logvar).cuda(7)
-
+            z = z.view(z.shape[0], -1)
         for i in range(1):
             print(z.shape)
             z1 = z[i * 2, ...].cpu().numpy()
