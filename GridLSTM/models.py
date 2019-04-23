@@ -315,7 +315,7 @@ class GridLSTMDecoderWithAttention(nn.Module):
             predictions[:batch_size_t, t, :] = preds
             alphas[:batch_size_t, t, :] = alpha
 
-        return predictions, decode_lengths, alphas
+        return predictions
 
 
     def forward(self, encoder_out, encoded_captions, caption_lengths, teacher_forcing=True, use_first_state=False):

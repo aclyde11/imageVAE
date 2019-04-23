@@ -456,7 +456,7 @@ def sample():
             bs = sample_vec.shape[0]
             ts = start_char.repeat(bs, 1).cuda(7)
             print(ts.shape)
-            scores, _, _, _, _ = decoder.sample(sample_vec, ts).cpu()
+            scores = decoder.sample(sample_vec, ts).cpu()
             _, preds = torch.max(scores, dim=2)
             for j in range(preds.shape[0]):
                 p = preds[i,...]
