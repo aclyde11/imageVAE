@@ -458,6 +458,7 @@ def sample():
             print(ts.shape)
             scores = decoder.sample(sample_vec, ts).cpu()
             _, preds = torch.max(scores, dim=2)
+            preds = preds.numpy()
             for j in range(preds.shape[0]):
                 p = preds[i,...]
                 print("".join([charset[chars] for chars in p]))
