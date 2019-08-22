@@ -20,11 +20,17 @@ from invert import Invert
 import numpy as np
 import pandas as pd
 
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--batch_size', default=128, type=int)
+parser.add_argument('--gpu1', default=0, type=int)
+parser.add_argument('--gpu2', default=0, type=int)
+args = parser.parse_args()
 import sys
 
-gpu1, gpu2 = int(sys.argv[1]), int(sys.argv[2])
+gpu1, gpu2 = args.gpu1, args.gpu2
 
-torch.cuda.set_device(2)
 hyper_params = {
     "num_epochs": 1000,
     "train_batch_size": 8,
@@ -35,7 +41,7 @@ hyper_params = {
 
 experiment = Experiment(project_name="grid-lstm", disabled=True)
 experiment.log_parameters(hyper_params)
-batch_size = 8
+batch_size = args.batch_size
 starting_epoch = 1
 epochs = hyper_params['num_epochs']
 no_cuda = False
