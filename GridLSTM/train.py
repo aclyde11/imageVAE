@@ -22,7 +22,7 @@ import pandas as pd
 
 import sys
 
-gpu1, gpu2 = sys.argv[1], sys.argv[2]
+gpu1, gpu2 = int(sys.argv[1]), int(sys.argv[2])
 
 torch.cuda.set_device(2)
 hyper_params = {
@@ -58,6 +58,8 @@ save_files = '/homes/aclyde11/imageVAE/combo/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 32, 'pin_memory': True} if cuda else {}
 
+
+print("Creating data loaders...")
 train_data = MoleLoader(
     pd.read_csv("/homes/aclyde11/zinc/zinc_cleaned.smi", sep=' ', header=None, engine='c', low_memory=False), vocab,
     max_len=70)
@@ -70,12 +72,12 @@ train_loader_food = torch.utils.data.DataLoader(
 val_loader_food = torch.utils.data.DataLoader(
     val_data,
     batch_size=batch_size, shuffle=False, drop_last=True, **kwargs)
+print("Data Loaders Created.")
 
 vocab = train_data.vocab
 charset = train_data.charset
 embedding_width = 150
 embedding_size = len(vocab)
-
 
 def clip_gradient(optimizer, grad_clip):
     """
@@ -100,6 +102,7 @@ grad_clip = 5.  # clip gradients at an absolute value of
 alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as in the paper
 fine_tune_encoder = True  # fine-tune encoder?
 
+print("Creating models. Decoder is on GPU", gpu2, ", Encoder is on GPU", gpu1)
 decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                                        embed_dim=emb_dim,
                                        decoder_dim=decoder_dim,
@@ -398,7 +401,7 @@ def test(epoch):
             experiment.log_metric("loss", losses.avg)
     return losses.avg
 
-
+print("Done with setup. Training.")
 for epoch in range(starting_epoch, epochs):
     decoder_sched.step()
     encoder_sched.step()
