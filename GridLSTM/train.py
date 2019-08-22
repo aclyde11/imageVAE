@@ -1,5 +1,5 @@
 from comet_ml import Experiment
-from torch.nn.utils.rnn import pack_padded_sequence
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from DataLoader import MoleLoader
 import os
 
@@ -224,8 +224,8 @@ def train(epoch):
                 targets = caps_sorted[:, 1:]
                 targets_copy = targets.clone()
 
-                scores = pack_padded_sequence(scores, decode_lengths, batch_first=True)
-                targets = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+                scores, _  = pad_packed_sequence(scores, decode_lengths, batch_first=True)
+                targets, _ = pad_packed_sequence(targets, decode_lengths, batch_first=True)
 
                 # Calculate loss
                 loss = criterion(scores, targets)
@@ -254,10 +254,7 @@ def train(epoch):
                 losses.update(loss.item(), sum(decode_lengths))
 
                 experiment.log_metric('loss', loss.item())
-                if which_image == 0:
-                    experiment.log_metric("orig_loss", loss.item())
-                else:
-                    experiment.log_metric("vae_loss", loss.item())
+                experiment.log_metric("orig_loss", loss.item())
 
                 acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
                 experiment.log_metric("acc_per_char", acc)
