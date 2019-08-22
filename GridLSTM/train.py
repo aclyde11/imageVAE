@@ -225,8 +225,8 @@ def train(epoch):
                 scores = pack_padded_sequence(scores, decode_lengths, batch_first=True)
                 targets = pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
-                scores = pad_packed_sequence(scores, batch_first=True, padding_value=0, total_length=embedding_width)
-                targets = pad_packed_sequence(targets, batch_first=True, padding_value=0, total_length=embedding_width)
+                scores, _ = pad_packed_sequence(scores, batch_first=True, padding_value=0, total_length=embedding_width)
+                targets, _ = pad_packed_sequence(targets, batch_first=True, padding_value=0, total_length=embedding_width)
 
                 # Calculate loss
                 print('preloss shapes:', scores.shape, targets.shape)
