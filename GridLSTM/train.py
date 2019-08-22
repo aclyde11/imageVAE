@@ -1,5 +1,5 @@
 from comet_ml import Experiment
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+from torch.nn.utils.rnn import pack_padded_sequence
 from DataLoader import MoleLoader
 import os
 
@@ -61,9 +61,9 @@ kwargs = {'num_workers': 32, 'pin_memory': True} if cuda else {}
 
 print("Creating data loaders...")
 train_data = MoleLoader(
-    pd.read_csv("/homes/aclyde11/zinc/train.smi", sep=' ', header=None, engine='c', low_memory=False), vocab,
+    pd.read_csv("/homes/aclyde11/zinc/train.smi", nrows=1000, sep=' ', header=None, engine='c', low_memory=False), vocab,
     max_len=70)
-val_data = MoleLoader(pd.read_csv("/homes/aclyde11/zinc/test.smi", sep=' ', header=None, engine='c', low_memory=False),
+val_data = MoleLoader(pd.read_csv("/homes/aclyde11/zinc/test.smi", nrows=1000, sep=' ', header=None, engine='c', low_memory=False),
                       vocab, max_len=70)
 
 train_loader_food = torch.utils.data.DataLoader(
@@ -224,8 +224,8 @@ def train(epoch):
                 targets = caps_sorted[:, 1:]
                 targets_copy = targets.clone()
 
-                scores, _  = pad_packed_sequence(scores, decode_lengths, batch_first=True)
-                targets, _ = pad_packed_sequence(targets, decode_lengths, batch_first=True)
+                scores = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+                targets = pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
                 # Calculate loss
                 loss = criterion(scores, targets)
