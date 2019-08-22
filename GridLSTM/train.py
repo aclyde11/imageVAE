@@ -276,6 +276,7 @@ def train(epoch):
                     targets_copy = targets_copy.cpu().numpy()
 
                     imgs_orig = imgs_orig.detach().cpu()
+                    imgs_vae = imgs_orig
                     imgs_vae = imgs_vae.detach().cpu()
                     for i in range(preds.shape[0]):
                         sample = preds[i, ...]
