@@ -33,7 +33,7 @@ hyper_params = {
     "learning_rate": 0.001
 }
 
-experiment = Experiment(project_name="grid-lstm")
+experiment = Experiment(project_name="grid-lstm", disabled=False)
 experiment.log_parameters(hyper_params)
 batch_size = 256
 starting_epoch = 1
