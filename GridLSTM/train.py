@@ -230,7 +230,7 @@ def train(epoch):
 
                 # Calculate loss
                 print('preloss shapes:', scores.shape, targets.shape)
-                loss = criterion(scores, targets)
+                loss = criterion(scores.permute((0,2,1)), targets)
 
                 # Add doubly stochastic attention regularization
                 loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
