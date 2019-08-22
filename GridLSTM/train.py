@@ -30,7 +30,7 @@ args = parser.parse_args()
 import sys
 
 gpu1, gpu2 = args.gpu1, args.gpu2
-torch.cuda.set_device(gpu2)
+torch.cuda.set_device(gpu1)
 hyper_params = {
     "num_epochs": 1000,
     "train_batch_size": 8,
