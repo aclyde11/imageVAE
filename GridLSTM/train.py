@@ -1,5 +1,5 @@
 from comet_ml import Experiment
-from torch.nn.utils.rnn import pack_padded_sequence,pad_packed_sequence
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from DataLoader import MoleLoader
 import os
 
@@ -64,13 +64,14 @@ save_files = '/homes/aclyde11/imageVAE/combo/model/'
 device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 32, 'pin_memory': True} if cuda else {}
 
-
 print("Creating data loaders...")
 train_data = MoleLoader(
-    pd.read_csv("/homes/aclyde11/zinc/train.smi", nrows=1000, sep=' ', header=None, engine='c', low_memory=False), vocab,
+    pd.read_csv("/homes/aclyde11/zinc/train.smi", nrows=1000, sep=' ', header=None, engine='c', low_memory=False),
+    vocab,
     max_len=embedding_width)
-val_data = MoleLoader(pd.read_csv("/homes/aclyde11/zinc/test.smi", nrows=1000, sep=' ', header=None, engine='c', low_memory=False),
-                      vocab, max_len=embedding_width)
+val_data = MoleLoader(
+    pd.read_csv("/homes/aclyde11/zinc/test.smi", nrows=1000, sep=' ', header=None, engine='c', low_memory=False),
+    vocab, max_len=embedding_width)
 
 train_loader_food = torch.utils.data.DataLoader(
     train_data,
@@ -84,6 +85,7 @@ vocab = train_data.vocab
 charset = train_data.charset
 embedding_width = 150
 embedding_size = len(vocab)
+
 
 def clip_gradient(optimizer, grad_clip):
     """
@@ -206,111 +208,105 @@ def train(epoch):
         corrects = []
         wrongs = []
         for batch_idx, (embed, data, embedlen) in enumerate(train_loader_food):
-            rangeobj = range(1, 2)
 
-            for which_image in rangeobj:
+            imgs = data.float().cuda(gpu1)
+            imgs_orig = imgs.cpu()
+            caps = embed.cuda(gpu2)
+            caplens = embedlen.cuda(gpu2).view(-1, 1)
+            print("caps shape", caps.shape)
 
-                imgs = data.float().cuda(gpu1)
-                imgs_orig = imgs.cpu()
-                caps = embed.cuda(gpu2)
-                caplens = embedlen.cuda(gpu2).view(-1, 1)
-                print("caps shape", caps.shape)
+            # Forward prop.
+            imgs = encoder(imgs).cuda(gpu2)
+            print(imgs.shape)
+            scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
+                                                                            teacher_forcing=bool(epoch < 3))
 
-                # Forward prop.
-                imgs = encoder(imgs).cuda(gpu2)
-                print(imgs.shape)
-                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
-                                                                                teacher_forcing=bool(epoch < 3))
+            scores_copy = scores.clone()
+            # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
+            imgs_orig = imgs_orig[sort_ind]
+            targets = caps_sorted[:, 1:]
+            targets_copy = targets.clone()
 
-                scores_copy = scores.clone()
-                # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
-                imgs_orig = imgs_orig[sort_ind]
-                targets = caps_sorted[:, 1:]
-                targets_copy = targets.clone()
+            scores = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+            targets = pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
-                scores = pack_padded_sequence(scores, decode_lengths, batch_first=True)
-                targets = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+            scores, _ = pad_packed_sequence(scores, batch_first=True, padding_value=0, total_length=embedding_width)
+            targets, _ = pad_packed_sequence(targets, batch_first=True, padding_value=0, total_length=embedding_width)
 
-                scores, _ = pad_packed_sequence(scores, batch_first=True, padding_value=0, total_length=embedding_width)
-                targets, _ = pad_packed_sequence(targets, batch_first=True, padding_value=0, total_length=embedding_width)
+            # Calculate loss
+            print('preloss shapes:', scores.shape, targets.shape)
+            loss = criterion(scores.permute((0, 2, 1)), targets)
 
-                # Calculate loss
-                print('preloss shapes:', scores.shape, targets.shape)
-                loss = criterion(scores.permute((0,2,1)), targets)
+            # Add doubly stochastic attention regularization
+            loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
 
-                # Add doubly stochastic attention regularization
-                loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
+            # Back prop.
+            decoder_optimizer.zero_grad()
+            if encoder_optimizer is not None:
+                encoder_optimizer.zero_grad()
+            loss.backward()
 
-                # Back prop.
-                decoder_optimizer.zero_grad()
+            # Clip gradients
+            if grad_clip is not None:
+                clip_gradient(decoder_optimizer, grad_clip)
                 if encoder_optimizer is not None:
-                    encoder_optimizer.zero_grad()
-                loss.backward()
+                    clip_gradient(encoder_optimizer, grad_clip)
 
-                # Clip gradients
-                if grad_clip is not None:
-                    clip_gradient(decoder_optimizer, grad_clip)
-                    if encoder_optimizer is not None:
-                        clip_gradient(encoder_optimizer, grad_clip)
+            # Update weights
+            decoder_optimizer.step()
+            if encoder_optimizer is not None:
+                encoder_optimizer.step()
 
-                # Update weights
-                decoder_optimizer.step()
-                if encoder_optimizer is not None:
-                    encoder_optimizer.step()
+            # Keep track of metrics
+            losses.update(loss.item(), sum(decode_lengths))
 
-                # Keep track of metrics
-                losses.update(loss.item(), sum(decode_lengths))
+            experiment.log_metric('loss', loss.item())
+            experiment.log_metric("orig_loss", loss.item())
 
-                experiment.log_metric('loss', loss.item())
-                experiment.log_metric("orig_loss", loss.item())
+            scores = scores.permute((0, 2, 1))
+            acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
+            experiment.log_metric("acc_per_char", acc)
 
-                scores = scores.permute((0, 2, 1))
-                acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
-                experiment.log_metric("acc_per_char", acc)
+            acc_per_string = 0
+            if batch_idx % log_interval == 0:
+                print("wrongs len: {}, correct len: {}".format(len(wrongs), len(corrects)))
+                print('Train Epoch {}: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
+                    "orig",
+                    epoch, batch_idx * len(data), len(train_loader_food.dataset),
+                           100. * batch_idx / len(train_loader_food),
+                           loss.item() / len(data), datetime.datetime.now()))
 
-                acc_per_string = 0
-                if batch_idx % log_interval == 0:
-                    print("wrongs len: {}, correct len: {}".format(len(wrongs), len(corrects)))
-                    print('Train Epoch {}: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
-                        "orig" if which_image == 0 else "vaes",
-                        epoch, batch_idx * len(data), len(train_loader_food.dataset),
-                        100. * batch_idx / len(train_loader_food),
-                        loss.item() / len(data), datetime.datetime.now()))
+                _, preds = torch.max(scores_copy, dim=2)
+                preds = preds.cpu().numpy()
+                targets_copy = targets_copy.cpu().numpy()
 
-                    _, preds = torch.max(scores_copy, dim=2)
-                    preds = preds.cpu().numpy()
-                    targets_copy = targets_copy.cpu().numpy()
+                imgs_orig = imgs_orig.detach().cpu()
+                imgs_vae = imgs_orig
+                imgs_vae = imgs_vae.detach().cpu()
+                for i in range(preds.shape[0]):
+                    sample = preds[i, ...]
+                    target = targets_copy[i, ...]
+                    s1 = "".join([charset[chars] for chars in target]).strip()
+                    s2 = "".join([charset[chars] for chars in sample]).strip()
+                    if i < 4:
+                        print("ORIG: {}\nNEW : {}\n".format(s1, s2))
+                    acc_per_string += 1 if s1 == s2 else 0
 
-                    imgs_orig = imgs_orig.detach().cpu()
-                    imgs_vae = imgs_orig
-                    imgs_vae = imgs_vae.detach().cpu()
-                    for i in range(preds.shape[0]):
-                        sample = preds[i, ...]
-                        target = targets_copy[i, ...]
-                        s1 = "".join([charset[chars] for chars in target]).strip()
-                        s2 = "".join([charset[chars] for chars in sample]).strip()
-                        if i < 4:
-                            print("ORIG: {}\nNEW : {}\n".format(s1, s2))
-                        acc_per_string += 1 if s1 == s2 else 0
+                    if len(corrects) < 50 and s1 == s2:
+                        a = add_text_to_image(imgs_orig[i, ...], s1, "orig")
+                        corrects.append(a)
+                        a = add_text_to_image(imgs_vae[i, ...], s2, "vae", str(0))
+                        corrects.append(a)
 
-                        if len(corrects) < 50 and s1 == s2:
-                            a = add_text_to_image(imgs_orig[i, ...], s1, "orig")
-                            corrects.append(a)
-                            a = add_text_to_image(imgs_vae[i, ...], s2, "vae", str(0))
-                            corrects.append(a)
+                    if len(wrongs) < 50 and s1 != s2:
+                        dist = levenshteinDistance(s1, s2)
+                        s2 = s2
+                        a = add_text_to_image(imgs_orig[i, ...], s1, "orig")
+                        wrongs.append(a)
+                        a = add_text_to_image(imgs_vae[i, ...], s2, "vae", str(dist))
+                        wrongs.append(a)
 
-                        if len(wrongs) < 50 and s1 != s2:
-                            dist = levenshteinDistance(s1, s2)
-                            s2 = s2
-                            a = add_text_to_image(imgs_orig[i, ...], s1, "orig")
-                            wrongs.append(a)
-                            a = add_text_to_image(imgs_vae[i, ...], s2, "vae", str(dist))
-                            wrongs.append(a)
-
-                    if which_image == 0:
-                        experiment.log_metric('orig_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
-                    else:
-                        experiment.log_metric('vaes_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
+                experiment.log_metric('orig_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
 
         if len(corrects) == 50:
             save_image(torch.cat(corrects), "corrects_" + str(epoch) + ".png", nrow=10)
@@ -345,69 +341,66 @@ def test(epoch):
         losses = AverageMeter()  # loss (per word decoded)
         with torch.no_grad():
             for batch_idx, (embed, data, embedlen) in enumerate(val_loader_food):
-                for which_image in range(2):
+                imgs = data.float().cuda(gpu1)
+                imgs_orig = imgs.cpu()
+                caps = embed.cuda(gpu2)
+                caplens = embedlen.cuda(gpu2).view(-1, 1)
+                print("caps shape", caps.shape)
 
-                    imgs = data.float()
-                    caps = embed.cuda(gpu2)
-                    caplens = embedlen.cuda(gpu2).view(-1, 1)
+                # Forward prop.
+                imgs = encoder(imgs).cuda(gpu2)
+                print(imgs.shape)
+                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
+                                                                                teacher_forcing=bool(epoch < 3))
 
-                    imgs = imgs.cuda(gpu1)
+                scores_copy = scores.clone()
+                # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
+                imgs_orig = imgs_orig[sort_ind]
+                targets = caps_sorted[:, 1:]
+                targets_copy = targets.clone()
 
-                    imgs = encoder(imgs).cuda(gpu2)
+                scores = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+                targets = pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
-                    scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
-                                                                                    teacher_forcing=bool(epoch > 1))
+                scores, _ = pad_packed_sequence(scores, batch_first=True, padding_value=0, total_length=embedding_width)
+                targets, _ = pad_packed_sequence(targets, batch_first=True, padding_value=0,
+                                                 total_length=embedding_width)
 
-                    scores_copy = scores.clone()
-                    # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
-                    targets = caps_sorted[:, 1:]
-                    targets_copy = targets.clone()
-                    # Remove timesteps that we didn't decode at, or are pads
-                    # pack_padded_sequence is an easy trick to do this
-                    # print(caplens)
-                    # for i in range(4):
-                    #     print(scores_copy[i, ...].shape)
-                    #     print(targets_copy[i, ...].shape)
-                    #     print(decode_lengths[i])
+                # Calculate loss
+                print('preloss shapes:', scores.shape, targets.shape)
+                loss = criterion(scores.permute((0, 2, 1)), targets)
 
-                    scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
-                    targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+                # Add doubly stochastic attention regularization
+                loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
 
-                    # Calculate loss
-                    loss = criterion(scores, targets)
+                # Keep track of metrics
+                losses.update(loss.item(), sum(decode_lengths))
 
-                    # Add doubly stochastic attention regularization
-                    loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
+                acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
+                experiment.log_metric("acc_per_char", acc)
+                if batch_idx % log_interval == 0:
 
-                    # Keep track of metrics
-                    losses.update(loss.item(), sum(decode_lengths))
+                    print('Eval Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
+                        epoch, batch_idx * len(data), len(val_loader_food.dataset),
+                               100. * batch_idx / len(val_loader_food),
+                               loss.item() / len(data), datetime.datetime.now()))
 
-                    acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
-                    experiment.log_metric("acc_per_char", acc)
-                    if batch_idx % log_interval == 0:
+                    _, preds = torch.max(scores_copy, dim=2)
+                    preds = preds.cpu().numpy()
+                    targets_copy = targets_copy.cpu().numpy()
+                    for i in range(4):
+                        sample = preds[i, ...]
+                        target = targets_copy[i, ...]
+                        print("ORIG: {}\nNEW : {}".format(
+                            "".join([charset[chars] for chars in target]),
+                            "".join([charset[chars] for chars in sample])
+                        ))
 
-                        print('Eval Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
-                            epoch, batch_idx * len(data), len(val_loader_food.dataset),
-                                   100. * batch_idx / len(val_loader_food),
-                                   loss.item() / len(data), datetime.datetime.now()))
+                experiment.log_metric("orig_loss", loss.item())
 
-                        _, preds = torch.max(scores_copy, dim=2)
-                        preds = preds.cpu().numpy()
-                        targets_copy = targets_copy.cpu().numpy()
-                        for i in range(4):
-                            sample = preds[i, ...]
-                            target = targets_copy[i, ...]
-                            print("ORIG: {}\nNEW : {}".format(
-                                "".join([charset[chars] for chars in target]),
-                                "".join([charset[chars] for chars in sample])
-                            ))
+        experiment.log_metric("loss", losses.avg)
 
-                    if which_image == 0:
-                        experiment.log_metric("orig_loss", loss.item())
-                    else:
-                        experiment.log_metric("vae_loss", loss.item())
 
-            experiment.log_metric("loss", losses.avg)
     return losses.avg
 
 print("Done with setup. Training.")
