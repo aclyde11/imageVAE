@@ -224,8 +224,8 @@ def train(epoch):
                 targets = caps_sorted[:, 1:]
                 targets_copy = targets.clone()
 
-                scores = pack_padded_sequence(scores, decode_lengths, batch_first=True)
-                targets = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+                # scores = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+                # targets = pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
                 # Calculate loss
                 loss = criterion(scores, targets)
