@@ -27,15 +27,15 @@ gpu1, gpu2 = int(sys.argv[1]), int(sys.argv[2])
 torch.cuda.set_device(2)
 hyper_params = {
     "num_epochs": 1000,
-    "train_batch_size": 28,
-    "val_batch_size": 128,
+    "train_batch_size": 8,
+    "val_batch_size": 8,
     'seed': 42,
     "learning_rate": 0.001
 }
 
 experiment = Experiment(project_name="grid-lstm", disabled=True)
 experiment.log_parameters(hyper_params)
-batch_size = 256
+batch_size = 8
 starting_epoch = 1
 epochs = hyper_params['num_epochs']
 no_cuda = False
