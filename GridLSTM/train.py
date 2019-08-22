@@ -234,8 +234,10 @@ def train(epoch):
             targets, _ = pad_packed_sequence(targets, batch_first=True, padding_value=0, total_length=embedding_width)
 
             # Calculate loss
+            scores = scores.permute((0, 2, 1))
+
             print('preloss shapes:', scores.shape, targets.shape)
-            loss = criterion(scores.permute((0, 2, 1)), targets)
+            loss = criterion(scores, targets)
 
             # Add doubly stochastic attention regularization
             loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
@@ -263,7 +265,6 @@ def train(epoch):
             experiment.log_metric('loss', loss.item())
             experiment.log_metric("orig_loss", loss.item())
 
-            scores = scores.permute((0, 2, 1))
             acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
             experiment.log_metric("acc_per_char", acc)
 
@@ -366,9 +367,11 @@ def test(epoch):
                 targets, _ = pad_packed_sequence(targets, batch_first=True, padding_value=0,
                                                  total_length=embedding_width)
 
+                scores = scores.permute((0, 2, 1))
                 # Calculate loss
+
                 print('preloss shapes:', scores.shape, targets.shape)
-                loss = criterion(scores.permute((0, 2, 1)), targets)
+                loss = criterion(scores, targets)
 
                 # Add doubly stochastic attention regularization
                 loss += alpha_c * ((1. - alphas.sum(dim=1)) ** 2).mean()
