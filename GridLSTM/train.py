@@ -203,13 +203,10 @@ def train(epoch):
 
             for which_image in rangeobj:
 
-                imgs = data.float()
-                imgs_orig = imgs
+                imgs = data.float().cuda(gpu1)
+                imgs_orig = imgs.cpu()
                 caps = embed.cuda(gpu2)
                 caplens = embedlen.cuda(gpu2).view(-1, 1)
-                imgs = imgs.cuda(gpu1)
-                imgs_orig = imgs
-                imgs_vae = imgs
 
                 # Forward prop.
                 imgs = encoder(imgs).cuda(gpu2)
@@ -219,7 +216,6 @@ def train(epoch):
 
                 scores_copy = scores.clone()
                 # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
-                imgs_vae = imgs_vae[sort_ind]
                 imgs_orig = imgs_orig[sort_ind]
                 targets = caps_sorted[:, 1:]
                 targets_copy = targets.clone()
@@ -228,6 +224,7 @@ def train(epoch):
                 # targets = pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
                 # Calculate loss
+                print('preloss shapes:', scores.shape, targets.shape)
                 loss = criterion(scores, targets)
 
                 # Add doubly stochastic attention regularization
