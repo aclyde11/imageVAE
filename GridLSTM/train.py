@@ -12,7 +12,7 @@ from torchvision import datasets, transforms
 from torchvision.utils import save_image
 import torchvision
 import pickle
-from PIL import  ImageOps
+from PIL import ImageOps
 from models import GridLSTMDecoderWithAttention, Encoder
 from model import GeneralVae, PictureEncoder, PictureDecoder
 from invert import Invert
@@ -20,59 +20,62 @@ from invert import Invert
 import numpy as np
 import pandas as pd
 
+import sys
+
+gpu1, gpu2 = sys.argv[1], sys.argv[2]
+
 torch.cuda.set_device(2)
 hyper_params = {
     "num_epochs": 1000,
     "train_batch_size": 28,
     "val_batch_size": 128,
-    'seed' : 42,
+    'seed': 42,
     "learning_rate": 0.001
 }
 
-
-experiment = Experiment(project_name="pytorch")
+experiment = Experiment(project_name="grid-lstm")
 experiment.log_parameters(hyper_params)
-batch_size = 350
-starting_epoch=1
+batch_size = 256
+starting_epoch = 1
 epochs = hyper_params['num_epochs']
 no_cuda = False
 seed = hyper_params['seed']
 data_para = True
 log_interval = 5
-LR = hyper_params['learning_rate']       ##adam rate
-rampDataSize = 0.2 ## data set size to use
+LR = hyper_params['learning_rate']  ##adam rate
+rampDataSize = 0.2  ## data set size to use
 embedding_width = 70
-vocab = pickle.load( open( "/homes/aclyde11/moldata/charset.p", "rb" ) )
+vocab = pickle.load(open("/homes/aclyde11/zinc/vocab_cleaned.pkl", "rb"))
 vocab = {k: v for v, k in enumerate(vocab)}
-charset = {k: v for v ,k in vocab.items()}
+charset = {k: v for v, k in vocab.items()}
 
-
-
-
-KLD_annealing = 0.05  ##set to 1 if not wanted.
-model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_111.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_100.pt'}
+# model_load1 = {'decoder' : '/homes/aclyde11/imageVAE/combo/model/decoder1_epoch_111.pt', 'encoder':'/homes/aclyde11/imageVAE/smi_smi/model/encoder_epoch_100.pt'}
 cuda = True
 data_size = 1400000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/combo/results/'
 save_files = '/homes/aclyde11/imageVAE/combo/model/'
 device = torch.device("cuda" if cuda else "cpu")
-kwargs = {'num_workers': 64, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': 32, 'pin_memory': True} if cuda else {}
 
-train_data = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/train.csv"), vocab, max_len=70)
-val_data   = MoleLoader(pd.read_csv("/homes/aclyde11/moses/data/test.csv"), vocab, max_len=70)
+train_data = MoleLoader(
+    pd.read_csv("/homes/aclyde11/zinc/zinc_cleaned.smi", sep=' ', header=None, engine='c', low_memory=False), vocab,
+    max_len=70)
+val_data = MoleLoader(pd.read_csv("/homes/aclyde11/zinc/zinc_cleaned.smi", sep=' ', header=None, engine='c', low_memory=False),
+                      vocab, max_len=70)
 
 train_loader_food = torch.utils.data.DataLoader(
-        train_data,
-        batch_size=batch_size, shuffle=False, drop_last=True,  **kwargs)
+    train_data,
+    batch_size=batch_size, shuffle=False, drop_last=True, **kwargs)
 val_loader_food = torch.utils.data.DataLoader(
-        val_data,
-        batch_size=batch_size, shuffle=False, drop_last=True,  **kwargs)
+    val_data,
+    batch_size=batch_size, shuffle=False, drop_last=True, **kwargs)
 
 vocab = train_data.vocab
 charset = train_data.charset
-embedding_width = 70
+embedding_width = 150
 embedding_size = len(vocab)
+
 
 def clip_gradient(optimizer, grad_clip):
     """
@@ -85,7 +88,8 @@ def clip_gradient(optimizer, grad_clip):
             if param.grad is not None:
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
-emb_dim = 128  # dimension of word embeddings
+
+emb_dim = 48  # dimension of word embeddings
 attention_dim = 256  # dimension of attention linear layers
 decoder_dim = 256  # dimension of decoder RNN
 dropout = 0.15
@@ -96,55 +100,30 @@ grad_clip = 5.  # clip gradients at an absolute value of
 alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as in the paper
 fine_tune_encoder = True  # fine-tune encoder?
 
-
 decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
-                              embed_dim=emb_dim,
-                              decoder_dim=decoder_dim,
-                              vocab_size=len(vocab),
-                              encoder_dim=512,
-                              dropout=dropout)
+                                       embed_dim=emb_dim,
+                                       decoder_dim=decoder_dim,
+                                       vocab_size=len(vocab),
+                                       encoder_dim=512,
+                                       dropout=dropout)
 
-
-encoder = PictureEncoder().cuda()
-decoder = PictureDecoder().cuda()
-
-checkpoint = torch.load( "/homes/aclyde11/imageVAE/im_im_ex/model/" + 'epoch_' + str(106) + '.pt', map_location='cpu')
-encoder.load_state_dict(checkpoint['encoder_state_dict'])
-decoder.load_state_dict(checkpoint['decoder_state_dict'])
-vae_model = GeneralVae(encoder, decoder, rep_size=500)
-for param in vae_model.parameters():
-    param.requires_grad = False
-vae_model = vae_model.cuda(5)
-
-#checkpoint = torch.load("state_8.pt", map_location='cpu')
-decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
-                              embed_dim=emb_dim,
-                              decoder_dim=decoder_dim,
-                              vocab_size=train_data.get_vocab_len(),
-                              encoder_dim=512,
-                              dropout=dropout)
-#decoder.load_state_dict(checkpoint['decoder_state_dict'])
 decoder.fine_tune_embeddings(True)
-decoder = decoder.cuda(7)
-
+decoder = decoder.cuda(gpu2)
 
 decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                      lr=decoder_lr)
-#decoder_optimizer.load_state_dict(checkpoint['decoder_optimizer_state_dict'])
 encoder = Encoder()
-#encoder.load_state_dict(checkpoint["encoder_state_dict"])
 encoder.fine_tune(fine_tune_encoder)
-encoder = encoder.cuda(6)
+encoder = encoder.cuda(gpu1)
 
 encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
                                      lr=encoder_lr) if fine_tune_encoder else None
-#encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer_state_dict'])
 
 decoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(decoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
 encoder_sched = torch.optim.lr_scheduler.CosineAnnealingLR(encoder_optimizer, 8, eta_min=5e-6, last_epoch=-1)
 
+criterion = nn.CrossEntropyLoss().cuda(gpu2)
 
-criterion = nn.CrossEntropyLoss().cuda(7)
 
 class AverageMeter(object):
     """
@@ -170,13 +149,14 @@ class AverageMeter(object):
 def get_batch_size(epoch):
     return batch_size
 
+
 def levenshteinDistance(s1, s2):
     if len(s1) > len(s2):
         s1, s2 = s2, s1
 
     distances = range(len(s1) + 1)
     for i2, c2 in enumerate(s2):
-        distances_ = [i2+1]
+        distances_ = [i2 + 1]
         for i1, c1 in enumerate(s1):
             if c1 == c2:
                 distances_.append(distances[i1])
@@ -185,14 +165,14 @@ def levenshteinDistance(s1, s2):
         distances = distances_
     return distances[-1]
 
+
 def add_text_to_image(ten, text, which="orig", dis=None):
-    from PIL import Image
     from PIL import ImageFont
     from PIL import ImageDraw
     img = transforms.ToPILImage(mode='RGB')(ten)
     img = Invert()(img)
     draw = ImageDraw.Draw(img)
-    #ont = ImageFont.truetype(<font-file>, <font-size>)
+    # ont = ImageFont.truetype(<font-file>, <font-size>)
     sfont = ImageFont.truetype("Vera.ttf", 9)
     font = ImageFont.truetype("Vera.ttf", 11)
 
@@ -204,6 +184,7 @@ def add_text_to_image(ten, text, which="orig", dis=None):
     img.convert('RGB')
     return transforms.ToTensor()(img).float().view(1, 3, 256, 256)
 
+
 def train(epoch):
     with experiment.train():
         experiment.log_current_epoch(epoch)
@@ -211,34 +192,25 @@ def train(epoch):
         print("Epoch {}: batch_size {}".format(epoch, get_batch_size(epoch)))
         decoder.train()  # train mode (dropout and batchnorm is used)
         encoder.train()
-        vae_model.eval()
         losses = AverageMeter()  # loss (per word decoded)
         corrects = []
         wrongs = []
         for batch_idx, (embed, data, embedlen) in enumerate(train_loader_food):
-            rangeobj = None
-            rangeobj = range(1,2)
-
+            rangeobj = range(1, 2)
 
             for which_image in rangeobj:
 
                 imgs = data.float()
                 imgs_orig = imgs
-                caps = embed.cuda(7)
-                caplens = embedlen.cuda(7).view(-1, 1)
-                imgs_vae = None
-                if which_image == 0:
-                    imgs = imgs.cuda(6)
-                else:
-                    imgs = imgs.cuda(5)
-                    imgs,_,_ = vae_model(imgs)
-                    imgs_vae = imgs.cpu().detach()
-                    imgs = imgs.cuda(6)
+                caps = embed.cuda(gpu2)
+                caplens = embedlen.cuda(gpu2).view(-1, 1)
+                imgs = imgs.cuda(gpu1)
 
                 # Forward prop.
-                imgs = encoder(imgs).cuda(7)
+                imgs = encoder(imgs).cuda(gpu2)
                 print(imgs.shape)
-                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, teacher_forcing=bool(epoch < 3))
+                scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
+                                                                                teacher_forcing=bool(epoch < 3))
 
                 scores_copy = scores.clone()
                 # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
@@ -246,7 +218,6 @@ def train(epoch):
                 imgs_orig = imgs_orig[sort_ind]
                 targets = caps_sorted[:, 1:]
                 targets_copy = targets.clone()
-
 
                 scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
                 targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
@@ -286,24 +257,24 @@ def train(epoch):
                 acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
                 experiment.log_metric("acc_per_char", acc)
 
-
                 acc_per_string = 0
                 if batch_idx % log_interval == 0:
                     print("wrongs len: {}, correct len: {}".format(len(wrongs), len(corrects)))
-                    print('Train Epoch {}: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format( "orig" if which_image == 0 else "vaes",
+                    print('Train Epoch {}: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} {}'.format(
+                        "orig" if which_image == 0 else "vaes",
                         epoch, batch_idx * len(data), len(train_loader_food.dataset),
-                               100. * batch_idx / len(train_loader_food),
-                               loss.item() / len(data), datetime.datetime.now()))
+                        100. * batch_idx / len(train_loader_food),
+                        loss.item() / len(data), datetime.datetime.now()))
 
                     _, preds = torch.max(scores_copy, dim=2)
                     preds = preds.cpu().numpy()
                     targets_copy = targets_copy.cpu().numpy()
 
                     imgs_orig = imgs_orig.detach().cpu()
-                    imgs_vae     = imgs_vae.detach().cpu()
+                    imgs_vae = imgs_vae.detach().cpu()
                     for i in range(preds.shape[0]):
-                        sample = preds[i,...]
-                        target = targets_copy[i,...]
+                        sample = preds[i, ...]
+                        target = targets_copy[i, ...]
                         s1 = "".join([charset[chars] for chars in target]).strip()
                         s2 = "".join([charset[chars] for chars in sample]).strip()
                         if i < 4:
@@ -313,7 +284,7 @@ def train(epoch):
                         if len(corrects) < 50 and s1 == s2:
                             a = add_text_to_image(imgs_orig[i, ...], s1, "orig")
                             corrects.append(a)
-                            a = add_text_to_image(imgs_vae[i,...], s2, "vae", str(0))
+                            a = add_text_to_image(imgs_vae[i, ...], s2, "vae", str(0))
                             corrects.append(a)
 
                         if len(wrongs) < 50 and s1 != s2:
@@ -325,7 +296,7 @@ def train(epoch):
                             wrongs.append(a)
 
                     if which_image == 0:
-                        experiment.log_metric('orig_acc_per_string', float(acc_per_string) / float(preds.shape[0]) )
+                        experiment.log_metric('orig_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
                     else:
                         experiment.log_metric('vaes_acc_per_string', float(acc_per_string) / float(preds.shape[0]))
 
@@ -334,34 +305,29 @@ def train(epoch):
         if len(wrongs) == 50:
             save_image(torch.cat(wrongs), "wrongs_" + str(epoch) + ".png", nrow=10)
 
+            #
+            #
+            # sampled = scores.cpu().detach()
+            #
+            # _, preds = torch.max(sampled, dim=2)
+            # preds = preds.tolist()
+            # temp_preds = list()
+            # for j, p in enumerate(preds):
+            #     temp_preds.append(preds[j][:decode_lengths[j]])  # remove pads
+            # preds = temp_preds
+            # print(preds)
 
-                #
-                #
-                # sampled = scores.cpu().detach()
-                #
-                # _, preds = torch.max(sampled, dim=2)
-                # preds = preds.tolist()
-                # temp_preds = list()
-                # for j, p in enumerate(preds):
-                #     temp_preds.append(preds[j][:decode_lengths[j]])  # remove pads
-                # preds = temp_preds
-                # print(preds)
-
-                # print(sampled.shape)
-                # print(sampled)
-                # mol = targets.cpu().numpy()
-                # mol = decode_smiles_from_indexes(mol)
-                # sampled = decode_smiles_from_indexes(sampled)
-                # print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
-
-
-
+            # print(sampled.shape)
+            # print(sampled)
+            # mol = targets.cpu().numpy()
+            # mol = decode_smiles_from_indexes(mol)
+            # sampled = decode_smiles_from_indexes(sampled)
+            # print("Orig: ", mol, " Sample: ", sampled, ' BCE: ')
 
 
 def test(epoch):
     with experiment.test():
         experiment.log_current_epoch(epoch)
-        vae_model.eval()
         decoder.eval()
         encoder.eval()
         losses = AverageMeter()  # loss (per word decoded)
@@ -370,17 +336,12 @@ def test(epoch):
                 for which_image in range(2):
 
                     imgs = data.float()
-                    caps = embed.cuda(7)
-                    caplens = embedlen.cuda(7).view(-1, 1)
+                    caps = embed.cuda(gpu2)
+                    caplens = embedlen.cuda(gpu2).view(-1, 1)
 
-                    if which_image == 0:
-                        imgs = imgs.cuda(6)
-                    else:
-                        imgs = imgs.cuda(5)
-                        imgs, _, _ = vae_model(imgs)
-                        imgs = imgs.cuda(6)
-                    # Forward prop.
-                    imgs = encoder(imgs).cuda(7)
+                    imgs = imgs.cuda(gpu1)
+
+                    imgs = encoder(imgs).cuda(gpu2)
 
                     scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens,
                                                                                     teacher_forcing=bool(epoch > 1))
@@ -444,10 +405,9 @@ for epoch in range(starting_epoch, epochs):
     train(epoch)
     val = test(epoch)
 
-
     torch.save({
         'epoch': epoch,
         'decoder_state_dict': decoder.state_dict(),
         'decoder_optimizer_state_dict': decoder_optimizer.state_dict(),
-        'encoder_state_dict' : encoder.state_dict(),
-        'encoder_optimizer_state_dict' : encoder_optimizer.state_dict()}, 'state_' + str(epoch) + ".pt")
+        'encoder_state_dict': encoder.state_dict(),
+        'encoder_optimizer_state_dict': encoder_optimizer.state_dict()}, 'state_' + str(epoch) + ".pt")
