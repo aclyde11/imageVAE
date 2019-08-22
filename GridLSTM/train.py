@@ -61,9 +61,9 @@ kwargs = {'num_workers': 32, 'pin_memory': True} if cuda else {}
 
 print("Creating data loaders...")
 train_data = MoleLoader(
-    pd.read_csv("/homes/aclyde11/zinc/zinc_cleaned.smi", sep=' ', header=None, engine='c', low_memory=False), vocab,
+    pd.read_csv("/homes/aclyde11/zinc/train.smi", sep=' ', header=None, engine='c', low_memory=False), vocab,
     max_len=70)
-val_data = MoleLoader(pd.read_csv("/homes/aclyde11/zinc/zinc_cleaned.smi", sep=' ', header=None, engine='c', low_memory=False),
+val_data = MoleLoader(pd.read_csv("/homes/aclyde11/zinc/test.smi", sep=' ', header=None, engine='c', low_memory=False),
                       vocab, max_len=70)
 
 train_loader_food = torch.utils.data.DataLoader(
