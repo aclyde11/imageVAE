@@ -44,7 +44,7 @@ data_para = True
 log_interval = 5
 LR = hyper_params['learning_rate']  ##adam rate
 rampDataSize = 0.2  ## data set size to use
-embedding_width = 70
+embedding_width = 150
 vocab = pickle.load(open("/homes/aclyde11/zinc/vocab_cleaned.pkl", "rb"))
 vocab = {k: v for v, k in enumerate(vocab)}
 charset = {k: v for v, k in vocab.items()}
@@ -109,6 +109,7 @@ decoder = GridLSTMDecoderWithAttention(attention_dim=attention_dim,
                                        vocab_size=len(vocab),
                                        encoder_dim=512,
                                        dropout=dropout)
+print("vocab size:", len(vocab))
 
 decoder.fine_tune_embeddings(True)
 decoder = decoder.cuda(gpu2)
