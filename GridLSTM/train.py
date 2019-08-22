@@ -258,6 +258,7 @@ def train(epoch):
                 experiment.log_metric('loss', loss.item())
                 experiment.log_metric("orig_loss", loss.item())
 
+                scores = scores.permute((0, 2, 1))
                 acc = torch.max(scores, dim=1)[1].eq(targets).sum().item() / float(targets.shape[0])
                 experiment.log_metric("acc_per_char", acc)
 
