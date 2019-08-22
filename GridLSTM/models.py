@@ -268,8 +268,8 @@ class GridLSTMDecoderWithAttention(nn.Module):
         decode_lengths = (caption_lengths - 1).tolist()
 
         # Create tensors to hold word predicion scores and alphas
-        predictions = torch.zeros(batch_size, max(decode_lengths), vocab_size).cuda(7)
-        alphas = torch.zeros(batch_size, max(decode_lengths), num_pixels).cuda(7)
+        predictions = torch.zeros(batch_size, max(decode_lengths), vocab_size).cuda(encoder_out.get_device())
+        alphas = torch.zeros(batch_size, max(decode_lengths), num_pixels).cuda(encoder_out.get_device())
 
         # At each time-step, decode by
         # attention-weighing the encoder's output based on the decoder's previous hidden state output
