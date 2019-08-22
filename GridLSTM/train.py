@@ -30,7 +30,7 @@ args = parser.parse_args()
 import sys
 
 gpu1, gpu2 = args.gpu1, args.gpu2
-
+torch.cuda.set_device(gpu2)
 hyper_params = {
     "num_epochs": 1000,
     "train_batch_size": 8,
@@ -61,7 +61,6 @@ data_size = 1400000
 torch.manual_seed(seed)
 output_dir = '/homes/aclyde11/imageVAE/combo/results/'
 save_files = '/homes/aclyde11/imageVAE/combo/model/'
-device = torch.device("cuda" if cuda else "cpu")
 kwargs = {'num_workers': 32, 'pin_memory': True} if cuda else {}
 
 print("Creating data loaders...")
@@ -103,7 +102,6 @@ emb_dim = 48  # dimension of word embeddings
 attention_dim = 256  # dimension of attention linear layers
 decoder_dim = 256  # dimension of decoder RNN
 dropout = 0.15
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # sets device for model and PyTorch tensors
 encoder_lr = 5e-4  # learning rate for encoder if fine-tuning
 decoder_lr = 5e-4  # learning rate for decoder
 grad_clip = 5.  # clip gradients at an absolute value of
@@ -213,7 +211,6 @@ def train(epoch):
             imgs_orig = imgs.cpu()
             caps = embed.cuda(gpu2)
             caplens = embedlen.cuda(gpu2).view(-1, 1)
-            print("caps shape", caps.shape)
 
             # Forward prop.
             imgs = encoder(imgs).cuda(gpu2)
@@ -236,7 +233,6 @@ def train(epoch):
             # Calculate loss
             scores = scores.permute((0, 2, 1))
 
-            print('preloss shapes:', scores.shape, targets.shape)
             loss = criterion(scores, targets)
 
             # Add doubly stochastic attention regularization
@@ -346,7 +342,6 @@ def test(epoch):
                 imgs_orig = imgs.cpu()
                 caps = embed.cuda(gpu2)
                 caplens = embedlen.cuda(gpu2).view(-1, 1)
-                print("caps shape", caps.shape)
 
                 # Forward prop.
                 imgs = encoder(imgs).cuda(gpu2)
@@ -370,7 +365,6 @@ def test(epoch):
                 scores = scores.permute((0, 2, 1))
                 # Calculate loss
 
-                print('preloss shapes:', scores.shape, targets.shape)
                 loss = criterion(scores, targets)
 
                 # Add doubly stochastic attention regularization
