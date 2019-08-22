@@ -208,6 +208,7 @@ def train(epoch):
                 imgs_orig = imgs.cpu()
                 caps = embed.cuda(gpu2)
                 caplens = embedlen.cuda(gpu2).view(-1, 1)
+                print(caps.shape)
 
                 # Forward prop.
                 imgs = encoder(imgs).cuda(gpu2)
